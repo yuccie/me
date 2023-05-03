@@ -6,6 +6,38 @@
 
 这短短的一生，我们重要做些什么有意思的事情。。。
 
+## 目录结构
+
+```
+|
+├── components                           组件目录
+|   ├── assets                           资源目录（目前比较杂）
+|   ├── async-component                  ？？？可考虑整理？？
+├── css                                  样式
+|   ├── assets                           资源目录（目前比较杂）
+|   ├── async-component                  ？？？可考虑整理？？
+|
+├── .editorconfig                        VScode等IDE的代码格式配置文件
+├── .eslintignore                        eslint忽略配置文件
+├── .eslintrc.js                         eslint配置文件
+├── .gitignore                           git忽略文件配置
+├── .npmrc                               npm包服务器配置
+├── .prettierrc                          代码美化配置
+├── babel.config.json                    Babel 配置
+|
+|
+├── build.sh                             OE构建脚本
+├── ci.config.js                         cli上传配置文件
+├── makefile                             make工具配置文件
+├── monitorBuild.sh                      本地快速模拟OE构建流程
+|
+└── package-lock.json                    lock文件
+└── package.json                         源码依赖包文件目录
+└── postcss.config.js                    代码格式化配置
+└── README.md                            读我就知道
+└── tsconfig.json                        ts格式配置文件
+```
+
 ## something
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/timlrx/tailwind-nextjs-starter-blog?style=social)](https://GitHub.com/timlrx/tailwind-nextjs-starter-blog/stargazers/)

@@ -1,9 +1,9 @@
 // 这里的数据作为模块，被Footer组件引入并使用
 const siteMetadata = {
-  title: '欢迎来到我的博客网站',
+  title: '欢迎来到雅奇的博客网站',
   author: '雅奇',
   headerTitle: '雅奇的博客',
-  description: 'A blog created with Next.js',
+  description: '凡是过往，皆为序章',
   language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://dume.vercel.app/',

@@ -6,8 +6,10 @@ import { getAllTags } from '@/lib/tags'
 import kebabCase from '@/lib/utils/kebabCase'
 
 export async function getStaticProps() {
+  // 获取所有 /data/blog下的头部文件信息
   const tags = await getAllTags('blog')
-
+  // console.log('djch tags', tags)
+  // 输出一个对象，key是tag，value是tag出现的次数。getStaticProps只会在服务端执行
   return { props: { tags } }
 }
 

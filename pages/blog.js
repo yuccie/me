@@ -20,6 +20,7 @@ export default function Blog({ posts, initialDisplayPosts, pagination }) {
   return (
     <>
       <PageSEO title={`Blog - ${siteMetadata.author}`} description={siteMetadata.description} />
+      {/* 搜索，是根据传入的posts文件，然后解析frontMatter，然后input匹配关键词 */}
       <ListLayout
         posts={posts}
         initialDisplayPosts={initialDisplayPosts}
