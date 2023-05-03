@@ -5,11 +5,11 @@
 // The app listens to the event and triggers a client-side router refresh
 // see components/ClientReload.js
 
-const chalk = require('chalk')
-const chokidar = require('chokidar')
-const program = require('commander')
-const http = require('http')
-const SocketIO = require('socket.io')
+const chalk = require('chalk') // 颜色库
+const chokidar = require('chokidar') // Minimal and efficient cross-platform file watching library
+const program = require('commander') //
+const http = require('http') //
+const SocketIO = require('socket.io') // 基于 websocket 的一个实时通信应用框架
 const express = require('express')
 const spawn = require('child_process').spawn
 const next = require('next')
@@ -86,6 +86,7 @@ app.prepare().then(() => {
   }
 
   // create an express server
+  // express
   const expressApp = express()
   const server = http.createServer(expressApp)
 
