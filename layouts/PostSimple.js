@@ -9,7 +9,7 @@ import ScrollTopAndComment from '@/components/ScrollTopAndComment'
 
 export default function PostLayout({ frontMatter, authorDetails, next, prev, children }) {
   const { date, title } = frontMatter
-
+  // console.log('djch prev', prev)
   return (
     <SectionContainer>
       <BlogSEO url={`${siteMetadata.siteUrl}/blog/${frontMatter.slug}`} {...frontMatter} />
@@ -41,6 +41,7 @@ export default function PostLayout({ frontMatter, authorDetails, next, prev, chi
             <Comments frontMatter={frontMatter} />
             <footer>
               <div className="flex flex-col text-sm font-medium sm:flex-row sm:justify-between sm:text-base">
+                {/* 这里的prev是时间排序的上一篇 */}
                 {prev && (
                   <div className="pt-4 xl:pt-8">
                     <Link
