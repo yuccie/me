@@ -19,47 +19,53 @@ export default function UploadBigData() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const xhr = new XMLHttpRequest()
-      xhr.open('post', '/api/uploadBigData')
-      // 浏览器会自动根据数据格式，添加content-type
-      // xhr.setRequestHeader('Content-Type', 'multipart/form-data')
-      xhr.onload = (evt) => {
-        if (xhr.status === 200) {
-          console.log('djch 上传完成后，才会进入回调')
-          // 断点调试可知，onSuccess 回调里会修改file的status、process、response等等
-          // 从而改变props里的 fileList，从而让菊花转消失
+      // const xhr = new XMLHttpRequest()
+      // xhr.open('post', '/api/uploadBigData')
+      // // 浏览器会自动根据数据格式，添加content-type
+      // // xhr.setRequestHeader('Content-Type', 'multipart/form-data')
+      // xhr.onload = (evt) => {
+      //   if (xhr.status === 200) {
+      //     console.log('djch 上传完成后，才会进入回调')
+      //     // 断点调试可知，onSuccess 回调里会修改file的status、process、response等等
+      //     // 从而改变props里的 fileList，从而让菊花转消失
+      //     onSuccess(null, file)
+      //   } else {
+      //     console.error(xhr.response)
+      //   }
+      // }
+      // // 上传进度
+      // xhr.upload.onprogress = function (event) {
+      //   onProgress的参数就是文件对象，然后内部会从event上获取上传的进度，进而展示
+      //   onProgress(event)
+      //   console.log(`djch 先触发 Uploaded ${event.loaded} of ${event.total} bytes`)
+      // }
+
+      // // 上传完成
+      // xhr.upload.onload = function () {
+      //   console.log(`djch 然后触发`)
+      // }
+
+      // // 跟踪完成：无论成功与否
+      // xhr.onloadend = function () {
+      //   if (xhr.status == 200) {
+      //     console.log('djch 最后会走到这里')
+      //   } else {
+      //     console.log('error ' + this.status)
+      //   }
+      // }
+      // xhr.send(formData)
+
+      // 方案二，在不考虑进度时，可以使用fetch来实现文件上传
+      const res = fetch('/api/uploadBigData', {
+        method: 'post',
+        body: formData,
+      })
+        .then((res) => {
           onSuccess(null, file)
-        } else {
-          console.error(xhr.response)
-        }
-      }
-      // 上传进度
-      xhr.upload.onprogress = function (event) {
-        console.log(`djch 先触发 Uploaded ${event.loaded} of ${event.total} bytes`)
-      }
-
-      // 上传完成
-      xhr.upload.onload = function () {
-        console.log(`djch 然后触发`)
-      }
-
-      // 跟踪完成：无论成功与否
-      xhr.onloadend = function () {
-        if (xhr.status == 200) {
-          console.log('djch 最后会走到这里')
-        } else {
-          console.log('error ' + this.status)
-        }
-      }
-      // const res = fetch('/api/uploadBigData', {
-      //     method: 'post',
-      //     body: formData,
-      // }).then(res => {
-      //     console.log('djch res', res)
-      // }).catch(err => {
-      //     console.log('djch err', err)
-      // })
-      xhr.send(formData)
+        })
+        .catch((err) => {
+          onError(null, file)
+        })
     },
     onChange({ fileList }) {
       // 当文件变化以及状态变化，都会触发
