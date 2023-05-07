@@ -84,4 +84,8 @@ module.exports = withBundleAnalyzer({
 
     return config
   },
+  // 使用styled-components需要开启编译器
+  compiler: {
+    styledComponents: true,
+  },
 })
