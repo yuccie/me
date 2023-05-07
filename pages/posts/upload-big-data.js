@@ -2,57 +2,56 @@
  * 大文件断点上传
  * 1. 前端使用XMLHttpRequest上传文件，
  */
+import { useState } from 'react'
 import { Upload } from 'antd'
 import { InboxOutlined } from '@ant-design/icons'
 const { Dragger } = Upload
 
 /* eslint-disable import/no-anonymous-default-export */
 export default function UploadBigData() {
+  const [fileList, setFileList] = useState([])
+
   const props = {
+    fileList,
     name: 'file',
-    // method: 'POST',
-    multiple: true,
-    // action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
-    // beforeUpload(file, fileList) {
-    //     console.log('djch file', file, fileList)
-    //     return true
-    // },
-    customRequest(req) {
-      console.log('djch 文件', req.file)
-      // const myFile = new File()
+    multiple: false,
+    customRequest({ file, onSuccess, onProgress, onError }) {
       const formData = new FormData()
-      formData.append('file', req.file)
+      formData.append('file', file)
 
       const xhr = new XMLHttpRequest()
       xhr.open('post', '/api/uploadBigData')
+      // 浏览器会自动根据数据格式，添加content-type
       // xhr.setRequestHeader('Content-Type', 'multipart/form-data')
-
-      // const formData = new FormData()
-      // 这个文件需要分片？怎么分
-      // const { chunks, fileChunks } = splitChunks(files?.[0])
-      // console.log('djch fileChunks', fileChunks)
-      // formData.append('file', files?.[0])
-      // formData.append('file', fileChunks[curChunk])
-      // formData.append('filename', files.name)
-      // formData.append('chunkNumber', chunks)
-      // formData.append('curChunk', curChunk)
-
-      // formData.append('file', files?.[0])
-      xhr.send(formData)
       xhr.onload = (evt) => {
         if (xhr.status === 200) {
-          // setCurChunk(++curChunk)
-          // if (curChunk < chunks) {
-          // sendFiles()
-          // } else {
-          //     console.log('上传完成')
-          // }
+          console.log('djch 上传完成后，才会进入回调')
+          // 断点调试可知，onSuccess 回调里会修改file的status、process、response等等
+          // 从而改变props里的 fileList，从而让菊花转消失
+          onSuccess(null, file)
         } else {
           console.error(xhr.response)
         }
       }
+      // 上传进度
+      xhr.upload.onprogress = function (event) {
+        console.log(`djch 先触发 Uploaded ${event.loaded} of ${event.total} bytes`)
+      }
 
-      // const res = fetch('/api/upload', {
+      // 上传完成
+      xhr.upload.onload = function () {
+        console.log(`djch 然后触发`)
+      }
+
+      // 跟踪完成：无论成功与否
+      xhr.onloadend = function () {
+        if (xhr.status == 200) {
+          console.log('djch 最后会走到这里')
+        } else {
+          console.log('error ' + this.status)
+        }
+      }
+      // const res = fetch('/api/uploadBigData', {
       //     method: 'post',
       //     body: formData,
       // }).then(res => {
@@ -60,6 +59,11 @@ export default function UploadBigData() {
       // }).catch(err => {
       //     console.log('djch err', err)
       // })
+      xhr.send(formData)
+    },
+    onChange({ fileList }) {
+      // 当文件变化以及状态变化，都会触发
+      setFileList(fileList)
     },
   }
 
