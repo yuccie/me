@@ -52,6 +52,9 @@ dependencies:
   next-themes:
     specifier: ^0.0.14
     version: 0.0.14(next@12.1.4)(react-dom@17.0.2)(react@17.0.2)
+  plantuml-encoder:
+    specifier: ^1.4.0
+    version: 1.4.0
   postcss:
     specifier: ^8.4.5
     version: 8.4.23
@@ -6525,6 +6528,10 @@ packages:
   /pirates@4.0.5:
     resolution: {integrity: sha512-8V9+HQPupnaXMA23c5hvl69zXvTwTzyAYasnkb0Tts4XvO4CliqONMOnvlq26rkhLC3nWDFBJf73LU1e1VZLaQ==}
     engines: {node: '>= 6'}
+    dev: false
+
+  /plantuml-encoder@1.4.0:
+    resolution: {integrity: sha512-sxMwpDw/ySY1WB2CE3+IdMuEcWibJ72DDOsXLkSmEaSzwEUaYBT6DWgOfBiHGCux4q433X6+OEFWjlVqp7gL6g==}
     dev: false
 
   /please-upgrade-node@3.2.0:
