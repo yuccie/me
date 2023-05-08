@@ -207,7 +207,7 @@ export default function UploadBigData() {
       const formData = new FormData()
       formData.append('file', file)
       console.log('djch file', file.slice(0, 1500))
-      // 
+
       if (curType === 'XMLHttpRequest') {
         // 创建请求
         const xhr = new XMLHttpRequest()
