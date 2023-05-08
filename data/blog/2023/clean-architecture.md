@@ -12,7 +12,10 @@ canonicalUrl: https://dume.vercel.app/blog/2023/clean-architecture
 
 ## 前言
 
+
 这篇文章是阅读 《架构整洁之道》 这本书的笔记，和自己的一些感想。
+
+![哈哈](http://www.plantuml.com/plantuml/img/SrJGjLDmibBmICt9oGS0)
 
 ## 第一部分：概述
 
