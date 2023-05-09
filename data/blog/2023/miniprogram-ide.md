@@ -12,11 +12,21 @@ canonicalUrl: https://dume.vercel.app/blog/2023/miniprogram-ide
 
 ## 背景
 
+在开发小程序时，我们经常需要调试，而调试小程序就需要用到 IDE .
+
+## 技术栈
+
+- Electron
+- React
+
+## 小程序 IDE 架构
+
 小程序 IDE（Integrated Development Environment）一个集成开发环境，主要有以下几个模块组成。
 
+- 模拟器：主要使用 iframe 模拟
 - 编辑器：小程序 IDE 采用了类似于 Sublime Text 的编辑器，支持代码高亮、自动补全、语法检查等功能。
 - 调试器：小程序 IDE 通过与微信开发者工具的集成，提供了丰富的调试功能，包括实时预览、页面调试、网络请求跟踪等。
 - 构建工具：小程序 IDE 采用了类似于 webpack 的构建工具，将开发者编写的代码打包成小程序可以运行的代码。
 - 云开发：小程序 IDE 提供了云开发功能，可以在 IDE 中访问云数据库、云函数等云服务。
 
-##
+## 小程序 IDE 组成
