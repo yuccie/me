@@ -187,7 +187,6 @@ if (response.ok) { // 如果 HTTP 状态码为 200-299
   onError(null, file)
   alert("HTTP-Error: " + response.status);
 }
-
 `
 
 /* eslint-disable import/no-anonymous-default-export */
