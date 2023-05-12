@@ -18,6 +18,10 @@ canonicalUrl: https://dume.vercel.app/blog/tips-of-nextjs
 
 - Irregular whitespace not allowed 这种错误，一般是复制其他地方的代码到编辑器，比如 devtools 里，导致失败，检查相关的即可
 
+### 图床
+
+- 为了降低服务器的使用，可以将图片转为 base64，然后再通过其他格式将这个再次转换成更短的，只需要占用算力就可以
+
 ### md 语法
 
 - draft：是否为草稿，
