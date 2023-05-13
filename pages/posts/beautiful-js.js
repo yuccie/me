@@ -811,8 +811,13 @@ const BeautifulJs = () => {
     var arr2 = Array.of(1, 2, 3, 4, 5) // 💥 不管传入什么，都当成值
     var arr3 = Array.from([1, 2, 3, 4, 5]) // 💥
 
-    const depuliationArr = [...new Set([1, 2, 2, 3, 3])]
-    console.log(depuliationArr)
+    // 利用Set
+    const depuliationSetArr = [...new Set([1, 2, 2, 3, 3])]
+    console.log('set去重：', depuliationSetArr)
+
+    // 利用indxof
+    const depuliationIdxArr = [1, 1, 2, 2, 3].map((item, idx, ctx) => idx === ctx.indexOf(item))
+    console.log('indexOf去重：', depuliationIdxArr)
     // 下面一行勿动 🚫
     // `
   }
