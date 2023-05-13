@@ -428,6 +428,8 @@ xhr.open('POST', '/upload')
 xhr.send(formData)
 ```
 
+但是对于二进制处理，要访问单个数据字节，我们可以将其改为 "arraybuffer"：
+
 ### File
 
 File 对象继承自 Blob。

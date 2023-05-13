@@ -86,6 +86,18 @@ const menus = [
       },
     ],
   },
+  {
+    key: 'dynamic',
+    icon: <UploadOutlined />,
+    label: '动态规划',
+    children: [
+      {
+        key: 'dynamicProgram',
+        icon: <VideoCameraOutlined />,
+        label: '矩阵解法',
+      },
+    ],
+  },
 ]
 
 const BeautifulJs = () => {
@@ -411,7 +423,7 @@ const BeautifulJs = () => {
   }
 
   // 链表相关
-  // 链表 -- 环形链表
+  // 链表 -- 链表里是否有环，也叫循环链表、环形链表都可以
   bodyMap.cycleLinkStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -822,6 +834,43 @@ const BeautifulJs = () => {
     // `
   }
 
+  // 动态规划
+  bodyMap.dynamicProgramStr = () => {
+    // return `
+    // m * n 的矩阵，从左上角，向左向下，到右下角，一共多少种方法
+    const dynamicProgramPath = (m, n) => {
+      // 🔥 其实动态规划问题，就是分而治之，类似递归，同时需要设置好初始条件
+      // 1、初始化二维数组
+      const dp = Array(m)
+        .fill()
+        .map(() => Array(n).fill(0))
+
+      // 2、初始化第一行和第一列为 1
+      for (let i = 0; i < m; i++) {
+        dp[i][0] = 1
+      }
+      for (let j = 0; j < n; j++) {
+        dp[0][j] = 1
+      }
+
+      // 3、从第二行和第二列，开始计算
+      for (let i = 1; i < m; i++) {
+        for (let j = 1; j < n; j++) {
+          // 当前位置的解法数等于左边位置和上边位置的解法数之和
+          dp[i][j] = dp[i - 1][j] + dp[i][j - 1]
+        }
+      }
+
+      // 返回右下角位置的解法数
+      return dp[m - 1][n - 1]
+    }
+    // 实例: 3*3 矩阵
+    // 1 2 3
+    // 4 5 6  -> 1236,1256,1456
+    console.log('3*3 矩阵的解法：', dynamicProgramPath(3, 2)) // 3
+
+    // `
+  }
   return (
     <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
