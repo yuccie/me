@@ -207,6 +207,14 @@ export default function UploadBigData() {
       formData.append('file', file)
       console.log('djch file', file.slice(0, 1500))
 
+      // const reader = new FileReader();
+      // reader.readAsDataURL(file);
+      // reader.onload = () => {
+      //   debugger
+      //   const base64String = reader.result.split(',')[1];
+      //   console.log(base64String);
+      // };
+
       if (curType === 'XMLHttpRequest') {
         // 创建请求
         const xhr = new XMLHttpRequest()
@@ -355,6 +363,16 @@ export default function UploadBigData() {
   }
 
   const btnsClick = (evt) => {
+    var blob = new Blob(['Hello, world!'], { type: 'text/plain' })
+    var url = URL.createObjectURL(blob)
+
+    // 生成的URL可以用于创建一个新的Image、Audio、Video等标签，或者用于Ajax请求中的FormData对象。
+    // 例如，下面的代码创建了一个Image标签，并将Blob对象的数据作为图片的源：
+    var img = new Image()
+    img.src = url
+    console.log('url', url)
+    // document.body.appendChild(img);
+
     const { innerText } = evt.target || {}
     switch (innerText) {
       case 'XMLHttpRequest':
@@ -371,6 +389,7 @@ export default function UploadBigData() {
   return (
     <>
       <Card title="示例： 上传文件">
+        {/* <img src='blob:http://localhost:3000/01600cd0-a4f0-4d18-a7b9-4b00b6c6ca1a'></img> */}
         <ActionType>描述： 使用不同的方式上传</ActionType>
         <Space style={{ margin: '10px 0' }} onClick={btnsClick}>
           {/* tailwind 的样式覆盖了，后续再调整 */}
