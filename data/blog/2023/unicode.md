@@ -155,7 +155,6 @@ var num = 10
 console.log(num.toString()) // "10"
 console.log(num.toString(2)) // "1010"
 console.log(num.toString(16)) // "a"
-
 ;((255 << 16) | (255 << 8) | 0)
   .toString(16)(
     // 'ffff00'
@@ -449,7 +448,7 @@ File 对象具有以下属性：
 - type：文件的 MIME 类型。
 - lastModifiedDate：文件的最后修改日期。
 
-除了 Blob 方法和属性外，File 对象还有 name 和 lastModified 属性，以及从文件系统读取的内部功能。我们通常从用户输入如 <input> 或拖放事件来获取 File 对象。
+除了 Blob 方法和属性外，File 对象还有 name 和 lastModified 属性，以及从文件系统读取的内部功能。我们通常从用户输入如 `<input>` 或拖放事件来获取 File 对象。
 
 ```html
 <input type="file" id="fileInput" />
@@ -519,5 +518,5 @@ formData 数据格式产生的原因主要是因为 HTML 表单元素只能接�
 
 ## 参考链接
 
-[文件 API(MDN)](https://developer.mozilla.org/zh-CN/docs/Web/API/File_API)
-[二进制数据，文件](https://zh.javascript.info/binary)
+- [文件 API(MDN)](https://developer.mozilla.org/zh-CN/docs/Web/API/File_API)
+- [二进制数据，文件](https://zh.javascript.info/binary)
