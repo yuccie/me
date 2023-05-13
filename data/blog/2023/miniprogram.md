@@ -12,7 +12,9 @@ canonicalUrl: https://dume.vercel.app/blog/2023/miniprogram
 
 ## 背景
 
-因为本人目前正在做关于小程序的业务，同时也在维护小程序底层的基础库，也就是小程序的运行时。，因此这里深入的研究下小程序基础库相关的技术体系。
+小程序，一种不用安装即可使用的应用程序
+
+其实底层原理就是，就是通过将 小程序语言 通过编译器，编译成 js 和 css，然后注入到客户端提供的容器里执行而已。
 
 ## 1、小程序的诞生
 
@@ -262,9 +264,199 @@ this.triggerEvent(
 
 小程序基础库自身也会通过这套事件系统提供一些用户事件，如 tap、touchstart 和 form 组件的 submit 等。其中，tap 等用户触摸引发的事件是在 Composed Tree 上的冒泡事件，其他事件大多是非冒泡事件。
 
-## 3、架构篇-VirtualDOM 渲染流程
+## 7、架构篇-WXSS 编译原理及动态适配设计
 
-## 3、架构篇-通讯系统设计
+- WXSS 语法解析
+- WXSS 编译原理
+- WXSS 动态适配设计
+
+WXSS (WeiXin Style Sheets)是一套样式语言，用于描述 WXML 的组件样式。 WXSS 用来决定 WXML 的组件应该怎么显示。
+
+与 CSS 相比，WXSS 扩展的特性有：尺寸单位和样式导入两个方面，我们最为熟悉的就是尺寸单位 rpx。
+
+### rpx
+
+rpx （responsive pixel）直译为：响应像素。
+
+曾经我们为了做一些响应式的布局，引入 REM，VW 等，或者工程化之后使用 px2remvw，而小程序的适配方案则为 rpx
+
+那 wxss 整个生效的过程如何？
+
+1. wxss 需要经过 wcsc 编译才可以被 webview 所识别
+   1. 在开发者工具控制台，选择 top ，输入 help() 打开帮助选项卡
+   2. 输入第八条命令：openVendor()，此时会打开一个文件目录
+   3. 找到里面的 wcsc 脚本，拷贝到一个目录里，目前不在这个目录里，可以在 ide 的包文件里搜索 wcsc
+   4. 比如这样 `./wcsc -js index.wxss >> wxss.js` 将一个 wxss 文件转换为 js 文件，
+   5. index.wxss 文件会先通过 WCSC 可执行程序文件编译成 js 文件。并不是直接编译成 css 文件。
+2. 生成的 js 文件，通过文件加载注入到页面中，并通过 eval 函数执行里面的逻辑
+   1. 首先会获取设备信息 checkDeviceWidth
+   2. 然后通过 setCssToHead 注入到页面里，在函数内部会将之前 rpx 单位的样式处理成 css
+      1. 然后编译器还会将之前 rpx 单位的标注格式化成其他的格式
+   3. 最后通过在 head 里加入 style 标签，实现样式的插入
+
+```css
+.test {
+  width: 10rpx;
+  height: 20vh;
+}
+```
+
+通过编译器编译后，生成的 js 文件：
+
+```js
+var BASE_DEVICE_WIDTH = 750
+var isIOS = navigator.userAgent.match('iPhone')
+var deviceWidth = window.screen.width || 375
+var deviceDPR = window.devicePixelRatio || 2
+var checkDeviceWidth =
+  window.__checkDeviceWidth__ ||
+  function () {
+    var newDeviceWidth = window.screen.width || 375
+    var newDeviceDPR = window.devicePixelRatio || 2
+    var newDeviceHeight = window.screen.height || 375
+    if (window.screen.orientation && /^landscape/.test(window.screen.orientation.type || ''))
+      newDeviceWidth = newDeviceHeight
+    if (newDeviceWidth !== deviceWidth || newDeviceDPR !== deviceDPR) {
+      deviceWidth = newDeviceWidth
+      deviceDPR = newDeviceDPR
+    }
+  }
+checkDeviceWidth()
+var eps = 1e-4
+var transformRPX =
+  window.__transformRpx__ ||
+  function (number, newDeviceWidth) {
+    if (number === 0) return 0
+    number = (number / BASE_DEVICE_WIDTH) * (newDeviceWidth || deviceWidth)
+    number = Math.floor(number + eps)
+    if (number === 0) {
+      if (deviceDPR === 1 || !isIOS) {
+        return 1
+      } else {
+        return 0.5
+      }
+    }
+    return number
+  }
+var setCssToHead = function (file, _xcInvalid, info) {
+  var Ca = {}
+  var css_id
+  var info = info || {}
+
+  function makeup(file, opt) {
+    var _n = typeof file === 'number'
+    if (_n && Ca.hasOwnProperty(file)) return ''
+    if (_n) Ca[file] = 1
+    var ex = _n ? _C[file] : file
+    var res = ''
+    for (var i = ex.length - 1; i >= 0; i--) {
+      var content = ex[i]
+      if (typeof content === 'object') {
+        var op = content[0]
+        if (op == 0) res = transformRPX(content[1], opt.deviceWidth) + 'px' + res
+        else if (op == 1) res = opt.suffix + res
+        else if (op == 2) res = makeup(content[1], opt) + res
+      } else res = content + res
+    }
+    return res
+  }
+  var rewritor = function (suffix, opt, style) {
+    opt = opt || {}
+    suffix = suffix || ''
+    opt.suffix = suffix
+    if (opt.allowIllegalSelector != undefined && _xcInvalid != undefined) {
+      if (opt.allowIllegalSelector) console.warn('For developer:' + _xcInvalid)
+      else {
+        console.error(_xcInvalid + 'This wxss file is ignored.')
+        return
+      }
+    }
+    Ca = {}
+    css = makeup(file, opt)
+    if (!style) {
+      var head = document.head || document.getElementsByTagName('head')[0]
+      window.__rpxRecalculatingFuncs__ = window.__rpxRecalculatingFuncs__ || []
+      style = document.createElement('style')
+      style.type = 'text/css'
+      style.setAttribute('wxss:path', info.path)
+      head.appendChild(style)
+      window.__rpxRecalculatingFuncs__.push(function (size) {
+        opt.deviceWidth = size.width
+        rewritor(suffix, opt, style)
+      })
+    }
+    if (style.styleSheet) {
+      style.styleSheet.cssText = css
+    } else {
+      if (style.childNodes.length == 0) style.appendChild(document.createTextNode(css))
+      else style.childNodes[0].nodeValue = css
+    }
+  }
+  return rewritor
+}
+// 发现把rpx单位的内容，格式化成了 width: ", [0, 10], " 这样的数据格式
+setCssToHead(['.', [1], 'test { width: ', [0, 10], '; height: 20vh; }\n'])(
+  typeof __wxAppSuffixCode__ == 'undefined' ? undefined : __wxAppSuffixCode__
+)
+```
+
+## 8、架构篇-VirtualDOM 渲染流程
+
+与上面的过程一样，找到 wcc ，然后可以执行 `./wcc --help` 查看使用说明
+
+```bash
+./wcc -help
+
+# Wechat WXML Compiler, version v0.5vv_20200413_syb_scopedata
+# Usage: ./wcc [-d] [-o OUTPUT] [-xc XComponentDefine] [-om XComponentDefine] [-cb [callback.js...]] [-ll XCPath] <FILES... | -s <SINGLE_FILE>
+#   Options:
+#   -d: output code for debug
+#   -o: output destination (default stdout)
+#  -xc: output simplified code for custom component
+#  -cc: output compelete code for custom component
+#   -s: read from stdin
+#  -ds: insert debug wxs info
+#  -cb: add life cycle callback
+#  -ll: compile in lazy load mode
+```
+
+然后构建一个 wxml 文件，然后执行 `./wcc -d test.wxml >> test.js` 得到编译后的文件，结构如下
+
+```js
+var $gwxc
+var $gaic = {}
+$gwx = function (path, global) {
+  // xxx
+}
+```
+
+- 整体代码结构就是一个函数，函数名称为$gwx。它的作用是生成虚拟 dom 树，用于渲染真实节点。
+- 里面还有很多其他的函数
+
+```js
+function _n(tag) {
+  $gwxc++
+  // 判断dom节点数量
+  if ($gwxc >= 16000) {
+    throw "Dom limit exceeded, please check if there's any mistake you've made."
+  }
+  return { tag: 'wx-' + tag, attr: {}, children: [], n: [], raw: {}, generics: {} }
+}
+```
+
+而 $gwx 函数是逻辑层的文件，后续会通过 script 注入到页面，同时 $gwx 的参数一，其实就是页面路径，传入页面路径后，就会得到对应页面的渲染函数。
+
+而 $gwx 执行完后，会得到一个 generateFunc，而 generateFunc 执行后，就得到了对应页面的虚拟 dom，一个简单的用来描述页面节点的对象。
+
+之所以返回 generateFunc 函数，其实是因为页面很多数据都是动态的，需要后续传入才可以。
+
+## 9、架构篇-通讯系统设计
+
+小程序底层，其实就是双线程通信，逻辑层与视图层，通过 Native 中转实现通信。
+
+- iOS 是利用了 WKWebView 的提供 messageHandlers 特性，
+- 而在安卓则是往 WebView 的 window 对象注入一个原生方法，最终会封装成 WeiXinJSBridge 这样一个兼容层。
+- 在微信开发者工具中则是使用了 websocket 进行了封装。
 
 ## 3、架构篇-事件系统设计
 
