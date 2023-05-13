@@ -1,10 +1,10 @@
 ---
-title: 'js中一些强大的api'
+title: 'js中那些强大的api'
 date: Sat May 13 2023 20:48:27 GMT+0800 (中国标准时间)
 lastmod: '2023-05-13'
 tags: ['eval']
 draft: false
-summary: '在js中，一些强大的api'
+summary: '在js中，那些强大的api'
 layout: PostSimple
 bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/2023/some-js-api

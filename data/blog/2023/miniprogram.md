@@ -1,8 +1,8 @@
 ---
-title: '小程序'
+title: '小程序整体轮廓'
 date: Tue May 09 2023 22:06:10 GMT+0800 (中国标准时间)
 lastmod: '2023-05-09'
-tags: ['小程序', '从入门到放弃']
+tags: ['小程序', '掘金小册']
 draft: false
 summary: '重读小程序'
 layout: PostSimple
@@ -15,6 +15,8 @@ canonicalUrl: https://dume.vercel.app/blog/2023/miniprogram
 小程序，一种不用安装即可使用的应用程序
 
 其实底层原理就是，就是通过将 小程序语言 通过编译器，编译成 js 和 css，然后注入到客户端提供的容器里执行而已。
+
+**总结：该篇文章是学习掘金里一个小册的结果，整体感觉，有收获但不是很多。推荐新手阅读，想深入研究小程序底层的，不建议。**
 
 ## 1、小程序的诞生
 
@@ -458,30 +460,118 @@ function _n(tag) {
 - 而在安卓则是往 WebView 的 window 对象注入一个原生方法，最终会封装成 WeiXinJSBridge 这样一个兼容层。
 - 在微信开发者工具中则是使用了 websocket 进行了封装。
 
-## 3、架构篇-事件系统设计
+## 10、架构篇-事件系统设计
 
-## 3、逻辑层语法及生命周期设计
+- web 普通事件原理
+- 小程序事件系统源码解读
+- 小程序线程通讯协议
 
-## 3、架构篇-小程序路由设计
+什么是事件？
 
-## 3、基础库-底层基础库解包
+- 事件是视图层到逻辑层的通讯方式。
+- 事件可以将用户的行为反馈到逻辑层进行处理。
+- 事件可以绑定在组件上，当达到触发事件，就会执行逻辑层中对应的事件处理函数。
+- 事件对象可以携带额外信息，如 id, dataset, touches。
 
-## 3、基础库-逻辑层基础库 WAService 结构分析
+❓ 在小程序架构中 WXML 在视图线程进行渲染，.js 文件在逻辑线程进行解析运行。并不在一个线程。他们之间是如何进行绑定的呢？
 
-## 3、拓展篇-小程序第三方库框架设计原理
+比较浅显的理解就是类型 vue 一样的双向绑定。
 
-## 3、架构篇-wxml 标签语言的设计思路
+`$gwx -> generateFunc`函数执行后，得到对应的虚拟 dom，然后虚拟 dom 里有 `attr` 属性，这里面有绑定事情的一些信息，那是如何传递到逻辑层的呢？
 
-## 3、架构篇-wxml 标签语言的设计思路
+底层基础库中解析 virtualDOM 函数 applyProperties 会惊醒 attr 属性解析，包含事件解析。其中会 forIn 循环去遍历 virtualDOM 中的 attr 属性。然后执行 e 函数。这里可知 e 函数的参数及为 attr 对象中的属性名称 key。
 
-## 3、架构篇-wxml 标签语言的设计思路
+e 函数中有很多的 if，是用来判断特殊的属性名称的，我们绑定的 tap 事件键值对是 bindtap: bindTextTap，key 也就是 bindtap，事件绑定的前缀有很多比如 bind、catch，看到第 10 行左右的 if 中用正则 if (n = e.match(/^(capture-)?(mut-)?(bind|catch):?(.+)$/))判断 attr 中的属性名是否为事件属性。如果是事件属性的话执行 E 函数，并且转换为 exparser 组件系统中的 attr 属性名称 exparser:info-attr-。
 
-## 3、架构篇-wxml 标签语言的设计思路
+可以看到 E 函数中首先通过 addListener 方法进行了事件绑定，这个方法也是封装自我们熟知的 window.addEventListener，只不过 tap 与原生 click 方法之间有一层映射关系。addListener 的事件触发的回调函数中组装了函数的 event 信息值，并且触发了 sendData 方法，方法标记为 SYNC_EVENT_NAME.WX_EVENT，在源码中值为 11。
 
-## 3、架构篇-wxml 标签语言的设计思路
+上面的过程就是事件绑定过程，都在视图层完成。而事件触发的过程如何呢？
 
-## 3、架构篇-wxml 标签语言的设计思路
+小程序的事件都是和 js 原生事件相互转换的，小程序的 tap 事件底层是由 web 的 mouseup 事件转换来的，小程序 tap 事件的触发分为几个过程，首先底层实现是用 web 的 mouseup 事件触发了 tap 事件，底层为 window 绑定捕获阶段的 mouseup 事件。
 
-## 3、架构篇-wxml 标签语言的设计思路
+然后触发 mouseup 事件的原生监听方法，然后执行一系列逻辑，最后触发目标元素的 exparser 事件，通过 exparser.Event.dispatchEvent 方法，执行这个方法就会走 exparser 事件系统的流程。
 
-## 3、架构篇-wxml 标签语言的设计思路
+## 11、架构篇-逻辑层语法及生命周期设计
+
+- .js 语法结构
+- 数据在线程之间如何传递
+- 小程序生命周期设计
+
+data 是页面第一次渲染使用的初始数据。页面加载的时候，data 将会以 JSON 字符串形式由逻辑层传至渲染层。
+
+- onLoad(Object query) 页面加载时触发，一个页面只会调用一次，可以在 onLoad 的参数中获取打开当前页面路径中的参数。
+- onShow() 页面显示/切入前台时触发
+- onHide() 页面隐藏/切入后台时触发。 如 wx.navigateTo 或底部 tab 切换到其他页面，小程序切入后台等。
+- onReady() 页面初次渲染完成时触发。一个页面只会调用一次，代表页面已经准备妥当，可以和视图层进行交互。
+- onUnload() 页面卸载时触发。如 wx.redirectTo 或 wx.navigateBack 到其他页面时。
+
+- wx.navigateTo 方式是创建新的 webview，并且展示新的 webview，当前 webview 进入 Hide 状态，这时，并未进行页面卸载。
+- wx.redirectTo 以及 wx.navigateBack 是通过更新自身 webview 进行页面转换的，所以当前页面会进行卸载操作，并且重新生成新页面。所以两个页面都会进入完整生命周期序列。
+
+## 12、架构篇-小程序路由设计
+
+- 小程序路由设计
+- webview 与路由栈
+
+在渲染层中可以看到这一段代码，具体位置在 generateFuncReady 函数前面 `History.pushState('', '', 'http://127.0.0.1:37434/__pageframe__/pages/index/index');`
+
+首先触发路由的行为是可以从渲染层发出，也可以从逻辑层发出。在渲染层中用户可以通过点击回退按钮，或者回退上一页的手势等机制触发。
+
+在逻辑层中发出的信号有打开新页面 navigateTo、重定向 redirectTo、页面返回 navigateBack 等，开发者通过官网提供的 API 触发。
+
+无论是渲染层用户触发的行为，还是逻辑层 API 触发的行为，这个行为都会被发送到 Native 层，有 Native 层统一控制路由。
+
+下面总结一下在小程序场景中路由变化相对应的栈变化：
+
+- 小程序初始化的时候需要推入首页，新页面入栈。
+- 打开新页面对应 navigateTo，新页面入栈
+- 页面重定向 redirectTo，当前页面出栈，而后新页面入栈。
+- 页面回退 navigateBack，页面一直出栈，到达指定页面停止。
+- Tab 切换 switchTab，页面全部出栈，只留下新的 Tab 页面。
+- 重新加载 reLaunch，页面全部出栈，只留下新的页面。
+
+最后附带一下官网注意事项：
+
+- navigateTo, redirectTo 只能打开非 tabBar 页面。
+- switchTab 只能打开 tabBar 页面。
+- reLaunch 可以打开任意页面。
+- 页面底部的 tabBar 由页面决定，即只要是定义为 tabBar 的页面，底部都有 tabBar。
+- 调用页面路由带的参数可以在目标页面的 onLoad 中获取。
+
+## 13、基础库-底层基础库解包
+
+1. 打开控制台，选择 top，输入 help()
+2. openVendor()
+3. 那些文件就是基础库包了，包的格式是.wxvpkg。
+4. wxappUnpacker 解包
+5. js-beautify 美化
+
+## 14、基础库-逻辑层基础库 WAService 结构分析
+
+- 渲染层基础库源码解析
+- Exparser 系统源码解析。
+
+- Foundation 是基础模块。
+  - 我们可以从其中看到里面包含了一些 api，有 EventEmitter 事件的发布订阅，配置的 Ready 事件，基础库 Ready 事件，Bridge Ready 事件，env、global 环境变量。
+- Report 模块
+- Virtual Dom 模块
+
+## 15、基础库-逻辑层基础库 WAService 结构分析
+
+- 逻辑层基础库源码解析
+  - AppEngine 模块
+    - 提供了 App、Page、Component、Behavior、getApp、getCurrentPages 等框架的基本对外接口
+  - Exparser 模块
+    - 组件系统提供了框架底层的能力，如实例化组件，数据变化监听，View 层与逻辑层的交互等
+  - virtualDOM 模块
+    - **virtualDOM**连接着**appServiceEngine**和 exparser
+
+## 16、拓展篇-小程序第三方库框架设计原理
+
+- 小程序框架都有哪些
+- 框架之间的原理有什么不同
+- 具体实现方式是怎样的
+
+什么是预编译的框架呢？还记得我们讲解 WXSS 的时候，WXSS 的文件会编译成 js 再执行。像这种执行前就进行编译的手段就叫做预编译。
+
+- 这种框架就是预编译框架。wepy、taro 就是这样的框架。
