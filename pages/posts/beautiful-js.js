@@ -98,6 +98,18 @@ const menus = [
       },
     ],
   },
+  {
+    key: 'other',
+    icon: <UploadOutlined />,
+    label: '其他',
+    children: [
+      {
+        key: 'drawTriangle',
+        icon: <VideoCameraOutlined />,
+        label: '打印等腰三角形',
+      },
+    ],
+  },
 ]
 
 const BeautifulJs = () => {
@@ -869,6 +881,34 @@ const BeautifulJs = () => {
     // 4 5 6  -> 1236,1256,1456
     console.log('3*3 矩阵的解法：', dynamicProgramPath(3, 2)) // 3
 
+    `
+  }
+
+  // 输出一个由 * 组成的正三角形图案
+  bodyMap.drawTriangleStr = () => {
+    return `
+    // 第一行，一个 * 在中间
+    // 第二行，两个 * 居中，依次类推 ❌，错误，从第二行开始，每行比上面的都多两个 * 号
+    // 几行，其实就是 * 的个数，也可以理解为长方形的竖轴的长度
+    // 思路，目标的 * 个数是已知的，然后每一行 * 的个数和两侧空格的个数和，组成图形
+    // 但是，如果只有两行，第一行的*号两侧，咋放空格？ ❌，可以理解为一个空格的宽度，就是一个*的宽度
+
+    // 思路2：利用padStart，左侧补齐，先产出一个正方形，然后从第二行开始，每行向右移动 1/2 个*的总宽，咋移动呢？这又不是css
+    // 虽然不是，但是可以 直接用js 计算单个 */2啊， ❌
+    //     *
+    //    ***
+    //   *****
+    // 思路三：既然每次下面的都比上面的一行多两个，而从上到下，左侧的空格数，依次就是n-1、n-2... 0 
+    // 而最后一行星星的数量则是 1 + 2(n - 1) => 2n -1
+    const drawTrianglg = n => {
+      for (let i = 0; i < n; i++) {
+        // 第一行，一个星星，然后 n-1 个空格
+        const space = ' '.repeat(n - i - 1)
+        const triangle = '*'.repeat(2 * (i + 1) - 1)
+        console.log(space + triangle + space)
+      }
+    }
+    drawTrianglg(5)
     `
   }
   return (
