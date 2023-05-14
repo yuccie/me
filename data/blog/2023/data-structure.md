@@ -394,6 +394,53 @@ fib2(5) // [0, 1, 1, 2, 3]
 - 剪枝：在动态规划过程中，某些状态的计算可能会被重复执行，造成时间复杂度的增加。剪枝就是通过某些方法，避免不必要的重复计算，从而提高算法的效率。
 - 贪心：贪心算法是一种基于贪心策略的算法，它在每一步都选择当前状态下的最优解，从而得到全局最优解。在动态规划中，贪心算法可以用来优化状态转移方程，减少状态的数量和计算量。
 
+### 接雨水
+
+题目：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。【力扣 42 题】
+
+- 可以理解为，一排高低不同的阶梯，下雨后，阶梯里可以存多少水
+- 只有低的柱子，也就是形成坑，才可能存水。。。木桶效应
+- 双指针，从两侧往里遍历，然后判断双指针指向的柱子，谁高谁低，
+- 需记录每次的最高高度
+- 该算法的时间复杂度为 O(n)，空间复杂度为 O(1)。
+
+```js
+const trap = (heights) => {
+  let left = 0,
+    right = heights.length - 1 // 左右指针索引
+  let maxLeft = 0,
+    maxRight = 0 // 左右最大值，其实这里最大值的意义是：如果比他小才可能有谁
+  let results = 0 // 结果
+
+  // 双指针，使用while，运行条件：左侧索引小于右侧索引
+  while (left < right) {
+    // 判断，两侧指针，谁小
+    if (heights[left] < heights[right]) {
+      // 左侧小，则统计左侧的存水量
+      if (heights[left] > maxLeft) {
+        maxLeft = heights[left]
+      } else {
+        // 比最大值小，说明形成了洼地
+        results += maxLeft - heights[left]
+      }
+      // 指针移动
+      left++
+    } else {
+      if (heights[right] > maxRight) {
+        maxRight = heights[right]
+      } else {
+        results += maxRight - heights[right]
+      }
+      right--
+    }
+  }
+  return results
+}
+const heights = [2, 1, 2]
+console.log(trap(heights)) // 1
+console.log(trap([3, 1, 3])) // 2
+```
+
 ## 第三部分：数组
 
 ## 第三部分：数组

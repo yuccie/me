@@ -96,6 +96,11 @@ const menus = [
         icon: <VideoCameraOutlined />,
         label: '矩阵解法',
       },
+      {
+        key: 'dynamicProgramRainWater',
+        icon: <VideoCameraOutlined />,
+        label: '接雨水',
+      },
     ],
   },
   {
@@ -881,6 +886,74 @@ const BeautifulJs = () => {
     // 4 5 6  -> 1236,1256,1456
     console.log('3*3 矩阵的解法：', dynamicProgramPath(3, 2)) // 3
 
+    `
+  }
+
+  bodyMap.dynamicProgramRainWaterStr = () => {
+    return `
+    // 题：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
+    // 💥 其实可以想象成一排挡板，下雨后，挡板内存多少水
+    // 💥 木桶效应，存水的多少，取决于最高和最低的挡板，然后还需要统计所有挡板间的雨水，所以需要存储
+    // 思路：双指针，从两侧开始向中间走，
+
+    const trapError = heights => {
+      let left = 0, right = heights.length - 1
+      let maxLeft = 0, maxRight = 0
+      let result = 0
+
+      // 💥 🔥❌❗️❓
+      // 遍历数组 双指针的题目，使用while循环更好 ❌
+      // for (let i = 0; i < heights.length; i++) {}
+
+      while(left < right) {
+        // 2 1 3 5 1
+        // 如果挡板高度大于之前的最大值，则重置最大值
+        if (heights[left] > maxLeft) {
+          maxLeft = heights[left]
+        } else {
+          // 如果小于最大值，则说明是个坑，可以存水，每次可以存 maxLeft - heights[left]
+          result += maxLeft - heights[left]
+        }
+        left++  // ❌
+        // 双指针，如何也让右侧走动起来呢？❌
+      }
+    }
+
+    const trap = heights => {
+      let left = 0, right = heights.length - 1
+      let maxLeft = 0, maxRight = 0
+      let result = 0
+
+      // 💥 🔥❌❗️❓
+      while(left < right) {
+        // 2 1 3 5 1
+        // 双指针，如何也让右侧走动起来呢？🔥 答案是，每次两头做判断，谁低就用谁，因为越低可以存的水就越多
+        // 当左侧挡板比较低，那就用左侧
+        if (heights[left] < heights[right]) {
+          // 如果挡板高度大于之前的最大值，则重置最大值
+          if (heights[left] > maxLeft) {
+            maxLeft = heights[left]
+          } else {
+            // 如果小于最大值，则说明是个坑，可以存水，每次可以存 maxLeft - heights[left]
+            result += maxLeft - heights[left]
+          }
+          left++  
+        } else {
+          // 右侧低，则计算右侧
+          if (heights[right] > maxRight) {
+            // 大于最高值，肯定就不存水了
+            maxRight = heights[right]
+          } else {
+            result += maxRight - heights[right]
+          }
+          // 每次计算完，两侧指针要想内部移动
+          right--
+        }
+      }
+      return result
+    }
+    const heights = [4,2,0,3,2,5]
+    console.log('可以存水量：', trap(heights))
     `
   }
 
