@@ -131,6 +131,7 @@ git 是一种分布式版本控制系统，它可以在本地仓库中跟踪文�
   - webpack 原生只支持 js 和 json
   - loader 将 webpack 不支持的资源解析成支持的，并添加到依赖图里
   - 本身是一个函数，接受源文件，返回转换的结果
+  - loader 执行顺序是从右往左，从下往上的。
 - plugin：扩展 Webpack 的功能，例如压缩代码、提取公共代码
   - 而 plugin 主要是增强处理资源的能力，比如 boundle 的优化，环境变量的注入，目录的删除等
   - 作用于整个构建过程，开始到结束都可以使用插件
@@ -571,3 +572,31 @@ module.exports = {
   ],
 }
 ```
+
+## rrweb 回放
+
+rrweb 是 'record and replay the web' 的简写，旨在利用现代浏览器所提供的强大 API 录制并回放任意 web 界面中的用户操作。
+
+rrweb 是一个用于记录和回放 Web 应用程序用户会话的 JavaScript 库。它可以捕获用户与 Web 应用程序的交互，并将其转换为可重现的 JSON 格式。这可以用于错误排除、性能优化、用户行为分析等方面。rrweb 支持跨浏览器、跨平台，并且可以与 React、Vue、Angular 等主流框架集成。
+
+rrweb 主要由 3 部分组成：
+
+- rrweb-snapshot，包含 snapshot 和 rebuild 两个功能。snapshot 用于将 DOM 及其状态转化为可序列化的数据结构并添加唯一标识；rebuild 则是将 snapshot 记录的数据结构重建为对应的 DOM。
+- rrweb，包含 record 和 replay 两个功能。record 用于记录 DOM 中的所有变更（mutation）；replay 则是将记录的变更按照对应的时间一一重放。
+- rrweb-player，为 rrweb 提供一套 UI 控件，提供基于 GUI 的暂停、快进、拖拽至任意时间点播放等功能。
+
+[更多请参考](https://github.com/rrweb-io/rrweb/blob/master/README.zh_CN.md)
+
+## 包管理器
+
+- Lerna 是一个用于管理包含多个软件包（package）的 JavaScript 项目的工具。它允许您将多个软件包存储在一个 Git 仓库中，并且可以在这些软件包之间共享依赖项。Lerna 还提供了一些其他功能，如版本控制和发布管理。
+
+- npm
+  - 包仓库最大，拥有大量的支持和文档
+- yarn
+  -
+- pnpm
+  - 共享依赖项：pnpm 采用硬链接机制，使得多个项目可以共享同一个依赖项。
+  - 更少的磁盘空间：pnpm 不会为每个项目安装一个完整的依赖项，而是使用链接机制，节省了磁盘空间。
+
+然后三者都支持，并行下载和缓存机制，可以更快地安装依赖项。

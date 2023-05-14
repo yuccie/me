@@ -399,6 +399,8 @@ var blob = new Blob([pngData], { type: 'image/png' })
 
 Blob 对象实际上是一种二进制数据流，它可以通过`URL.createObjectURL()`方法生成一个 URL，然后可以**通过这个 URL 来访问 Blob 对象的数据**。
 
+URL.createObjectURL() API 的主要目的是为了将二进制数据或 Blob 对象转换为可用于加载资源的 URL。在过去，加载二进制数据通常需要使用 XHR 对象或 WebSockets，这些方法都需要额外的代码和处理。
+
 例如，下面的代码创建了一个表示文本数据的 Blob 对象，并生成一个 URL：
 
 ```javascript

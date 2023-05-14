@@ -361,6 +361,43 @@ fib2(10) // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 fib2(5) // [0, 1, 1, 2, 3]
 ```
 
+```js
+// const fib3Error = (num) => {
+//   let result = 0
+//   if (!num) {
+//     return 0
+//   } else if (num === 1) {
+//     return 1
+//   }
+
+//   for (let i = 2; i < num; i++) {
+//     result += num[i-1] + num[i-2]  // ❌❌❌ 大错，num是具体的数字，不是斐波那契额数列
+//   }
+
+//   return result
+// }
+// console.log(fib3([]))  // NaN ❌❌❌❌
+
+function fibonacciSum(n) {
+  let sum = 0
+  let a = 0
+  let b = 1
+
+  for (let i = 0; i < n; i++) {
+    // 累加
+    sum += b
+    // 模拟斐波那契数的计算
+    let temp = a + b
+    a = b
+    b = temp
+  }
+
+  return sum
+}
+
+console.log(fibonacciSum(10)) // 输出：143
+```
+
 递归的执行过程如下图
 
 - 回推过程

@@ -87,6 +87,18 @@ const menus = [
     ],
   },
   {
+    key: 'reconsion',
+    icon: <UploadOutlined />,
+    label: '递归',
+    children: [
+      {
+        key: 'combinationSum',
+        icon: <VideoCameraOutlined />,
+        label: '和为target的所有组合',
+      },
+    ],
+  },
+  {
     key: 'dynamic',
     icon: <UploadOutlined />,
     label: '动态规划',
@@ -984,6 +996,73 @@ const BeautifulJs = () => {
     drawTrianglg(5)
     `
   }
+
+  bodyMap.combinationSumStr = () => {
+    // 下面一行勿动 🚫
+    return `
+    // 给定一个数组 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合，candidates 中的每个数字在每个组合中可以出现多次
+    // 思路，需要不停的累加，判断是否等于目标值
+    const combinationSumErr = (candidates, target) => {
+      const results = []
+      // 设计到递归，所以最后定义单个函数
+      // start是开始索引，path是所有结果，sum是每次累加的和
+      const dfs = (start, path, sum) => {
+        // 如果累加的和，已经是目标值了，放入结果数组
+        if (sum === target) {
+          results.push(path)
+        }
+
+        // 如果sum大于target，直接返回
+        if (sum > target) {
+          return
+        }
+
+        // 开始接受入参，遍历数组
+        for (let i = start; i < candidates.length; i++) {
+          path.push(candidates[i])            // 放入数组里
+          dfs(i+1, path, sum + candidates[i]) // 开启下一轮 ❌， i不应该从下一个开始？
+        }
+      }
+      // 开始
+      dfs(0, [], 0)
+      return results
+    }
+
+    const combinationSum = (candidates, target) => {
+      const results = []
+      // 设计到递归，所以最后定义单个函数
+      // start是开始索引，path是所有结果，sum是每次累加的和
+      const dfs = (start, path, sum) => {
+        // 如果累加的和，已经是目标值了，放入结果数组
+        if (sum === target) {
+          results.push(path)
+        }
+
+        // 如果sum大于target，直接返回
+        if (sum > target) {
+          return
+        }
+
+        // 开始接受入参，遍历数组
+        for (let i = start; i < candidates.length; i++) {
+          path.push(candidates[i])            // 放入数组里
+          dfs(i, path, sum + candidates[i])   // 开启下一轮 ❌， i不应该从下一个开始？因为这是递归，当i=0进来后，就会一直dfs -> for i = 0 ，然后一直累加，除非 sum === target或者sum > target
+          // 其实就是先从自身开始，先看多少个自己，可以满足，如果满足或者不满足才会走到下面，
+          path.pop() // 回溯，比如 [2,2,2,2,2]此时已经满足了，则弹出最后一个得到 [2,2,2,2]，然后累加i=1 -> [2,2,2,2,3] 然后大于 10，继续pop得到 [2,2,2,2] i=2 -> [2,2,2,2,5]
+          // 就是这样不停累加，不停的回溯。。。
+        }
+      }
+      // 开始
+      dfs(0, [], 0)
+      return results
+    }
+    console.log(combinationSum([2, 3, 5], 10)) // [2, 2, 2, 2, 2], [2, 2, 3, 3], [2, 3, 5], [5, 5]
+
+
+    // 下面一行勿动 🚫
+    `
+  }
+
   return (
     <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
