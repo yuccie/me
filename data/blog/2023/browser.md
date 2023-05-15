@@ -51,3 +51,88 @@ canonicalUrl: https://dume.vercel.app/blog/2023/browser
 - 数据发送是可靠的。
 - 数据异步传输。
 - 不影响下一导航的载入。
+
+## Fetch
+
+```js
+// 通过 abortController 手动设置一个 取消器
+const controller = new AbortController()
+const signal = controller.signal
+
+const timeout = setTimeout(() => controller.abort(), 5000)
+
+fetch('https://example.com/data', { signal })
+  .then((response) => response.json())
+  .then((data) => console.log(data))
+  .catch((error) => console.error(error))
+  .finally(() => clearTimeout(timeout))
+```
+
+## 请求取消
+
+XHR 取消请求的原理是通过调用 XHR 对象的 abort()方法来取消正在进行的请求。
+
+在调用 abort()方法后，XHR 对象会立即停止请求，并触发 XHR 对象的 onreadystatechange 事件的 readyState 属性的值为 4 和 status 属性的值为 0。同时，XHR 对象的 responseText 和 responseXML 属性也会变为 null。
+
+需要注意的是，**如果请求已经被发送到服务器并且服务器已经开始处理请求**，那么不能取消该请求。在这种情况下，可以使用超时设置来中止请求。
+
+使用超时设置可以取消请求是因为**超时设置可以限制请求的响应时间，如果在规定时间内没有收到服务器的响应**，就会认为请求失败并取消请求。这样可以避免请求一直处于等待状态，浪费资源，并且可以提高程序的健壮性和可靠性。
+
+在底层，当我们调用 XHR 对象的 abort() 方法时，浏览器会向服务器发送一个带有特殊标记的请求，告诉服务器取消当前请求。服务器在接收到这个请求后，会尝试停止正在进行的操作并返回一个响应。
+
+需要注意的是，XHR 请求是异步的，也就是说，当我们调用 abort() 方法时，请求可能已经被服务器处理并返回了响应。在这种情况下，我们仍然可以取消请求，但是我们无法阻止服务器返回的响应。
+
+在浏览器端，使用 XMLHttpRequest 对象发送的请求是基于 HTTP 协议的，因此在发送请求前，浏览器会先建立 TCP 连接，这个过程是需要占用网络带宽的。因此，即使使用 xhr.abort 取消请求，TCP 连接仍然会被建立，网络带宽也会被占用。
+
+原生 abort 取消 和 超时取消的不完全相同
+
+### AbortController
+
+注意：AbortController 是一个实验性的 API，可能不被所有浏览器支持。建议在使用之前先检查浏览器是否支持该 API。
+
+AbortController 是一个用于控制异步操作的 API，它可以用来取消 Promise、fetch 等异步操作。其**底层工作原理是基于一个 AbortSignal 对象来实现的，AbortSignal 对象包含一个 aborted 属性，用于标识当前异步操作是否已被取消**。
+
+当 AbortController.abort()方法被调用时，它会将 AbortSignal 对象的 aborted 属性设置为 true，从而通知异步操作需要被取消。异步操作可以通过监听 AbortSignal 对象的 abort 事件来响应取消请求。
+
+```js
+const controller = new AbortController()
+const signal = controller.signal
+
+fetch(url, { signal })
+  .then((response) => response.json())
+  .then((data) => console.log(data))
+  .catch((error) => {
+    if (error.name === 'AbortError') {
+      console.log('fetch aborted')
+    } else {
+      console.log('fetch error', error)
+    }
+  })
+
+// 在需要取消请求的地方调用
+controller.abort()
+```
+
+### axios 里的取消
+
+```js
+const source = axios.CancelToken.source()
+
+axios
+  .get('/api/some-resource', {
+    cancelToken: source.token,
+  })
+  .then((response) => {
+    console.log('请求成功', response.data)
+  })
+  .catch((error) => {
+    if (axios.isCancel(error)) {
+      console.log('请求被取消', error.message)
+    } else {
+      console.log('请求失败', error.message)
+    }
+  })
+
+// 在需要取消请求的地方调用
+source.cancel('请求被取消')
+```

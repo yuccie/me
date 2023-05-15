@@ -84,6 +84,16 @@ const menus = [
         icon: <VideoCameraOutlined />,
         label: '数组去重',
       },
+      {
+        key: 'findSecondLargest',
+        icon: <VideoCameraOutlined />,
+        label: '数组中第二大数',
+      },
+      {
+        key: 'quickSort',
+        icon: <VideoCameraOutlined />,
+        label: '快速排序',
+      },
     ],
   },
   {
@@ -95,6 +105,11 @@ const menus = [
         key: 'combinationSum',
         icon: <VideoCameraOutlined />,
         label: '和为target的所有组合',
+      },
+      {
+        key: 'fibsSum',
+        icon: <VideoCameraOutlined />,
+        label: '斐波那契n项和',
       },
     ],
   },
@@ -844,7 +859,7 @@ const BeautifulJs = () => {
   // 数组相关
   bodyMap.arrayDedupliationStr = () => {
     // 下面一行勿动 🚫
-    // return `
+    return `
 
     // 创建数组的几种方法：
     var arr = [1, 2, 3, 4, 5] // 💥 傻瓜模式
@@ -859,11 +874,84 @@ const BeautifulJs = () => {
     // 利用indxof
     const depuliationIdxArr = [1, 1, 2, 2, 3].map((item, idx, ctx) => idx === ctx.indexOf(item))
     console.log('indexOf去重：', depuliationIdxArr)
+
+
     // 下面一行勿动 🚫
-    // `
+    `
   }
 
-  // 动态规划
+  // 给定一个正整数数组，找出数组中第二大的数，要求时间复杂度小于 nlogn
+  bodyMap.findSecondLargestStr = () => {
+    // 下面一行勿动 🚫
+    return `
+    const findSecondLargestBad = arr => {
+      // 时间复杂度：O(nlogn)，因为在数组去重时使用了Set，Set内部使用哈希表实现，时间复杂度为O(n)，而数组排序使用了快速排序，时间复杂度为O(nlogn)，所以总的时间复杂度为O(nlogn)。
+      // 空间复杂度：O(n)，因为在去重时使用了Set，需要将所有不同的元素存储在一个新的数组中，所以空间复杂度为O(n)。
+      const depuliationArr = [...new Set(arr)].sort()
+      console.log('djch depuliationArr', depuliationArr)
+      return depuliationArr[depuliationArr.length - 2]
+    }
+
+
+    const findSecondLargest = arr => {
+      // 思路，定义两个变量，一个最大，一个次大
+      let max = arr[0]
+      let secondMax = -Infinity
+
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i] > max) {
+          secondMax = max   // 既然有数据比max大，那之前的max就是次大
+          max = arr[i]
+        } else if (arr[i] < max && arr[i] > secondMax) {
+          // 想象一下，将条件分成x轴上的三段，
+          secondMax = arr[i] // 其实相当于只记录 次大的数据
+        }
+      }
+
+      return secondMax
+    }
+    // 这个算法的时间复杂度为 O(n)，空间复杂度O(1)
+    console.log(findSecondLargest([1, 1, 2, 3, 4, 4]))
+    console.log(findSecondLargestBad([1, 1, 2, 3, 4, 4]))
+
+    // 下面一行勿动 🚫
+    `
+  }
+
+  // 快速排序
+  bodyMap.quickSortStr = () => {
+    // 下面一行勿动 🚫
+    return `
+
+    const quickSort = arr => {
+      if (arr.length <= 1) return arr
+
+      const pivot = arr[0]
+      const left = []
+      const right = []
+
+      // 当索引i从0开始，可能会进入无限递归的情况。
+      // 这是因为如果数组中有重复的元素，且它们都等于 pivot，那么在递归过程中就会出现左右两个子数组都为空的情况，从而导致无限递归。
+      // ❌❌❌❌ for (let i = 0; i < arr.length; i++) { ❌❌❌❌
+      for (let i = 1; i < arr.length; i++) {
+        if (arr[i] < pivot) {
+          left.push(arr[i])
+        } else {
+          right.push(arr[i])
+        }
+      }
+
+      return [...quickSort(left), pivot, ...quickSort(right)]
+    }
+    const unsortedArr = [3, 1, 6, 2, 4, 5];
+    const sortedArr = quickSort(unsortedArr);
+    console.log(sortedArr); // [1, 2, 3, 4, 5, 6]
+
+    // 下面一行勿动 🚫
+    `
+  }
+
+  // 动态规划：m * n 的矩阵，从左上角，向左向下，到右下角，一共多少种方法
   bodyMap.dynamicProgramStr = () => {
     return `
     // m * n 的矩阵，从左上角，向左向下，到右下角，一共多少种方法
@@ -901,6 +989,7 @@ const BeautifulJs = () => {
     `
   }
 
+  // 题：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
   bodyMap.dynamicProgramRainWaterStr = () => {
     return `
     // 题：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
@@ -997,6 +1086,7 @@ const BeautifulJs = () => {
     `
   }
 
+  // 给定一个数组 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合，candidates 中的每个数字在每个组合中可以出现多次
   bodyMap.combinationSumStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -1059,6 +1149,35 @@ const BeautifulJs = () => {
     console.log(combinationSum([2, 3, 5], 10)) // [2, 2, 2, 2, 2], [2, 2, 3, 3], [2, 3, 5], [5, 5]
 
 
+    // 下面一行勿动 🚫
+    `
+  }
+
+  // 斐波那契额数列的和
+  bodyMap.fibsSumStr = () => {
+    // 下面一行勿动 🚫
+    return `
+
+    const fibsSum = n => {
+      // 斐波那契数列，前n项和
+      // 思路：需要先找出对应的斐波那契数列，然后还得求和
+      let a = 0, b = 1, sum = 0;
+
+      if (n === 0) {
+        return sum
+      }
+
+      for (let i = 0; i < n; i++) {
+        sum += b
+        let temp = a + b
+        a = b
+        b = temp
+      }
+
+      return sum
+    }
+    // [0, 1, 1, 2, 3]
+    console.log('djch fibsSum', fibsSum(4)) // 7
     // 下面一行勿动 🚫
     `
   }
