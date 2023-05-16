@@ -159,7 +159,102 @@ const str = buf.toString('base64', 2)
 console.log(str) // 输出：bGVsbG8gd29ybGQ=
 ```
 
-## 时间循环
+## 函数式编程
+
+### 函数柯理化
+
+函数柯里化是一种将一个接受多个参数的函数转变为一系列只接受单一参数的函数的技术。
+
+其原理是将一个接收多个参数的函数转化为一个只接收一个参数的函数，并返回一个新的函数，新的函数接收剩余的参数，最终返回结果。
+
+底层实现可以采用闭包和递归的方式实现。具体实现如下：
+
+```js
+// 入参是原始函数
+function curry(fn) {
+  return function curried(...args) {
+    // 如果新函数的入参数量达到原始函数的长度，则直接执行
+    // fn.length 是形参的个数
+    if (args.length >= fn.length) {
+      return fn.apply(this, args)
+    } else {
+      // 否则，继续返回函数，并拼接参数
+      return function (...arg1) {
+        return curried.apply(this, args.concat(arg1))
+      }
+    }
+  }
+}
+```
+
+这里使用了闭包，将原始函数 fn 保存在外部函数 curry 的作用域中。
+
+当调用 curry 函数时，返回一个内部函数 curried，该函数接收一个参数...args，如果参数个数大于等于原始函数 fn 的参数个数，则直接调用原始函数 fn 并返回结果，
+
+否则返回一个新的函数，该函数接收剩余的参数...args2，并将 args 和 args2 合并后递归调用 curried 函数，直到参数个数足够调用原始函数 fn。
+
+```js
+// 求和
+function add(a, b, c) {
+  return a + b + c;
+}
+
+const curriedAdd = curry(add);
+
+console.log(curriedAdd(1)(2)(3)); // 6
+console.log(curriedAdd(1, 2)(3)); // 6
+console.log(curriedAdd(1)(2, 3)); // 6
+console.log(curriedAdd(1, 2, 3)); // 6
+
+// 问候
+function greet(greeting, name) {
+  return ${greeting}, ${name}!;
+}
+
+const curriedGreet = curry(greet);
+
+console.log(curriedGreet('Hello')('John')); // Hello, John!
+console.log(curriedGreet('Hi', 'Mary')); // Hi, Mary!
+```
+
+### 柯理化产生的原因
+
+柯里化的产生源于函数式编程的思想，它是**一种将多个参数的函数转换为一系列只接受一个参数的函数的技术**。**柯里化的主要目的是简化函数的调用方式和提高代码的可读性和可维护性。**
+
+在函数式编程中，函数被视为一等公民，它们可以像其他数据类型一样被传递和操作。因此，将一个多参数的函数转换为一系列只接受一个参数的函数，可以更方便地将函数传递给其他函数或者组合函数。此外，柯里化还可以降低函数的耦合度，使得代码更易于测试和重构。
+
+因此，柯里化是函数式编程中一个非常重要的概念，它可以帮助我们更好地理解和应用函数式编程的思想。
+
+柯里化的主要目的是简化函数的调用方式和提高代码的可读性和可维护性。 下面是一个代码示例，演示这种简化效果？
+
+假设有一个函数 add，用于计算两个数字的和：
+
+```js
+function add(x, y) {
+  return x + y
+}
+```
+
+通过柯里化，可以将这个函数转换为接受一个参数的函数，返回一个函数，该函数接受第二个参数并返回结果。这样，我们可以使用更简单的方式调用 add 函数：
+
+```js
+function add(x) {
+  return function (y) {
+    return x + y
+  }
+}
+
+// 调用方式
+add(2)(3) // 5
+```
+
+这种方式将函数调用拆分为多个步骤，使代码更易读和维护。此外，这种方式还允许我们部分应用函数，即预先设置一些参数并返回一个新的函数，以便稍后调用。例如：
+
+```js
+const addTwo = add(2)
+addTwo(3) // 5
+addTwo(4) // 6
+```
 
 ## 时间循环
 
