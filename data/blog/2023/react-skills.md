@@ -1,6 +1,6 @@
 ---
 title: 'react相关'
-date: Mon May 15 2023 23:12:58 GMT+0800 (中国标准时间) {}
+date: Mon May 15 2023 23:12:58 GMT+0800 (中国标准时间)
 lastmod: '2023-05-15'
 tags: ['react', 'hooks']
 draft: false

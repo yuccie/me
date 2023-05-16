@@ -47,6 +47,8 @@ canonicalUrl: https://dume.vercel.app/blog/2023/miniprogram
 
 iframe 为页面中嵌入页面的方式，有别于 webview 嵌入原生应用的概念，这里需要注意一下。
 
+WebView 是一种在应用程序中嵌入网页内容的组件，可以让应用程序显示网页以及处理网页中的事件。它是一种将原生应用程序和 Web 技术结合起来的方法，可以实现更加复杂和灵活的功能。WebView 可以用来显示 HTML、CSS 和 JavaScript 编写的网页，也可以用来加载本地的 HTML 文件。在 Android 中，WebView 是一个由 Android 内置的 WebKit 引擎实现的组件。在 iOS 中，WebView 是一个由 WebKit 引擎实现的组件。
+
 - 那么为什么要做多个 webview 呢？
   - 为了更加接近原生应用 APP 的用户体验，在小程序中，可以侧滑看到两个页面，这就是多 webview 带来的好处。相比 SPA 项目，体验更好。
 - 执行效率
