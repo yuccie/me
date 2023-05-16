@@ -266,6 +266,20 @@ function updateChildren(parentElm, oldCh, newCh) {
 
 ## 响应式
 
+### Vue3 setup 和 vue2 data 区别
+
+Vue3 中使用了一个新的 API setup 来替代 Vue2 中的 data 选项。setup 函数是一个新的组件选项，它是在组件内部执行的，用于设置组件的初始状态、计算属性、方法等。
+
+Vue3 中的 setup 函数与 Vue2 中的 data 选项有以下区别：
+
+- setup 函数是一个普通函数，而 data 选项是一个对象。
+- setup 函数需要返回一个对象，这个对象包含组件的状态、计算属性、方法等。而 data 选项中直接定义的属性就是组件的状态。
+- 在 setup 函数中，可以使用 Vue3 提供的新 API，如 ref、reactive、computed 等，来创建响应式数据。而在 Vue2 中，需要使用 data 函数来创建响应式数据。
+- setup 函数中的变量和方法可以在模板中直接使用，不需要通过 this 来访问。而在 Vue2 中，需要通过 this 来访问组件的状态和方法。
+- setup 函数中的代码会在组件实例创建之前执行，因此在 setup 函数中无法访问组件实例的生命周期钩子和属性。而- 在 Vue2 中，data 选项中的代码是在组件实例创建之后执行的，因此可以访问组件实例的生命周期钩子和属性。
+
+总的来说，setup 函数是 Vue3 中用于设置组件初始状态和计算属性的主要方式，它比 Vue2 中的 data 选项更加灵活和强大。
+
 ### Object.defineProperty
 
 **简单版本：**
@@ -409,3 +423,101 @@ class Vue {
 Vue2 对数组的常用方法进行了改写，具体实现方式是通过**重写数组的原型对象，将这些方法进行了改造，在这些方法中添加了更新视图的逻辑**。
 
 其实就是，重写原型方法，里面包装原始的调用，然后再增加 更新页面的逻辑
+
+### ref vs reactive
+
+Vue3 中，ref 和 reactive 都是响应式数据处理的方式。
+
+ref 是一个函数，它可以将一个普通的 JavaScript 数据转化为可响应的数据，返回一个具有 value 属性的对象。ref 适用于处理简单数据类型，如数字、字符串等。
+
+reactive 是一个函数，它可以将一个普通的 JavaScript 对象转化为可响应的对象，返回一个代理对象。reactive 适用于处理复杂的数据类型，如对象、数组等。
+
+ref 和 reactive 的区别在于，
+
+- ref 返回的是一个包含 value 属性的对象，而 reactive 返回的是一个代理对象。
+- ref 返回的对象只能通过 .value 属性来访问和修改值，而 reactive 返回的代理对象可以直接访问和修改对象的属性。
+
+```js
+import { ref, reactive } from 'vue'
+
+const count = ref(0)
+const obj = reactive({ name: 'Tom', age: 18 })
+
+console.log(count.value) // 0
+console.log(obj.name) // 'Tom'
+
+count.value = count.value + 1
+obj.name = 'Jerry'
+
+console.log(count.value) // 1
+console.log(obj.name) // 'Jerry'
+```
+
+**手动实现 reactive，其实就是用 proxy 实现的包装**
+
+```js
+function reactive(obj) {
+  return new Proxy(obj, {
+    get(target, key) {
+      const value = Reflect.get(target, key)
+      console.log(`get ${key}: ${value}`)
+      return value
+    },
+    set(target, key, value) {
+      const result = Reflect.set(target, key, value)
+      console.log(`set ${key}: ${value}`)
+      return result
+    },
+  })
+}
+```
+
+**手动实现 ref**
+
+```js
+function ref(initialValue) {
+  let value = initialValue
+  let subscribers = []
+
+  function notify() {
+    subscribers.forEach((subscriber) => subscriber(value))
+  }
+
+  function set(newValue) {
+    value = newValue
+    notify()
+  }
+
+  function subscribe(subscriber) {
+    subscribers.push(subscriber)
+  }
+
+  return {
+    get value() {
+      return value
+    },
+    set value(newValue) {
+      set(newValue)
+    },
+    subscribe,
+  }
+}
+```
+
+上面的代码定义了一个 ref 函数，它返回一个对象，其中包含一个 value 属性和一个 subscribe 方法。value 属性用来存储引用的值，subscribe 方法用来订阅 value 属性的变化。
+
+下面是一个示例，展示如何使用 ref 函数：
+
+```js
+javascript
+const count = ref(0)
+
+count.subscribe((value) => {
+  console.log(`count: ${value}`)
+})
+
+count.value = 1 // count: 1
+count.value = 2 // count: 2
+```
+
+上面的代码创建了一个名为 count 的 ref 对象，初始值为 0。然后，订阅了 count 对象的变化，并在控制台输出了变化后的值。最后，通过修改 count 对象的 value 属性来触发变化。

@@ -159,7 +159,7 @@ const str = buf.toString('base64', 2)
 console.log(str) // 输出：bGVsbG8gd29ybGQ=
 ```
 
-## 函数式编程
+## 编程范式
 
 ### 函数柯理化
 
@@ -217,7 +217,7 @@ console.log(curriedGreet('Hello')('John')); // Hello, John!
 console.log(curriedGreet('Hi', 'Mary')); // Hi, Mary!
 ```
 
-### 柯理化产生的原因
+#### 柯理化产生的原因
 
 柯里化的产生源于函数式编程的思想，它是**一种将多个参数的函数转换为一系列只接受一个参数的函数的技术**。**柯里化的主要目的是简化函数的调用方式和提高代码的可读性和可维护性。**
 
@@ -255,6 +255,56 @@ const addTwo = add(2)
 addTwo(3) // 5
 addTwo(4) // 6
 ```
+
+### AOP（Aspect-Oriented Programming）
+
+AOP（Aspect-Oriented Programming）编程是一种编程范式，它可以在不修改原有代码的情况下，通过切面（Aspect）的方式来增强程序的功能。
+
+AOP 的核心思想是将程序的关注点（Concern）分离出来，通过切面来实现这些关注点的功能，从而实现代码的解耦和复用。
+
+在 JavaScript 中，AOP 编程通常通过拦截器（Interceptor）或者装饰器（Decorator）来实现。
+
+拦截器是一种能够在函数执行前、执行后或者抛出异常时拦截函数调用的机制，通过拦截器可以实现日志记录、性能统计、安全检查等功能。装饰器则是一种能够在函数或者类上添加额外功能的机制，通过装饰器可以实现缓存、权限控制、错误处理等功能。
+
+AOP 编程在 JavaScript 中的应用非常广泛，比如在 React 中使用装饰器来实现高阶组件（HOC）、在 Node.js 中使用拦截器来实现中间件等。
+
+> AOP（面向切面编程）是一种编程范式，与函数式编程不同。AOP 是一种通过将横切关注点（如日志记录和事务管理）从主业务逻辑中分离出来，以便更好地管理和维护代码的技术。AOP 使用特定的技术和工具，如切面、连接点、通知和切点等，来实现这种分离。虽然 AOP 和函数式编程都与面向对象编程不同，但它们又各自有不同的特点和应用场景。
+
+实现 AOP 编程的几种方式：
+
+- 使用装饰器模式：在函数或方法执行前后添加额外的逻辑。可以使用 ES6 中的装饰器语法来实现。
+- 使用函数柯里化：将原函数拆分为多个小函数，每个小函数执行一个特定的逻辑，然后再将这些小函数组合起来。
+- 使用代理模式：通过代理对象来包装原对象，从而在方法执行前后添加额外的逻辑。可以使用 ES6 中的 Proxy 对象来实现。
+- 使用切面编程框架：如 Aspect.js，它是一个基于 JavaScript 的切面编程框架，可以通过添加注解来实现 AOP。
+
+```js
+function log(target, name, descriptor) {
+  const original = descriptor.value
+  descriptor.value = function (...args) {
+    console.log(`Calling function ${name} with arguments: ${args}`)
+    const result = original.apply(this, args)
+    console.log(`Function ${name} returned: ${result}`)
+    return result
+  }
+  return descriptor
+}
+
+class Calculator {
+  @log
+  add(a, b) {
+    return a + b
+  }
+}
+
+const calculator = new Calculator()
+console.log(calculator.add(2, 3)) // Calling function add with arguments: 2,3
+// Function add returned: 5
+// 5
+```
+
+在上面的示例中，我们定义了一个名为 log 的装饰器函数，它接收三个参数：目标对象、目标函数的名称和描述符对象。我们使用 descriptor.value 来获取原始函数，并将其替换为一个新的函数，该函数在调用原始函数之前和之后输出日志。最后，我们返回修改后的描述符对象。
+
+然后，我们在 Calculator 类的 add 方法上应用了@log 装饰器。当我们调用 add 方法时，会自动打印日志。
 
 ## 时间循环
 
