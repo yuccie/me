@@ -40,11 +40,11 @@ canonicalUrl: https://dume.vercel.app/blog/2023/sync-code
 
 每个**渲染进程都有一个主线程，并且主线程非常繁忙，既要处理 DOM，又要计算样式，还要处理布局，同时还需要处理 JavaScript 任务以及各种输入事件**。
 
-要让这么多不同类型的任务在主线程中有条不紊地执行，这就需要一个系统来统筹调度这些任务，既处理之前添加的任务，又要有条不紊处理后续添加的事件，而这个系统就是事件循环系统
+要让这么多不同类型的任务在主线程中有条不紊地执行，这就需要一个系统来统筹调度这些任务，既处理之前添加的任务，又要有条不紊的处理后续添加的事件，而这个系统就是事件循环系统
 
-而事件循环系统处理的事件就来自 消息队列（或任务队列），来自同一个线程或者其他线程，或者进程里的任务。
+而事件循环系统处理的事件就来自 消息队列（或任务队列），来自同一个线程或者其他线程，或其他进程里的任务。
 
-通常我们把**消息队列中的任务称为宏任务，每个宏任务中都包含了一个微任务队列**，在执行宏任务的过程中，如果 DOM 有变化，那么就会将该变化添加到微任务列表中，这样就不会影响到宏任务的继续执行，也解决了微任务执行效率的问题（比如页面需要及时更新）。
+通常我们把**消息队列中的任务称为宏任务，每个宏任务中都包含了一个微任务队列**，在执行宏任务的过程中，如果 DOM 有变化，那么就会将该变化添加到当前宏任务对应的微任务列表中，这样就不会影响到宏任务的继续执行，也解决了微任务执行效率的问题（比如页面需要及时更新）。
 
 ### 宏任务
 
@@ -57,7 +57,7 @@ canonicalUrl: https://dume.vercel.app/blog/2023/sync-code
 
 为了协调这些任务有条不紊地在主线程上执行，页面进程引入了消息队列和事件循环机制，渲染进程内部会维护多个消息队列，比如延迟执行队列和普通的消息队列。然后主线程采用一个 for 循环，不断地从这些任务队列中取出任务并执行任务。我们把这些消息队列中的任务称为**宏任务**。
 
-宏任务可以满足我们大部分的日常需求，不过如果有对时间精度要求较高的需求，宏任务就难以胜任了。页面的渲染事件、各种 IO 的完成事件、执行 JavaScript 脚本的事件、用户交互的事件等都随时有可能被添加到消息队列中，而且添加事件是由系统操作的，JavaScript 代码不能准确掌控任务要添加到队列中的位置，控制不了任务在消息队列中的位置，所以很难控制开始执行任务的时间。
+宏任务可以满足我们大部分的日常需求，不过如果有对时间精度要求较高的任务，宏任务就难以胜任了。页面的渲染事件、各种 IO 的完成事件、执行 JavaScript 脚本的事件、用户交互的事件等都随时有可能被添加到消息队列中，而且添加事件是由系统操作的，JavaScript 代码不能准确掌控任务要添加到队列中的位置，控制不了任务在消息队列中的位置，所以很难控制开始执行任务的时间。
 
 ### 微任务
 
@@ -203,63 +203,6 @@ console.log('end')
 // 2. 当状态改变后，再执行数组中存的回调
 // 3. 一个promise可以有多个并列的then(不是链式)
 class Promise {
-  constructor(executor) {
-    this.state = 'pending'
-    this.value = undefined
-    this.reason = undefined
-    // 成功存放的数组
-    this.onResolvedCallbacks = []
-    // 失败存放法数组
-    this.onRejectedCallbacks = []
-    let resolve = (value) => {
-      if (this.state === 'pending') {
-        this.state = 'fulfilled'
-        this.value = value
-        // 一旦resolve执行，调用成功数组的函数
-        this.onResolvedCallbacks.forEach((fn) => fn())
-      }
-    }
-    let reject = (reason) => {
-      if (this.state === 'pending') {
-        this.state = 'rejected'
-        this.reason = reason
-        this.onRejectedCallbacks.forEach((fn) => fn())
-      }
-    }
-
-    // 如果executor执行报错，直接执行reject
-    try {
-      executor(resolve, reject)
-    } catch (err) {
-      reject(err)
-    }
-  }
-
-  then(onFulfilled, onRejected) {
-    if (this.state === 'fulfilled') {
-      onFulfilled(this.value)
-    }
-    if (this.state === 'rejected') {
-      onRejected(this.reason)
-    }
-    // 和非pending态比，只是没有执行的函数而已
-    if (this.state === 'pending') {
-      this.onResolvedCallbacks.push(() => {
-        onFulfilled(this.value)
-      })
-      this.onRejectedCallbacks.push(() => {
-        onRejected(this.reason)
-      })
-    }
-  }
-}
-
-// 结构四需满足
-// 结构三对于同步代码没有问题，但是异步则不行
-// 1. 若处在pendding时就调用then，需将对应的回调存到各自数组
-// 2. 当状态改变后，再执行数组中存的回调
-// 3. 一个promise可以有多个并列的then(不是链式)
-class Promise2 {
   constructor(executor) {
     this.state = 'pending'
     this.value = undefined
@@ -593,11 +536,71 @@ gen.next()
 
 **其实在 js 中，生成器只是协程的一种具体实现方式，协程还能运用在更多的场合**
 
+### async/await 官方的封装
+
+根据 MDN 定义，async 是一个通过**异步执行**并**隐式返回 Promise 作**为结果的函数。
+
+```js
+async function foo() {
+  return 2
+}
+console.log(foo()) // Promise {<resolved>: 2}
+```
+
+await 的行为：
+
+```js
+async function foo() {
+  console.log(1)
+  let a = await 100
+  console.log(a)
+  console.log(2)
+}
+
+console.log(0)
+foo()
+console.log(3)
+// 0 1 3 100 2
+```
+
+执行顺序：
+
+1. 首先，执行 console.log(0)这个语句，打印出来 0。
+2. 紧接着就是执行 foo 函数，由于 foo 函数是被 async 标记过的，所以当进入该函数的时候，JavaScript 引擎会保存当前的调用栈等信息，然后执行 foo 函数中的 console.log(1)语句，并打印出 1。
+3. 当执行到 await 100 时，会默认创建一个 Promise 对象，代码如下：
+
+```js
+let promise_ = new Promise((resolve,reject){
+  resolve(100)
+})
+```
+
+4. 在这个 promise\* 对象创建的过程中，我们可以看到在 executor 函数中调用了 resolve 函数，JavaScript 引擎会将该任务提交给微任务队列。
+5. 然后 JavaScript 引擎会暂停当前协程的执行，将主线程的控制权转交给父协程执行，同时会将 promise\* 对象返回给父协程。**这时候父协程要做的一件事是调用 promise\_.then 来监控 promise 状态的改变**。
+6. 接下来继续执行父协程的流程，这里我们执行 console.log(3)，并打印出来 3。
+7. 随后**父协程将执行结束，在结束之前，会进入微任务的检查点**，然后执行微任务队列，微任务队列中有 resolve(100)的任务等待执行，然后执行，并触发 promise\_.then 中的回调函数，该回调函数被激活以后，会将主线程的控制权交给 foo 函数的协程，并同时将 value 值传给该协程。
+8. foo 协程激活之后，会把刚才的 value 值赋给了变量 a，然后 foo 协程继续执行后续语句，执行完成之后，将控制权归还给父协程。
+
+```js
+async function foo() {
+  console.log(1)
+  // 注意await里面会执行
+  let a = await console.log(4)
+  console.log(a)
+  console.log(2)
+}
+console.log(0)
+foo()
+console.log(3)
+// 0 1 4 3 undefined 2
+```
+
 ### 手动实现 async/await
 
 ```js
 // 实现async
 function myAsync(fn) {
+  // async 函数是使用async关键字声明的函数。async 函数是 AsyncFunction 构造函数的实例，
   return function () {
     return new Promise((resolve, reject) => {
       const gen = fn.apply(this, arguments)
@@ -655,59 +658,6 @@ myAsyncFunction().then((result) => {
 - async/await 基于生成器和 promise 实现，往底层说就是微任务和协程应用
 - 而上面实现的 myAsync 函数也可以理解为 执行器函数
   - 我们把**执行生成器的代码封装成一个函数，并把这个执行生成器代码的函数称为执行器**（可参考著名的 co 框架）
-
-### 官方的封装
-
-根据 MDN 定义，async 是一个通过**异步执行**并**隐式返回 Promise 作**为结果的函数。
-
-```js
-async function foo() {
-  return 2
-}
-console.log(foo()) // Promise {<resolved>: 2}
-```
-
-await 的行为：
-
-```js
-async function foo() {
-  console.log(1)
-  let a = await 100
-  console.log(a)
-  console.log(2)
-}
-
-console.log(0)
-foo()
-console.log(3)
-// 0 1 3 100 2
-
-async function foo() {
-  console.log(1)
-  // 注意await里面会执行
-  let a = await console.log(4)
-  console.log(a)
-  console.log(2)
-}
-console.log(0)
-foo()
-console.log(3)
-// 0 1 4 3 undefined 2
-```
-
-执行顺序：
-
-1. 首先，执行 console.log(0)这个语句，打印出来 0。
-2. 紧接着就是执行 foo 函数，由于 foo 函数是被 async 标记过的，所以当进入该函数的时候，JavaScript 引擎会保存当前的调用栈等信息，然后执行 foo 函数中的 console.log(1)语句，并打印出 1。
-3. 当执行到 await 100 时，会默认创建一个 Promise 对象，代码如下：
-
-```js
-let promise_ = new Promise((resolve,reject){
-  resolve(100)
-})
-```
-
-在这个 promise* 对象创建的过程中，我们可以看到在 executor 函数中调用了 resolve 函数，JavaScript 引擎会将该任务提交给微任务队列。 4. 然后 JavaScript 引擎会暂停当前协程的执行，将主线程的控制权转交给父协程执行，同时会将 promise* 对象返回给父协程。**这时候父协程要做的一件事是调用 promise\_.then 来监控 promise 状态的改变**。 5. 接下来继续执行父协程的流程，这里我们执行 console.log(3)，并打印出来 3。随后**父协程将执行结束，在结束之前，会进入微任务的检查点**，然后执行微任务队列，微任务队列中有 resolve(100)的任务等待执行，然后执行，并触发 promise\_.then 中的回调函数，该回调函数被激活以后，会将主线程的控制权交给 foo 函数的协程，并同时将 value 值传给该协程。 6. foo 协程激活之后，会把刚才的 value 值赋给了变量 a，然后 foo 协程继续执行后续语句，执行完成之后，将控制权归还给父协程。
 
 ## Rxjs
 
