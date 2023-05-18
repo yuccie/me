@@ -277,6 +277,65 @@ function parseCode(code) {
 }
 ```
 
+### HMR（Hot Module Replacement）
+
+Webpack 热更新是通过 webpack-dev-server 插件实现的，它利用了 WebSocket 技术实现了浏览器与服务器之间的实时通信。
+
+1. 当 webpack-dev-server 启动时，会在浏览器端注入一段客户端代码，这段代码会与 webpack-dev-server 建立 WebSocket 连接，用来接收服务器端的更新信息。
+2. 当源代码发生变化时，webpack 会重新编译代码，并将编译后的代码通过 WebSocket 发送给浏览器端。
+3. 浏览器端接收到代码后，会使用 HMR（Hot Module Replacement）技术，将新的模块替换掉旧的模块，从而实现热更新。
+
+需要注意的是，**HMR 只能替换能够被更新的模块，例如函数、类、对象等，而不能替换变量、常量等**。如果需要替换变量、常量等，需要手动刷新页面。
+
+HMR 的实现原理是在运行时替换模块，而变量、常量等在编译阶段就已经被确定并提升，无法在运行时被替换。因此，需要手动刷新页面来更新变量、常量等。
+
+```js
+// webpack配置
+const webpack = require('webpack')
+module.exports = {
+  // ...其他配置
+  plugins: [new webpack.HotModuleReplacementPlugin()],
+}
+
+// 客户端业务代码
+if (module.hot) {
+  module.hot.accept('./app.js', function () {
+    console.log('app.js has been updated')
+    // 获取最新的模块代码
+    const updatedModule = require('./app.js')
+    // 使用新代码替换旧代码
+    app = updatedModule.default
+  })
+}
+
+// 服务端代码
+const webpack = require('webpack')
+const WebpackDevServer = require('webpack-dev-server')
+const config = require('./webpack.config.js')
+
+const compiler = webpack(config)
+
+const server = new WebpackDevServer(compiler, {
+  hot: true,
+  // ...其他配置
+})
+
+// 启动Webpack Server
+server.listen(8080, 'localhost', function () {
+  console.log('Starting server on http://localhost:8080')
+})
+
+// 监听文件改动事件，发送HMR消息给客户端
+compiler.hooks.done.tap('webpack-dev-server', function (stats) {
+  const changedModules = stats.compilation.modifiedFiles || []
+  if (changedModules.length) {
+    server.sockWrite(server.sockets, 'content-changed')
+  }
+})
+```
+
+这样就可以手动实现 HMR 技术了。当代码发生改变时，webpack 会自动编译并更新页面内容，而不需要刷新整个页面。
+
 ### 性能优化
 
 优化，无非是从几个方面：
@@ -593,8 +652,7 @@ rrweb 主要由 3 部分组成：
 
 - npm
   - 包仓库最大，拥有大量的支持和文档
-- yarn
-  -
+- ## yarn
 - pnpm
   - 共享依赖项：pnpm 采用硬链接机制，使得多个项目可以共享同一个依赖项。
   - 更少的磁盘空间：pnpm 不会为每个项目安装一个完整的依赖项，而是使用链接机制，节省了磁盘空间。

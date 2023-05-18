@@ -340,7 +340,7 @@ o._data.test = 'hello,world.' /* 视图更新啦～ */
 **完善版本**
 
 ```js
-// 订阅者 Dep 主要用来存放`Watcher`观察者对象的，其实就是个数组，然后有一些方法，简单实现如下：
+// 观察者 Dep 主要用来存放`Watcher`观察者对象的，其实就是个数组，然后有一些方法，简单实现如下：
 class Dep {
   constructor(){
     // 用来存放watcher对象的数组
@@ -521,3 +521,275 @@ count.value = 2 // count: 2
 ```
 
 上面的代码创建了一个名为 count 的 ref 对象，初始值为 0。然后，订阅了 count 对象的变化，并在控制台输出了变化后的值。最后，通过修改 count 对象的 value 属性来触发变化。
+
+## 数据管理
+
+Vuex、Redux 和 Mobx 都是状态管理库，用于管理应用程序的状态。它们都有以下相同点：
+
+1. 都是用于管理应用程序的状态。
+2. 都使用单一数据源。
+3. 都使用纯函数来更新状态。
+4. 都可以通过中间件来扩展功能。
+
+它们的不同点如下：
+
+1. Vuex 是专门为 Vue.js 设计的状态管理库，而 Redux 和 Mobx 可以与任何 JavaScript 框架一起使用。
+2. Vuex 使用 Vue.js 的响应式系统来更新状态。Redux 和 Mobx 则需要**手动订阅状态变化**。
+3. Redux 强调不可变性，即状态不应该被直接修改，而是应该通过纯函数来生成新的状态，其实每次都是浅拷贝一份。Vuex 和 Mobx 则没有这样的限制。
+4. Mobx 使用装饰器来简化状态管理，而 Redux 和 Vuex 则没有这样的功能。
+5. Redux 和 Vuex 都有一个严格的状态管理机制，所有的状态变更都需要通过特定的 Action 来触发。Mobx 则没有这样的机制。
+
+总之，Vuex、Redux 和 Mobx 都是优秀的状态管理库，具有不同的特点和优势。选择哪一个取决于你的应用程序需要什么样的状态管理机制。
+
+### 观察者模式与发布订阅模式
+
+发布订阅和观察者模式都是用于解决对象之间的通信问题，但它们之间有以下区别：
+
+1. 发布订阅模式中，发布者和订阅者之间有一个中间的消息队列，发布者把消息放入队列中，订阅者从队列中获取消息。而观察者模式中，观察者直接订阅主题，主题发生变化时直接通知观察者。
+
+2. 发布订阅模式中，发布者和订阅者之间没有直接关联，发布者只需要知道消息队列，订阅者只需要知道消息队列和订阅的消息类型。而观察者模式中，主题和观察者之间有直接关联，主题需要知道观察者，并且观察者需要注册到主题中。
+
+3. 发布订阅模式中，发布者可以发布多种类型的消息，订阅者可以订阅多种类型的消息。而观察者模式中，主题只能发布一种类型的消息，观察者只能订阅该类型的消息。
+
+4. 发布订阅模式中，发布者和订阅者之间可以存在多对多的关系，一个发布者可以有多个订阅者，一个订阅者可以订阅多个发布者。而观察者模式中，主题和观察者之间是一对多的关系，一个主题可以有多个观察者。
+
+总的来说，发布订阅模式更加灵活，适用于多对多的场景，而观察者模式更加简单，适用于一对多的场景。
+
+因此：
+
+- vue 是发布订阅模式
+- 而 redux 和 mobx 是观察者模式
+
+### vuex 手动实现一个
+
+Vuex 是一个状态管理库，用于管理 Vue.js 应用程序中的所有组件的状态。它使用了一种称为“单向数据流”的模式
+
+```js
+class Store {
+  constructor(options) {
+    this.state = options.state || {}
+    this.mutations = options.mutations || {}
+    this.actions = options.actions || {}
+    this.getters = options.getters || {}
+  }
+
+  commit(type, payload) {
+    const mutation = this.mutations[type]
+    mutation(this.state, payload)
+  }
+
+  dispatch(type, payload) {
+    const action = this.actions[type]
+    return action({ commit: this.commit, state: this.state }, payload)
+  }
+}
+
+// State
+class State {
+  constructor(data) {
+    this.data = data
+  }
+}
+
+// Mutations
+class Mutations {
+  add(state, payload) {
+    // 操作state.data
+  }
+
+  remove(state, payload) {
+    // 操作state.data
+  }
+}
+
+class Actions {
+  add({ commit }, payload) {
+    setTimeout(() => {
+      commit('add', payload)
+    }, 1000)
+  }
+
+  remove({ commit }, payload) {
+    setTimeout(() => {
+      commit('remove', payload)
+    }, 1000)
+  }
+}
+
+class Getters {
+  count(state) {
+    return state.data.length
+  }
+
+  list(state) {
+    return state.data
+  }
+}
+
+// 实例化store
+const store = new Store({
+  state: new State({
+    data: ['item1', 'item2', 'item3'],
+  }),
+  mutations: new Mutations(),
+  actions: new Actions(),
+  getters: new Getters(),
+})
+
+// 使用vuex
+new Vue({
+  el: '#app',
+  store,
+  computed: {
+    count() {
+      return this.$store.getters.count
+    },
+    list() {
+      return this.$store.getters.list
+    },
+  },
+  methods: {
+    addItem() {
+      this.$store.dispatch('add', 'item4')
+    },
+    removeItem(item) {
+      this.$store.dispatch('remove', item)
+    },
+  },
+})
+```
+
+### redux 手动实现一个
+
+```js
+// 参数1是reducer，是具体执行器，类似mutation
+// 参数2是初始化的数据
+function createStore(reducer, initialState) {
+  let state = initialState
+  const listeners = []
+
+  function getState() {
+    return state
+  }
+
+  //
+  function dispatch(action) {
+    state = reducer(state, action)
+    listeners.forEach((listener) => listener())
+  }
+
+  // 添加订阅者
+  function subscribe(listener) {
+    listeners.push(listener)
+    // 同时返回接触订阅的方法
+    return function unsubscribe() {
+      const index = listeners.indexOf(listener)
+      listeners.splice(index, 1)
+    }
+  }
+
+  return {
+    getState,
+    dispatch,
+    subscribe,
+  }
+}
+
+// 针对不同的操作类型，执行的具体操作
+function reducer(state, action) {
+  switch (action.type) {
+    case 'INCREMENT':
+      return {
+        ...state,
+        count: state.count + 1,
+      }
+    case 'DECREMENT':
+      return {
+        ...state,
+        count: state.count - 1,
+      }
+    default:
+      return state
+  }
+}
+
+// 使用，
+const store = createStore(reducer, { count: 0 })
+
+console.log(store.getState()) // { count: 0 }
+
+// 执行具体的操作，内部根据type找到对应的操作，然后操作state
+store.dispatch({ type: 'INCREMENT' })
+console.log(store.getState()) // { count: 1 }
+
+// 添加一个订阅者
+const unsubscribe = store.subscribe(() => {
+  console.log(store.getState())
+})
+
+// 执行加减
+store.dispatch({ type: 'INCREMENT' })
+store.dispatch({ type: 'DECREMENT' })
+
+// 取消订阅
+unsubscribe()
+
+// 再执行逻辑时，虽然执行，但是并不会再打印了日志
+store.dispatch({ type: 'DECREMENT' })
+```
+
+总结：
+
+- 数据都需要手动去监听和移除，相比 vue 麻烦了不少
+- 但是可以更精细化管理，
+
+### mobx 手动实现一个
+
+```js
+class Mobx {
+  constructor() {
+    this.observers = new Set() // 用 Set 存储所有观察者
+  }
+
+  addObserver(observer) {
+    this.observers.add(observer)
+  }
+
+  removeObserver(observer) {
+    this.observers.delete(observer)
+  }
+
+  notifyObservers() {
+    for (const observer of this.observers) {
+      observer()
+    }
+  }
+}
+
+class ObservableValue extends Mobx {
+  constructor(value) {
+    super()
+    this.value = value
+  }
+
+  get() {
+    this.addObserver(() => console.log(`Value changed to ${this.value}`))
+    return this.value
+  }
+
+  set(value) {
+    this.value = value
+    this.notifyObservers()
+  }
+}
+
+// 观察者模式：观察具体的数据
+const observableValue = new ObservableValue(10)
+
+// 获取数据，会触发get，同时添加 观察者
+console.log(observableValue.get()) // Value changed to 10, 10
+
+// 设置数据，会触发set，然后通知所有 观察者
+observableValue.set(20) // Value changed to 20
+console.log(observableValue.get()) // Value changed to 20, 20
+```

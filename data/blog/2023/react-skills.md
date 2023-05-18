@@ -65,3 +65,51 @@ useRef 和 useState 都是 React 的钩子函数，但它们的作用不同。
   - useState 通常用于保存组件内部的状态。
 
 简而言之，**useRef 用于保存不需要触发重新渲染的值，而 useState 用于保存需要触发重新渲染的值。**
+
+### useState 和 useReducer
+
+useState 和 useReducer 都是 React Hooks，用于在函数组件中管理组件的状态。它们的区别在于：
+
+1. useState 只能管理单个状态，而 useReducer 可以管理多个状态；
+2. useState 适合简单的状态管理，useReducer 适合复杂的状态管理；
+3. useState 的状态更新是基于新的状态值进行的，而 useReducer 的状态更新是基于旧的状态值进行的，可以根据旧的状态值和 action 计算出新的状态值。
+
+简而言之，useState 适合管理简单的状态，而 useReducer 适合管理复杂的状态，或者需要根据旧状态值计算新状态值的情况。
+
+## 组件间通信
+
+React 组件间通信可以通过以下几种方式实现：
+
+1. Props：通过父组件向子组件传递数据或方法，子组件通过 props 接收数据或方法。父组件可以通过修改 props 的值来控制子组件的行为。
+2. Context：通过 React 的 Context API 可以实现跨组件层级的数据共享。可以在祖先组件中创建一个 Context，然后在子孙组件中通过 Consumer 或 useContext 获取 Context 的值。
+3. Redux：Redux 是一个状态管理库，它可以帮助我们管理整个应用的状态。通过在组件中使用 connect 函数连接到 Redux 的 store，就可以实现组件与 store 之间的通信。
+4. EventBus：EventBus 是一种事件总线，可以让组件之间通过事件来进行通信。可以在某个组件中定义一个 EventBus，然后在其他组件中订阅或触发事件。
+5. Refs：通过 Refs 可以获取到组件的引用，从而可以直接调用组件的方法或访问组件的属性。可以在父组件中创建一个 Ref，然后将其传递给子组件，在子组件中可以通过 this.props.refName 获取到 Ref。
+
+### useContext
+
+在 React 中，useContext 是一个 Hooks 函数，用于在函数组件中使用上下文（Context）。
+
+```js
+import React, { useContext } from 'react'
+
+// 可以初始化任何数据，MyContext是作为组件存在的。。。
+const MyContext = React.createContext('default')
+
+function ParentComponent() {
+  return (
+    // 也可以自定义向下传的数据，比如此处的value
+    <MyContext.Provider value="hello">
+      <ChildComponent />
+    </MyContext.Provider>
+  )
+}
+
+function ChildComponent() {
+  // 子组件获取传递的值。
+  const value = useContext(MyContext)
+  return <div>{value}</div>
+}
+```
+
+因此，整体的感觉是，react 的 useContext 相当于 vue 中 provide 和 injected

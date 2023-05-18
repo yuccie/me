@@ -148,3 +148,93 @@ axios
 // 在需要取消请求的地方调用
 source.cancel('请求被取消')
 ```
+
+## cookie vs token
+
+### Cookie
+
+- 名称：cookie 的名称，用于标识不同的 cookie。
+- 值：cookie 的值，存储在客户端和服务器之间的数据。
+- 域 domain：cookie 所属的域名，限制了 cookie 的作用域。
+- 路径 path：cookie 的作用路径，限制了 cookie 的访问范围。
+- 过期时间 Exparies：cookie 的过期时间，指定了 cookie 的有效期。
+  - Expires 的单位是 GMT 时间，而 max-age 的单位是秒。
+- 安全标志 secure：指示是否仅通过 HTTPS 协议发送 cookie。
+- HttpOnly 标志：指示浏览器是否允许客户端 JavaScript 代码访问 cookie。
+- sameSite：SameSite 属性是一种用于控制浏览器是否发送跨站点 Cookie 的机制。它有三个值：Strict、Lax 和 None。Strict 表示只有在当前网站的网页中才能发送 Cookie，Lax 表示在某些情况下可以发送 Cookie，None 表示可以在任何情况下发送 Cookie。这样可以防止某些恶意网站利用 Cookie 进行攻击。
+- partition key：Partition key 是一种在分布式系统中用于分割数据的机制。在 Cookie 中，Partition key 可以用于将 Cookie 分割成多个部分，每个部分可以存储在不同的服务器上。这样可以提高 Cookie 的可靠性和性能。
+  - 在 cookie 中，Partition key 通常是指一个唯一的标识符，用于将 cookie 存储在特定的分区中。这个标识符可以是任何东西，比如用户 ID、会话 ID 或其他唯一的标识符。当 cookie 被写入分布式系统时，系统会根据 Partition key 将其分配到特定的分区中，这样就可以快速地查找和访问该 cookie。这种分区策略可以提高系统的性能和可伸缩性，因为它允许系统在不同的节点上并行处理不同的数据分区。
+- priority: Priority 是一种用于设置 Cookie 的优先级的机制。在 Cookie 中，Priority 可以用于指定 Cookie 的重要性，以便浏览器在处理 Cookie 时优先处理重要的 Cookie。这样可以提高 Cookie 的处理效率和用户体验。其实同时存在多个 cookie，可以优先发送指定优先级的；zhi
+
+### JWT 是什么：
+
+JWT（JSON Web Token）是一种开放标准（RFC 7519），用于在网络应用间传递信息的一种基于 JSON 的标准。JWT 通常由三部分组成：头部、载荷和签名。JWT 一般用于身份验证和授权。
+
+总之，JWT 是一种安全、可靠、灵活和可扩展的身份验证和授权机制，广泛应用于 Web 应用程序和移动应用程序等领域中。
+
+### Cookie 与 Token 的区别：
+
+- Cookie 是存储在客户端的数据，而 Token 是存储在服务端的数据。
+- Cookie 的安全性较低，容易被窃取或伪造，而 Token 的安全性较高。
+- Cookie 只能存储少量数据，而 Token 可以存储更多的数据。
+- Cookie 的过期时间可以在客户端被修改，而 Token 的过期时间只能在服务端被修改。
+- Cookie 需要浏览器支持，并且在跨域请求时需要设置跨域访问，而 Token 不需要浏览器支持，也不需要设置跨域访问。
+
+## 跨域
+
+### jsonp
+
+jsonp 是一种跨域解决方法，它利用了浏览器允许跨域请求资源的特性。
+
+客户端代码实现：
+
+```javascript
+function jsonp(url, callback) {
+  const script = document.createElement('script')
+  const callbackName = 'jsonpCallback' + Math.floor(Math.random() * 100000)
+  script.src = url + '?callback=' + callbackName
+
+  // 定义回调函数
+  window[callbackName] = function (data) {
+    delete window[callbackName]
+    document.body.removeChild(script)
+    callback(data)
+  }
+
+  // 脚本添加到页面后就会自动下载服务端代码，下载完，作为js执行，这时就会找到window[callbackName]定义的函数。
+  document.body.appendChild(script)
+}
+```
+
+服务端代码实现：
+
+```javascript
+const http = require('http')
+const url = require('url')
+
+const server = http.createServer((req, res) => {
+  // 从前端url获取回调函数的名字
+  const query = url.parse(req.url, true).query
+  const callbackName = query.callback
+
+  // 将回调函数名字和后端的数据，通过序列化后，作为整体发给前端
+  const data = { message: 'Hello World!' }
+  const jsonp = callbackName + '(' + JSON.stringify(data) + ')'
+
+  // 注意文件类型设置为js
+  res.setHeader('Content-Type', 'application/javascript')
+  res.end(jsonp)
+})
+```
+
+使用例子：
+
+```javascript
+jsonp('http://localhost:3000', (data) => {
+  // 这里等到下载完数据后
+  console.log(data.message) // 输出：Hello World!
+})
+```
+
+- 注意，服务端设置的 contenttype 是 js
+- 服务端将拼接 jsonp = callbackName + '(' + JSON.stringify(data) + ')' 作为整体返回给前端
