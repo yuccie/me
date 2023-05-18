@@ -10,6 +10,47 @@ bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/2023/some-js-skills
 ---
 
+## 执行上下文
+
+JavaScript 的执行上下文是描述 JavaScript 代码在运行时环境中执行的抽象概念。它是一个对象，其中包含了 JavaScript 代码执行所需的所有信息，例如变量、函数、参数、作用域链等。
+
+JavaScript 中的每个函数都有自己的执行上下文，而全局代码在 JavaScript 引擎启动时创建了一个全局执行上下文。
+
+当 JavaScript 代码被执行时，JavaScript 引擎会创建一个执行上下文堆栈（Execution Context Stack）。每次调用函数时，都会创建一个新的执行上下文，并将其推入堆栈的顶部。当函数执行完毕后，它的执行上下文会从堆栈中弹出，执行上下文堆栈会回到上一个执行上下文。
+
+JavaScript 执行上下文包含的信息有：
+
+1. 变量对象（Variable Object）：存储所有的局部变量、函数声明和函数参数，以及全局变量（在全局执行上下文中）。
+2. 作用域链（Scope Chain）：在执行上下文中，它是一个指向当前执行上下文的变量对象和上层执行上下文的作用域链的指针列表。
+3. this 指针：指向当前执行上下文的对象。
+
+当 JavaScript 引擎执行代码时，它会根据执行上下文堆栈中的当前执行上下文来确定当前代码的作用域和变量。这就是为什么函数内部可以访问外部变量，但外部不能访问函数内部变量的原因。
+
+### 词法作用域
+
+JavaScript 中的词法作用域是指变量和函数的作用域是在代码编写时静态确定的。换句话说，词法作用域是由代码中变量和函数定义的位置决定的，与代码的执行顺序无关。
+
+```js
+var a = 1
+
+function foo() {
+  var b = 2
+  console.log(a + b)
+}
+
+function bar() {
+  var b = 3
+  console.log(a + b)
+}
+
+foo() // 输出3
+bar() // 输出4
+```
+
+### 作用域链
+
+当 JavaScript 代码执行时，它会先在当前作用域中查找变量和函数。如果找不到，则会向上一级作用域继续查找，直到找到为止。这种查找方式被称为作用域链。
+
 ## 变量提升
 
 ### 函数与变量
@@ -253,9 +294,12 @@ AOP 编程在 JavaScript 中的应用非常广泛，比如在 React 中使用装
 - 使用代理模式：通过代理对象来包装原对象，从而在方法执行前后添加额外的逻辑。可以使用 ES6 中的 Proxy 对象来实现。
 - 使用切面编程框架：如 Aspect.js，它是一个基于 JavaScript 的切面编程框架，可以通过添加注解来实现 AOP。
 
+#### 使用装饰器：
+
 ```js
 function log(target, name, descriptor) {
   const original = descriptor.value
+
   descriptor.value = function (...args) {
     console.log(`Calling function ${name} with arguments: ${args}`)
     const result = original.apply(this, args)
@@ -281,6 +325,58 @@ console.log(calculator.add(2, 3)) // Calling function add with arguments: 2,3
 在上面的示例中，我们定义了一个名为 log 的装饰器函数，它接收三个参数：目标对象、目标函数的名称和描述符对象。我们使用 descriptor.value 来获取原始函数，并将其替换为一个新的函数，该函数在调用原始函数之前和之后输出日志。最后，我们返回修改后的描述符对象。
 
 然后，我们在 Calculator 类的 add 方法上应用了@log 装饰器。当我们调用 add 方法时，会自动打印日志。
+
+#### 使用 Proxy 代理
+
+```js
+function withLog(fn) {
+  return new Proxy(fn, {
+    apply(target, thisArg, args) {
+      console.log(`[${fn.name}] start`)
+      const start = performance.now()
+      const result = target.apply(thisArg, args)
+      const end = performance.now()
+      console.log(`[${fn.name}] end, time: ${end - start}ms`)
+      return result
+    },
+  })
+}
+
+class MyClass {
+  myMethod() {
+    // do something
+  }
+}
+
+const myObj = new MyClass()
+myObj.myMethod = withLog(myObj.myMethod)
+```
+
+#### 函数柯理化实现
+
+利用函数柯里化，我们可以将 AOP 逻辑封装成一个高阶函数，返回一个新函数，用于执行原函数并添加 AOP 逻辑。
+
+```js
+function withLog(fn) {
+  return function (...args) {
+    console.log(`[${fn.name}] start`)
+    const start = performance.now()
+    const result = fn.apply(this, args)
+    const end = performance.now()
+    console.log(`[${fn.name}] end, time: ${end - start}ms`)
+    return result
+  }
+}
+
+class MyClass {
+  myMethod() {
+    // do something
+  }
+}
+
+const myObj = new MyClass()
+myObj.myMethod = withLog(myObj.myMethod)
+```
 
 ## 函数
 
@@ -596,6 +692,8 @@ child.sayName() // child
 - 父类的实例，作为子类的原型
 - 在子类的构造函数里，调用父类构造函数
 - 既能继承父类原型上的方法和属性，又能避免共享父类引用类型属性的问题？？？这是怎么避免的？
+  - 当执行 new Parent() 时，Child.prototype 会得到 name 属性
+  - 当执行 new Child('child', 18) 时，又会调用 Parent 构造函数，child 实例上又得到一个 name 属性，从而覆盖上一步得到的 name 属性
 
 ### 原型式继承
 
@@ -617,11 +715,12 @@ var child = createObj(parent)
 child.sayName() // parent
 ```
 
-- 创建一个空对象，或者空函数
-- 通过创建一个空对象，将父类实例作为该对象的原型，实现继承。
+- 通过创建一个空对象，将父类实例作为该对象的原型，实现继承。比如 parent 就是父类实例，然后创建一个 F 空函数对象，最后实例化 F 并返回
 - 缺点是无法传递参数，同时存在共享父类引用类型属性的问题。
 
 #### 寄生式继承
+
+使用原型式继承，但在返回新对象之前，通过添加方法等操作，增强新对象。缺点同原型式继承。
 
 ```javascript
 function createObj(o) {
@@ -647,8 +746,362 @@ var child = createChild(parent, 18)
 child.sayName() // parent
 ```
 
-## 时间循环
+### 寄生组合式继承
 
-## 时间循环
+通过借用构造函数继承父类属性和方法，再通过寄生式继承父类原型上的方法和属性，实现继承。是一种比较完善的继承方式。
+
+```js
+// 原型式继承
+function createObj(o) {
+  function F() {}
+  F.prototype = o
+  return new F()
+}
+
+function inheritPrototype(child, parent) {
+  var prototype = createObj(parent.prototype)
+  prototype.constructor = child
+  child.prototype = prototype
+}
+
+function Parent(name) {
+  this.name = name
+}
+Parent.prototype.sayName = function () {
+  console.log(this.name)
+}
+
+function Child(name, age) {
+  // 构造函数，继承父类属性和方法
+  Parent.call(this, name)
+  this.age = age
+}
+inheritPrototype(Child, Parent)
+
+var child = new Child('child', 18)
+child.sayName() // child
+```
+
+### new 操作符
+
+在 JavaScript 中，new 操作符用于创建一个对象实例。它的主要作用是将**构造函数与新对象相关联，然后返回该新对象**。
+
+1. 创建一个空对象
+2. 将该空对象的原型指向构造函数的原型对象
+3. 将构造函数的 this 指向新的空对象
+4. 执行构造函数，并传参给构造函数
+5. 如果构造函数返回一个对象，则返回该对象，否则返回该空对象
+
+```js
+function myNew(constructor, ...args) {
+  // Object.create(proto[, propertiesObject])
+  // 创建一个新对象，使用提供的对象来提供给新对象的__proto__
+  // var o = new Object();             //1、新建空对象
+  // o.__proto__ = Foo.prototype;      //2、建立连接
+  const obj = Object.create(constructor.prototype)
+  const res = constructor.apply(obj, args)
+  return res instanceof Object ? res : obj
+}
+```
+
+- 使用 new 时，跟定后面跟着一个构造函数，比如 new F()的 F
+- 同时要让新对象的 **proto** 指向构造函数的 prototype，直接 Object.create 即可
+- 要想继承构造函数里的属性，则必须执行他
+- 然后还得修改 this，并传参为己所用
+- 最后判断返回的对象
+
+## 数据劫持
+
+### Object.defineProperty
+
+### Proxy
+
+```js
+const proxy = new Proxy(target, handler)
+```
+
+- target 是要代理的目标对象，可以是任何类型的对象，
+- handler 则是一个对象，用于定义代理对象的行为。handler 中定义了一些特殊的方法，称为“陷阱函数”（trap functions），当代理对象被操作时，会自动调用这些陷阱函数来实现代理的行为。
+
+下面是 handler 中常用的陷阱函数：
+
+- get(target, property, receiver)：当读取代理对象的属性时调用。
+- set(target, property, value, receiver)：当设置代理对象的属性时调用。
+- apply(target, thisArg, argumentsList)：当代理对象作为函数被调用时调用。
+- construct(target, argumentsList, newTarget)：当代理对象作为构造函数被调用时调用。
+- has(target, property)：当使用 in 操作符或 Reflect.has() 方法检查属性是否存在时调用。
+- deleteProperty(target, property)：当使用 delete 操作符或 Reflect.deleteProperty() 方法删除属性时调用。
+- getOwnPropertyDescriptor(target, property)：当使用 Object.getOwnPropertyDescriptor() 方法获取属性描述符时调用。
+- defineProperty(target, property, descriptor)：当使用 Object.defineProperty() 或 Object.defineProperties() 方法定义属性时调用。
+
+除了以上陷阱函数外，还有一些其他的陷阱函数，如 getPrototypeOf()、setPrototypeOf()、isExtensible()、preventExtensions()、getOwnPropertyNames()、getPrototypeOf() 等
+
+## 异步加载
+
+### 异步加载图片
+
+```js
+function loadImgAsync(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      resolve(img)
+    }
+    img.onerror = () => {
+      reject(new Error('could not load img at ' + url))
+    }
+    img.src = url
+  })
+}
+```
+
+### 无所不在的统计代码
+
+```js
+// 无所不在的百度统计代码，这便是常规的按需加载，用的时候执行以下就好(可以用事件触发)
+;(function () {
+  var hm = document.createElement('script')
+  hm.src = 'https://hm.baidu.com/hm.js?<xxxxx>'
+  var s = document.getElementsByTagName('script')[0]
+  s.parentNode.insertBefore(hm, s)
+})()
+```
+
+### 实现 vue 项目中的按需加载
+
+```js
+function load(componentName, path) {
+  return new Promise(function (resolve, reject) {
+    var script = document.createElement('script')
+    script.src = path
+    script.async = true
+    script.onload = function () {
+      // 通过Vue.component验证组件，存在就resolve,否则reject
+      var component = Vue.component(componentName)
+      if (component) {
+        resolve(component)
+      } else {
+        reject()
+      }
+    }
+    script.onerror = reject
+    document.body.appendChild(script)
+  })
+}
+
+var router = new VueRouter({
+  routes: [
+    {
+      path: '/home',
+      component: {
+        template: '<div>Home page</div>',
+      },
+    },
+    {
+      path: '/about',
+      component: function (resolve, reject) {
+        // 使用自定义的loda函数加载
+        load('about', 'about.js').then(resolve, reject)
+      },
+    },
+  ],
+})
+
+var app = new Vue({
+  el: '#app',
+  router: router,
+})
+```
+
+### 配合 webpack 的按需加载
+
+```js
+// 配合webpack
+const router = new VueRouter({
+  routes: [
+    { path: '/home', component: Home },
+    {
+      path: '/about',
+      // Vue.js支持component定义为一个函数：function (resolve) {}，
+      // 在函数内，可以使用类似node.js的库引入模式
+      // 这个特殊的require语法告诉webpack自动将编译后的代码分割成不同的块，这些块将通过按需自动下载。
+      component: function (resolve) {
+        require(['./components/about'], resolve)
+      },
+    },
+    { path: '/', redirect: '/home' },
+  ],
+})
+
+// 现在项目使用这种方式
+// 1. import() 不同于 import，该方法为了动态加载模块而引入的新语法
+// 2. import() 返回结果是 Promise
+const router = new VueRouter({
+  routes: [
+    {
+      path: `${rootPath}/pages`,
+      redirect: { name: 'Home' },
+      // import() 用于动态加载模块，其引用的模块及子模块会被分割打包成一个独立的 chunk。
+      component: () => import('views/layout'),
+      children: [
+        {
+          path: 'home',
+          // Webpack 还允许以注释的方式传参，进而更好的生成 chunk。
+          component: () =>
+            import(
+              /* webpackInclude: /\.json$/ */
+              /* webpackExclude: /\.noimport\.json$/ */
+              /* webpackChunkName: "my-chunk-name" */
+              /* webpackMode: "lazy" */
+              'views/blank'
+            ),
+          meta: { title: '首页', isHomePage: true },
+          name: 'Home',
+        },
+      ],
+    },
+  ],
+})
+
+// webpack中使用的三种异步加载方式
+// 1、System.import()； 已废除，不推荐
+// 2、require.ensure()； v1和v2均可使用
+// 3、import()；v2支持，v1不支持
+```
+
+### webpack 按需加载实现
+
+#### 同步代码分割 require.ensure
+
+同步代码分割是通过使用 require.ensure 方法来实现的。require.ensure 方法接收三个参数：需要分割的模块，分割后的模块名，以及分割后的模块对应的 chunk 的名称
+
+```js
+require.ensure(
+  [],
+  function (require) {
+    var module = require('./module')
+  },
+  'module'
+)
+```
+
+这段代码表示将./module 模块进行分割，分割后的模块名为 module，对应的 chunk 名称也为 module。
+
+```js
+// 手动实现一个requrieEnsure 函数
+// 这里是并发，发起多个请求，还可以实现类似，promiseAll或者promiseLimit
+function requireEnsure(dependencies, callback) {
+  var module = {}
+  var loadedDependencies = 0
+
+  function loadDependency(dependencyIndex) {
+    var dependency = dependencies[dependencyIndex]
+    var script = document.createElement('script')
+    script.src = dependency
+
+    script.onload = function () {
+      loadedDependencies++
+      if (loadedDependencies === dependencies.length) {
+        callback(module)
+      }
+    }
+
+    document.head.appendChild(script)
+  }
+
+  for (var i = 0; i < dependencies.length; i++) {
+    loadDependency(i)
+  }
+}
+```
+
+#### 异步代码分割 import()
+
+异步代码分割是通过使用 import()方法来实现的。import()方法返回一个 Promise 对象，可以使用 then 方法来获取分割后的模块
+
+```js
+import('./module').then(function (module) {
+  // do something with module
+})
+```
+
+这段代码表示将./module 模块进行分割，并在分割后的模块加载完成后执行回调函数。
+
+**手动实现一个 import()函数**
+
+```js
+async function import(moduleName) {
+  const moduleUrl = `/modules/${moduleName}.js`;
+  const response = await fetch(moduleUrl);
+  const moduleSource = await response.text();
+  const moduleExports = eval(moduleSource);
+  return moduleExports.default;
+}
+```
+
+### webpack 插件
+
+该插件会在 webpack 编译完成后，遍历所有生成的 JS 文件，查找其中的 setTimeout 和 setInterval 调用，然后将它们收集到一个数组中。如果指定了 outputFile 选项，则将结果保存到指定文件中。否则，只输出收集到的定时器数量。
+
+```js
+const fs = require('fs')
+
+class TimerCollectorPlugin {
+  constructor(options) {
+    this.options = options || {}
+    this.timers = []
+  }
+
+  apply(compiler) {
+    compiler.hooks.emit.tapAsync('TimerCollectorPlugin', (compilation, callback) => {
+      const assets = compilation.assets
+      const keys = Object.keys(assets)
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        if (key.endsWith('.js')) {
+          const content = assets[key].source()
+          const regex = /setTimeout|setInterval/g
+          let match
+          while ((match = regex.exec(content)) !== null) {
+            this.timers.push(match[0])
+          }
+        }
+      }
+      if (this.options.outputFile) {
+        fs.writeFile(this.options.outputFile, JSON.stringify(this.timers), (err) => {
+          if (err) {
+            console.error(err)
+          } else {
+            console.log(
+              `TimerCollectorPlugin: ${this.timers.length} timers collected and saved to ${this.options.outputFile}`
+            )
+          }
+          callback()
+        })
+      } else {
+        console.log(`TimerCollectorPlugin: ${this.timers.length} timers collected`)
+        callback()
+      }
+    })
+  }
+}
+
+module.exports = TimerCollectorPlugin
+```
+
+使用插件
+
+```js
+const TimerCollectorPlugin = require('./TimerCollectorPlugin')
+
+module.exports = {
+  // ...
+  plugins: [
+    new TimerCollectorPlugin({
+      outputFile: 'timers.json', // 可选，指定输出文件路径
+    }),
+  ],
+}
+```
 
 ## 时间循环

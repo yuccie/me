@@ -320,6 +320,22 @@ console.log(permute([1, 2, 3]))
 
 最后，函数返回 permuteHelper 函数的结果，即所有排列的数组。
 
+### 数组支持负索引
+
+```js
+Array.prototype.get = function (index) {
+  if (index < 0) {
+    return this[this.length + index]
+  } else {
+    return this[index]
+  }
+}
+
+// 使用负索引获取数组元素
+const list = [1, 2, 3]
+console.log(list.get(-1)) // 输出 3
+```
+
 ## 第二部分：递归
 
 简单来说，函数的递归调用就是自己调用自己，即一个函数在调用其他函数的过程中，又出现了对自身的调用，这种函数称为递归函数。
@@ -551,6 +567,14 @@ console.log(trap([3, 1, 3])) // 2
 
 ## 第三部分：字符串
 
+### 排序
+
+字符串排序的原理是基于 Unicode 编码的顺序进行排序。
+
+- 每个字符都有一个对应的 Unicode 编码，排序时会根据这些编码的大小来进行排序。
+- 如果两个字符串的首个字符相同，则会比较第二个字符，以此类推直到比较出两个字符串的大小关系。
+- 在排序时，大写字母会排在小写字母之前，因为它们的编码比小写字母的编码要小。
+
 ### 去除相邻的字符串
 
 类似消消乐，凡是相邻挨着的字符串，全部干掉
@@ -570,6 +594,47 @@ function removeAdjacentDuplicates(str) {
 }
 
 console.log(removeAdjacentDuplicates('abbbad')) // 输出 "d"
+```
+
+### 判断字符串中的有效括号
+
+```js
+var isValid = function (s) {
+  let stack = []
+  // 注意这里是右括号作为key
+  let map = {
+    ')': '(',
+    ']': '[',
+    '}': '{',
+  }
+  for (let item of s) {
+    // 如果map里没有，则说明是左侧符号
+    if (!map[item]) {
+      stack.push(item)
+    } else {
+      if (stack.pop() !== map[item]) {
+        return false
+      }
+    }
+  }
+  return !stack.length
+}
+
+var isValid = function (s) {
+  // 正则匹配字符串，遇到成对的符号就替换成''
+  let len = 0
+  // 需要一个终止条件，就是长度经过一轮替换，如果没有变化，说明已经到头了
+  while (len !== s.length) {
+    len = s.length
+    s = s.replace('()', '').replace('{}', '').replace('[]', '')
+  }
+  return !s.length
+}
+
+// 测试
+console.log(isValid('[](){}')) // true
+console.log(isValid('[({})]')) // true
+console.log(isValid('[({)}]')) // false字符串的replace方法是用于将字符串中的某个子串替换为另一个子串。当入参是正则表达式时，可以使用正则表达式来匹配要替换的子串。
 ```
 
 ## 第三部分：数组

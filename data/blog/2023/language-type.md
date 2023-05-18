@@ -61,3 +61,24 @@ function identity<T> (value: T) : T {
 // 同时它被分配给 value 参数用来代替它的类型：此时 T 充当的是类型，而不是特定的 Number 类型。
 console.log(identity<Number>(1)) // 1
 ```
+
+### 映射类型
+
+1. Partial：将所有属性变为可选属性
+2. Required：将所有属性变为必选属性
+3. Readonly：将所有属性变为只读属性
+4. Pick：从给定类型中选取部分属性
+5. Record：将一个类型中的所有属性转换为另一个类型的属性
+6. Exclude：从一个类型中排除另一个类型的属性
+7. Extract：从一个类型中提取另一个类型的属性
+8. Omit：从给定类型中删除指定属性
+
+自己实现 ReturnType<T>：
+
+```js
+type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
+```
+
+- `T` 是一个函数类型
+- `(...args: any[]) => infer R` 是一个函数类型，其中 `infer R` 表示从函数返回值中推断出 `R` 类型
+- `? R : never` 是一个条件类型，表示如果可以推断出返回值类型 `R`，则返回 `R`，否则返回 `never`。

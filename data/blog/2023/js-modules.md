@@ -160,6 +160,106 @@ export default App
 
 ## 其他微服务（微前端）框架
 
+### qiankun
+
+#### 加载过程
+
+1. 主应用加载微应用配置文件
+   - 主应用会通过网络请求加载微应用的配置文件，该配置文件包含了微应用的基本信息，如名称、入口文件、路由等。
+2. 主应用加载微应用的入口文件
+   - 主应用会根据配置文件中的入口文件路径，通过网络请求加载微应用的入口文件。
+3. 微应用注册
+   - 主应用会利用 Qiankun 提供的 API 将微应用注册到框架中，该 API 会返回一个 Promise 对象，表示微应用注册成功或失败。
+4. 微应用生命周期钩子函数执行
+   - 在微应用注册成功后，框架会根据微应用的生命周期钩子函数执行相应的操作，如应用启动前的初始化操作、应用启动后的数据加载等。
+5. 微应用渲染到主应用中
+   - 微应用的入口文件会被加载到主应用中，并渲染到指定的 DOM 节点中，从而完成微应用的显示。
+6. 微应用之间的通信
+   - 微应用之间可以通过框架提供的 API 进行通信，如发送消息、接收消息等。
+7. 微应用卸载
+   - 当微应用不需要再使用时，主应用可以通过框架提供的 API 将微应用从框架中卸载，释放资源。
+
+#### 生命周期
+
+1. beforeLoad：在应用加载之前触发，可以在此处进行一些初始化操作。
+2. beforeMount：在应用挂载之前触发，可以在此处进行一些初始化操作。
+3. afterMount：在应用挂载之后触发，可以在此处进行一些 DOM 操作。
+4. beforeUnmount：在应用卸载之前触发，可以在此处进行一些清理操作。
+5. afterUnmount：在应用卸载之后触发，可以在此处进行一些清理操作。
+6. beforeUpdate：在应用更新之前触发，可以在此处进行一些预处理操作。
+7. afterUpdate：在应用更新之后触发，可以在此处进行一些 DOM 操作。
+
+#### 通信过程
+
+在 Qiankun 微应用之前，微前端应用之间的通信通常采用以下几种方式：
+
+1. 基于 URL 参数传递数据：通过 URL 参数传递数据是一种简单的方式，但是只适用于传递少量的数据，且不太安全。
+2. 基于全局变量传递数据：将数据存储在全局变量中，其他微应用通过访问全局变量来获取数据。这种方式比较简单，但是容易发生全局变量污染和命名冲突等问题。
+3. 基于事件总线传递数据：通过事件总线来传递数据，可以解决全局变量污染和命名冲突等问题，但是需要手动管理事件的订阅和取消订阅，同时也需要考虑事件的命名冲突问题。
+
+而 Qiankun 微应用则提供了一种更加高效的通信方式，即使用应用间通信（Application Communication，简称 AppComm）机制。这种机制基于浏览器的自定义事件（CustomEvent）实现，通过在父应用中定义 AppComm 事件，并在子应用中监听该事件来实现应用之间的通信。
+
+底层原理：
+
+1. 父应用定义 AppComm 事件：父应用通过调用 Qiankun 提供的 emit 方法来定义 AppComm 事件，同时指定子应用的名称和数据等信息。
+2. 子应用监听 AppComm 事件：子应用通过调用 Qiankun 提供的 on 方法来监听 AppComm 事件，并在事件回调函数中获取父应用传递的数据。
+3. 子应用发送消息给父应用：子应用通过调用 Qiankun 提供的 send 方法来向父应用发送消息，同时指定消息类型和数据等信息。
+4. 父应用监听子应用消息：父应用通过调用 Qiankun 提供的 onGlobalStateChange 方法来监听子应用发送的消息，同时在回调函数中处理消息。
+
+通过这种方式，Qiankun 微应用可以实现高效、安全、可靠的应用间通信，从而更好地支持微前端架构的实现。
+
+#### 手动实现 CustomEvent
+
+```js
+class CustomEvent {
+  constructor() {
+    this.listeners = new Map()
+  }
+
+  addEventListener(name, callback) {
+    if (!this.listeners.has(name)) {
+      this.listeners.set(name, [])
+    }
+    this.listeners.get(name).push(callback)
+  }
+
+  removeEventListener(name, callback) {
+    if (!this.listeners.has(name)) {
+      return
+    }
+    const callbacks = this.listeners.get(name)
+    const index = callbacks.indexOf(callback)
+    if (index !== -1) {
+      callbacks.splice(index, 1)
+    }
+  }
+
+  dispatchEvent(event) {
+    if (!this.listeners.has(event.type)) {
+      return
+    }
+    const callbacks = this.listeners.get(event.type)
+    callbacks.forEach((callback) => {
+      callback.call(this, event)
+    })
+  }
+}
+
+const customEvent = new CustomEvent()
+
+function handleEvent(event) {
+  console.log(`Event ${event.type} is triggered!`)
+}
+
+customEvent.addEventListener('click', handleEvent)
+customEvent.dispatchEvent(new Event('click')) // Output: Event click is triggered!
+
+customEvent.removeEventListener('click', handleEvent)
+customEvent.dispatchEvent(new Event('click')) // No output
+```
+
+### 其他微服务框架
+
 除了 qiankun，还有以下几个微前端框架：
 
 1. Single-SPA：一个比较受欢迎的微前端框架，它提供了一种将多个单页应用程序集成到一个页面中的简单方法。

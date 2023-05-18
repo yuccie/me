@@ -125,6 +125,22 @@ git 是一种分布式版本控制系统，它可以在本地仓库中跟踪文�
 
 ## webpeck
 
+## compiler 阶段和 compilation 阶段。
+
+在 compiler 阶段，Webpack 会调用插件的 apply 方法，将 compiler 对象作为参数传递给插件。在这个阶段，插件可以通过 compiler 对象访问到整个 Webpack 环境，包括配置、options、entry、output 等信息。插件可以利用这些信息进行预处理，比如在编译前根据配置生成一些代码、修改配置、添加 loader 等。
+
+- 读取配置文件，初始化参数：Webpack 会读取配置文件，根据配置文件的内容，初始化参数，包括 entry、output、module、plugins 等。
+- 创建 Compiler 对象：Webpack 会创建一个 Compiler 对象，该对象负责管理整个编译过程，包括启动编译、读取文件、解析文件等。
+- 注册插件：Webpack 会注册所有的插件，这些插件会在编译过程中被调用，可以对编译过程进行干预和修改。
+- 执行 run 方法：Webpack 会执行 Compiler 对象的 run 方法，该方法启动编译过程，包括读取文件、解析文件、生成抽象语法树等。
+
+在 compilation 阶段，Webpack 会调用插件的 run 方法，将 compilation 对象作为参数传递给插件。在这个阶段，插件可以访问到当前编译的模块、依赖、chunk、文件等信息。插件可以利用这些信息进行进一步的处理，比如在编译过程中对代码进行优化、添加一些额外的资源等。
+
+- 解析文件：Webpack 会解析文件，生成抽象语法树，并且生成模块依赖关系。
+- 生成模块：Webpack 会根据模块依赖关系，生成模块对象，包括模块的代码、依赖关系等。
+- 优化代码：Webpack 会对代码进行优化，包括去重、压缩等。
+- 生成输出文件：Webpack 会根据生成的模块和优化后的代码，生成最终的输出文件，包括 JS、CSS、图片等。同时，Webpack 也会生成一个 manifest 文件，记录模块的 id 和文件路径等信息，方便后续的模块查找和更新。
+
 ### 打包机制
 
 - loader：加载器，将不同类型的文件转成可执行的 js 代码
@@ -364,274 +380,6 @@ compiler.hooks.done.tap('webpack-dev-server', function (stats) {
 - 使用 webpack-dev-server：此插件可以在开发过程中提供实时重新加载和热替换功能，从而提高开发效率。
 - 使用 webpack-bundle-analyzer：此插件可以帮助您分析应用程序的打包结果，找出包含大量代码的模块，并使用 Code Splitting 和懒加载来优化它们。
 
-## 异步加载
-
-### 异步加载图片
-
-```js
-function loadImgAsync(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => {
-      resolve(img)
-    }
-    img.onerror = () => {
-      reject(new Error('could not load img at ' + url))
-    }
-    img.src = url
-  })
-}
-```
-
-### 无所不在的统计代码
-
-```js
-// 无所不在的百度统计代码，这便是常规的按需加载，用的时候执行以下就好(可以用事件触发)
-;(function () {
-  var hm = document.createElement('script')
-  hm.src = 'https://hm.baidu.com/hm.js?<xxxxx>'
-  var s = document.getElementsByTagName('script')[0]
-  s.parentNode.insertBefore(hm, s)
-})()
-```
-
-### 实现 vue 项目中的按需加载
-
-```js
-function load(componentName, path) {
-  return new Promise(function (resolve, reject) {
-    var script = document.createElement('script')
-    script.src = path
-    script.async = true
-    script.onload = function () {
-      // 通过Vue.component验证组件，存在就resolve,否则reject
-      var component = Vue.component(componentName)
-      if (component) {
-        resolve(component)
-      } else {
-        reject()
-      }
-    }
-    script.onerror = reject
-    document.body.appendChild(script)
-  })
-}
-
-var router = new VueRouter({
-  routes: [
-    {
-      path: '/home',
-      component: {
-        template: '<div>Home page</div>',
-      },
-    },
-    {
-      path: '/about',
-      component: function (resolve, reject) {
-        // 使用自定义的loda函数加载
-        load('about', 'about.js').then(resolve, reject)
-      },
-    },
-  ],
-})
-
-var app = new Vue({
-  el: '#app',
-  router: router,
-})
-```
-
-### 配合 webpack 的按需加载
-
-```js
-// 配合webpack
-const router = new VueRouter({
-  routes: [
-    { path: '/home', component: Home },
-    {
-      path: '/about',
-      // Vue.js支持component定义为一个函数：function (resolve) {}，
-      // 在函数内，可以使用类似node.js的库引入模式
-      // 这个特殊的require语法告诉webpack自动将编译后的代码分割成不同的块，这些块将通过按需自动下载。
-      component: function (resolve) {
-        require(['./components/about'], resolve)
-      },
-    },
-    { path: '/', redirect: '/home' },
-  ],
-})
-
-// 现在项目使用这种方式
-// 1. import() 不同于 import，该方法为了动态加载模块而引入的新语法
-// 2. import() 返回结果是 Promise
-const router = new VueRouter({
-  routes: [
-    {
-      path: `${rootPath}/pages`,
-      redirect: { name: 'Home' },
-      // import() 用于动态加载模块，其引用的模块及子模块会被分割打包成一个独立的 chunk。
-      component: () => import('views/layout'),
-      children: [
-        {
-          path: 'home',
-          // Webpack 还允许以注释的方式传参，进而更好的生成 chunk。
-          component: () =>
-            import(
-              /* webpackInclude: /\.json$/ */
-              /* webpackExclude: /\.noimport\.json$/ */
-              /* webpackChunkName: "my-chunk-name" */
-              /* webpackMode: "lazy" */
-              'views/blank'
-            ),
-          meta: { title: '首页', isHomePage: true },
-          name: 'Home',
-        },
-      ],
-    },
-  ],
-})
-
-// webpack中使用的三种异步加载方式
-// 1、System.import()； 已废除，不推荐
-// 2、require.ensure()； v1和v2均可使用
-// 3、import()；v2支持，v1不支持
-```
-
-### webpack 按需加载实现
-
-#### 同步代码分割 require.ensure
-
-同步代码分割是通过使用 require.ensure 方法来实现的。require.ensure 方法接收三个参数：需要分割的模块，分割后的模块名，以及分割后的模块对应的 chunk 的名称
-
-```js
-require.ensure(
-  [],
-  function (require) {
-    var module = require('./module')
-  },
-  'module'
-)
-```
-
-这段代码表示将./module 模块进行分割，分割后的模块名为 module，对应的 chunk 名称也为 module。
-
-```js
-// 手动实现一个requrieEnsure 函数
-// 这里是并发，发起多个请求，还可以实现类似，promiseAll或者promiseLimit
-function requireEnsure(dependencies, callback) {
-  var module = {}
-  var loadedDependencies = 0
-
-  function loadDependency(dependencyIndex) {
-    var dependency = dependencies[dependencyIndex]
-    var script = document.createElement('script')
-    script.src = dependency
-
-    script.onload = function () {
-      loadedDependencies++
-      if (loadedDependencies === dependencies.length) {
-        callback(module)
-      }
-    }
-
-    document.head.appendChild(script)
-  }
-
-  for (var i = 0; i < dependencies.length; i++) {
-    loadDependency(i)
-  }
-}
-```
-
-#### 异步代码分割 import()
-
-异步代码分割是通过使用 import()方法来实现的。import()方法返回一个 Promise 对象，可以使用 then 方法来获取分割后的模块
-
-```js
-import('./module').then(function (module) {
-  // do something with module
-})
-```
-
-这段代码表示将./module 模块进行分割，并在分割后的模块加载完成后执行回调函数。
-
-**手动实现一个 import()函数**
-
-```js
-async function import(moduleName) {
-  const moduleUrl = `/modules/${moduleName}.js`;
-  const response = await fetch(moduleUrl);
-  const moduleSource = await response.text();
-  const moduleExports = eval(moduleSource);
-  return moduleExports.default;
-}
-```
-
-### webpack 插件
-
-该插件会在 webpack 编译完成后，遍历所有生成的 JS 文件，查找其中的 setTimeout 和 setInterval 调用，然后将它们收集到一个数组中。如果指定了 outputFile 选项，则将结果保存到指定文件中。否则，只输出收集到的定时器数量。
-
-```js
-const fs = require('fs')
-
-class TimerCollectorPlugin {
-  constructor(options) {
-    this.options = options || {}
-    this.timers = []
-  }
-
-  apply(compiler) {
-    compiler.hooks.emit.tapAsync('TimerCollectorPlugin', (compilation, callback) => {
-      const assets = compilation.assets
-      const keys = Object.keys(assets)
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
-        if (key.endsWith('.js')) {
-          const content = assets[key].source()
-          const regex = /setTimeout|setInterval/g
-          let match
-          while ((match = regex.exec(content)) !== null) {
-            this.timers.push(match[0])
-          }
-        }
-      }
-      if (this.options.outputFile) {
-        fs.writeFile(this.options.outputFile, JSON.stringify(this.timers), (err) => {
-          if (err) {
-            console.error(err)
-          } else {
-            console.log(
-              `TimerCollectorPlugin: ${this.timers.length} timers collected and saved to ${this.options.outputFile}`
-            )
-          }
-          callback()
-        })
-      } else {
-        console.log(`TimerCollectorPlugin: ${this.timers.length} timers collected`)
-        callback()
-      }
-    })
-  }
-}
-
-module.exports = TimerCollectorPlugin
-```
-
-使用插件
-
-```js
-const TimerCollectorPlugin = require('./TimerCollectorPlugin')
-
-module.exports = {
-  // ...
-  plugins: [
-    new TimerCollectorPlugin({
-      outputFile: 'timers.json', // 可选，指定输出文件路径
-    }),
-  ],
-}
-```
-
 ## rrweb 回放
 
 rrweb 是 'record and replay the web' 的简写，旨在利用现代浏览器所提供的强大 API 录制并回放任意 web 界面中的用户操作。
@@ -652,9 +400,55 @@ rrweb 主要由 3 部分组成：
 
 - npm
   - 包仓库最大，拥有大量的支持和文档
-- ## yarn
+- yarn
 - pnpm
   - 共享依赖项：pnpm 采用硬链接机制，使得多个项目可以共享同一个依赖项。
   - 更少的磁盘空间：pnpm 不会为每个项目安装一个完整的依赖项，而是使用链接机制，节省了磁盘空间。
 
 然后三者都支持，并行下载和缓存机制，可以更快地安装依赖项。
+
+### 如何解决包版本不一致的问题
+
+1. 升级依赖包版本：如果遇到包版本不一致的问题，可以尝试升级依赖包版本，使其保持一致。可以使用 `npm-check` 或 `yarn upgrade-interactive` 来查看和更新依赖包版本。
+2. 使用锁定文件：可以使用 `npm-shrinkwrap.json` 或 `yarn.lock` 锁定依赖包版本，确保每次安装的依赖包版本一致。
+3. 使用 peerDependencies：在 `package.json` 中使用 `peerDependencies`，指定依赖包的版本范围，确保依赖包版本兼容性。
+4. 使用 webpack 的 resolve.alias：在 webpack 配置文件中使用 `resolve.alias`，将依赖包指定到特定版本，确保打包时使用的依赖包版本一致。
+5. 使用 npm audit：使用 `npm audit` 或 `yarn audit` 命令检查安装的依赖包是否存在安全漏洞或版本不一致问题，并根据提示进行相应的更新或修复。
+
+## babel
+
+Babel 是一个 JavaScript 编译器，它的主要作用是将 ES6/ES7 等新版本的 JavaScript 代码转换为 ES5 的标准 JavaScript 代码，以便在当前的浏览器和环境中执行。Babel 的运行原理如下：
+
+1. 解析：Babel 首先将输入的代码解析成抽象语法树（AST），以便后续的操作。
+2. 转换：Babel 根据预定义的转换规则，将 AST 中的新语法转换为 ES5 的标准语法。Babel 提供了一系列的转换插件，开发者可以根据自己的需求自由选择和组合这些插件。
+3. 生成：Babel 将转换后的 AST 重新生成为标准的 JavaScript 代码，并输出到文件或内存中。
+
+Babel 的运行原理可以简单概括为“输入代码 -> 解析成 AST -> 转换 AST -> 生成代码”。
+
+在 Babel 中，执行顺序是先应用插件（plugins），再应用预设（presets）。具体来说，Babel 首先将所有的插件按照配置顺序依次执行，然后再将所有的预设按照配置顺序依次执行。这意味着，如果一个插件和一个预设都修改了同一个语法或特性，那么插件的修改会先被应用，然后预设的修改会覆盖插件的修改。
+
+这是因为预设是一组插件的集合，它们被设计为一起使用，以便在一起完成某个特定的任务。因此，预设的修改通常会覆盖插件的修改，以确保它们能够协同工作，达到预期的效果。此外，预设还可以方便地打包和共享，使得使用 Babel 更加方便和高效。
+
+## loader
+
+### style-loader
+
+Style-loader 是一个 Webpack 的 loader，主要用于将 CSS 代码注入到 HTML 页面中，使样式生效。
+
+当 Webpack 打包时，Style-loader 会将 CSS 代码转换成 JavaScript 代码，并将其注入到 HTML 页面中的`<style>`标签中。这样做的好处是可以避免使用外部 CSS 文件，减少 HTTP 请求，提升页面加载速度。
+
+#### 手动实现一个 style-loader
+
+```js
+// 1、获取CSS代码：通过AJAX请求、读取本地文件等方式获取。
+// 2、CSS代码转换成JavaScript代码的方法有很多种，可以使用正则表达式、CSS Parser等工具
+const css = 'body { background-color: red; }'
+const js = `const style = document.createElement('style');
+  style.innerHTML = '${css.replace(/(\r\n|\n|\r)/gm, '')}';
+  document.head.appendChild(style);
+`
+// 3、注入到HTML页面中
+const script = document.createElement('script')
+script.innerHTML = js
+document.head.appendChild(script)
+```

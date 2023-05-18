@@ -553,12 +553,112 @@ Vuex、Redux 和 Mobx 都是状态管理库，用于管理应用程序的状态�
 
 4. 发布订阅模式中，发布者和订阅者之间可以存在多对多的关系，一个发布者可以有多个订阅者，一个订阅者可以订阅多个发布者。而观察者模式中，主题和观察者之间是一对多的关系，一个主题可以有多个观察者。
 
-总的来说，发布订阅模式更加灵活，适用于多对多的场景，而观察者模式更加简单，适用于一对多的场景。
+总的来说，**发布订阅模式更加灵活，适用于多对多的场景，而观察者模式更加简单，适用于一对多的场景**。
 
 因此：
 
 - vue 是发布订阅模式
 - 而 redux 和 mobx 是观察者模式
+
+#### 发布订阅模式
+
+```js
+class PubSub {
+  constructor() {
+    this.events = {}
+  }
+
+  subscribe(event, listener) {
+    if (!this.events[event]) {
+      this.events[event] = []
+    }
+    this.events[event].push(listener)
+  }
+
+  unsubscribe(event, listener) {
+    if (!this.events[event]) {
+      return
+    }
+    const index = this.events[event].indexOf(listener)
+    if (index > -1) {
+      this.events[event].splice(index, 1)
+    }
+  }
+
+  publish(event, data) {
+    if (!this.events[event]) {
+      return
+    }
+    this.events[event].forEach((listener) => {
+      listener(data !== undefined ? data : {})
+    })
+  }
+}
+
+const pubsub = new PubSub()
+
+// 订阅事件
+const listener1 = (data) => console.log(`listener1 received data: ${data}`)
+pubsub.subscribe('event1', listener1)
+
+// 发布事件
+pubsub.publish('event1', { message: 'hello world' })
+
+// 取消订阅
+pubsub.unsubscribe('event1', listener1)
+```
+
+- 发布订阅，是多种类型的事件，而观察者模式只是其中的一个子集，也就某一类事件
+
+#### 观察者模式
+
+```js
+class Subject {
+  constructor() {
+    this.observers = []
+  }
+  // 不区分事件类型，直接压入，因为观察者就是针对某一类事情进行观察
+  addObserver(observer) {
+    this.observers.push(observer)
+  }
+
+  removeObserver(observer) {
+    const index = this.observers.indexOf(observer)
+    if (index > -1) {
+      this.observers.splice(index, 1)
+    }
+  }
+
+  notifyObservers(data) {
+    this.observers.forEach((observer) => {
+      observer.update(data)
+    })
+  }
+}
+
+class Observer {
+  update(data) {
+    console.log(`Received data: ${data}`)
+  }
+}
+
+// Usage:
+const subject = new Subject()
+
+const observer1 = new Observer()
+const observer2 = new Observer()
+
+// 添加多个对同一类事情的观察者
+subject.addObserver(observer1)
+subject.addObserver(observer2)
+
+// 通知观察者
+subject.notifyObservers('Hello world!')
+
+subject.removeObserver(observer1)
+
+subject.notifyObservers('Goodbye!')
+```
 
 ### vuex 手动实现一个
 

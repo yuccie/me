@@ -238,3 +238,62 @@ jsonp('http://localhost:3000', (data) => {
 
 - 注意，服务端设置的 contenttype 是 js
 - 服务端将拼接 jsonp = callbackName + '(' + JSON.stringify(data) + ')' 作为整体返回给前端
+
+## 缓存
+
+浏览器缓存是指在浏览器中存储已经请求过的资源（如图片、CSS、JavaScript 文件等）的一种机制。
+
+这样，当用户再次访问同一页面时，浏览器可以直接从缓存中读取资源，而不需要再次请求服务器，从而提高页面加载速度和减少网络流量。
+
+浏览器缓存可以分为两种类型：**强缓存和协商缓存**。
+
+在 http1.0 时代，给客户端设定缓存方式可通过两个字段——Pragma 和 Expires 来规范。Pragma 是用来禁用缓存的，因此 Expires（-1 或 0 则是不缓存）就是用来开启缓存的，如果二者同时存在，则起作用的是 Pragma
+
+`Expires`是 http1.0 的产物，值为服务器返回该请求结果缓存的到期时间，绝对时间，若身处不同时区则不准确，因此 http1.1 出现了`Cache-control`，二者同时存在时`Cache-control`优先级高，是控制浏览器和其他中间缓存如何缓存各个响应以及缓存多久。有以下几种取值(多个取值可以逗号分隔)：
+
+1. public 所有内容都将被缓存（客户端和代理服务器都可缓存）,即使标识显示不可缓存，也可以缓存
+2. private 所有内容只有对应的单个用户可以缓存，Cache-Control 的默认取值，例如，用户的浏览器可以缓存包含用户私人信息的 HTML 网页，但 CDN 却不能缓存。
+3. no-cache：客户端缓存内容，但是是否使用缓存则需要经过协商缓存来验证决定，即每次通过标识(如 ETag)先与服务器确认缓存是否变化，如果没有变化则可以继续使用。
+4. no-store：直接禁止浏览器以及所有中间代理缓存任何版本的响应
+5. max-age=xxx (xxx is numeric)：缓存内容将在 xxx 秒后失效
+
+当二者同时存在 Cache-control 优先级高。no-cache 和 no-store 的区别是前者会缓存，但每次请求时依然先拿到缓存，只是不做验证，然后请求服务器，服务器来决定是否用缓存。
+
+**优先级：** Pragma > Cache-control > Expires
+
+协商缓存是指在缓存时间过期后，浏览器会向服务器发送请求，服务器会根据请求中的 If-Modified-Since 和 If-None-Match 字段判断资源是否有更新，如果没有更新，服务器会返回 304 状态码，告诉浏览器可以从本地缓存中读取资源。协商缓存可以通过设置 HTTP 响应头中的 Last-Modified 和 ETag 字段来实现。
+
+在 Chrome 的 devtools 中勾选 Disable cache 选项，发送的请求会去掉 If-Modified-Since 这个 Header。同时设置 Cache-Control:no-cache Pragma:no-cache，每次请求均为 200，也就不走缓存了。
+
+浏览器在缓存资源时，通常会根据资源大小、类型、访问频率等因素来决定是存储在磁盘（disk）还是内存（memory）中。较小的资源通常会存储在内存中，以提高访问速度，而较大的资源则会存储在磁盘中，以节省内存空间。
+
+### ETag 能解决什么问题？
+
+- Last-Modified 标注的最后修改只能精确到秒级，如果某些文件在 1 秒钟以内，被修改多次的话，它将不能准确标注文件的新鲜度；
+- 某些文件也许会周期性的更改，但是他的内容并不改变(仅仅改变的修改时间)，但 Last-Modified 却改变了，导致文件没法使用缓存，因此不能说打开了，修改时间就发生了变化
+- 有可能存在服务器没有准确获取文件修改时间，或者与代理服务器时间不一致等情形。
+  优先级：ETag 优先级比 Last-Modified 高，同时存在时会以 ETag 为准。
+
+nginx 中 etag 由响应头的 Last-Modified 与 Content-Length 表示为十六进制组合而成。Last-Modified 是由一个 unix timestamp 表示，则意味着它只能作用于秒级的改变。
+
+### 如果 http 响应头中 ETag 值改变了，是否意味着文件内容一定已经更改？
+
+ETag 是一个标识符，用于标识服务器上的资源，ETag 值也可以在不修改资源内容的情况下被更改，例如服务器更改了**存储资源的方式或服务器更改了资源的元数据**。因此，ETag 值的改变并不一定意味着文件内容一定已经更改。
+
+## 跨 tab 通信
+
+1. 使用 localStorage 或 sessionStorage：可以在一个 tab 页中存储数据，在另一个 tab 页中读取数据，从而实现通信。但是需要注意的是，这种方式只能传递字符串类型的数据。
+2. 使用 Broadcast Channel API：可以创建一个广播通道，多个 tab 页可以通过该通道进行通信。但是需要注意的是，Broadcast Channel API 需要浏览器支持，目前不是所有浏览器都支持。
+3. 使用 SharedWorker：可以创建一个共享的后台线程，多个 tab 页可以通过该线程进行通信。但是需要注意的是，SharedWorker 需要浏览器支持，目前不是所有浏览器都支持。
+4. 使用 postMessage API：可以在不同的 tab 页之间发送消息，从而实现通信。但是需要注意的是，postMessage API 需要在两个 tab 页中都进行调用，且需要确保两个 tab 页之间的安全性。
+
+```js
+// A 页面
+var message = 'Hello, Page B!'
+window.postMessage(message, '*') // 发给所有窗口
+
+// B 页面
+window.addEventListener('message', function (event) {
+  console.log('收到了消息', event.data)
+})
+```
