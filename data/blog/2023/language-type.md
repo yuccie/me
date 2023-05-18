@@ -73,7 +73,7 @@ console.log(identity<Number>(1)) // 1
 7. Extract：从一个类型中提取另一个类型的属性
 8. Omit：从给定类型中删除指定属性
 
-自己实现 ReturnType<T>：
+自己实现 `ReturnType<T>`：
 
 ```js
 type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
