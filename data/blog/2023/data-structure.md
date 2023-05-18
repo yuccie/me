@@ -567,6 +567,52 @@ console.log(trap([3, 1, 3])) // 2
 
 ## 第三部分：字符串
 
+### 大数相加
+
+```js
+function bigNumAdd(a, b) {
+  // 获取两个数的长度
+  let i = a.length - 1
+  let j = b.length - 1
+
+  let res = '' // 最终结果
+  let carry = 0 // 进位
+  // 只要有一个长度大于等于0，即循环
+  while (i >= 0 || j >= 0) {
+    let x = 0
+    let y = 0
+    let sum = 0 // 两个数的和
+
+    if (i >= 0) {
+      x = +a[i]
+      i--
+    }
+    if (j >= 0) {
+      y = +b[j]
+      j--
+    }
+
+    sum = x + y + carry
+
+    if (sum >= 10) {
+      carry = 1
+      sum -= 10 // 进位后，两个数的临时和就需要减10
+    } else {
+      carry = 0
+    }
+
+    // 两个数的临时和，需要与最终结果的字符串拼接；
+    res = sum + res
+  }
+
+  // 循环结束后，还需判断进位
+  if (carry) {
+    res = carry + res
+  }
+  return res
+}
+```
+
 ### 排序
 
 字符串排序的原理是基于 Unicode 编码的顺序进行排序。
