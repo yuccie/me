@@ -249,6 +249,77 @@ var textEncoder = new TextEncoder('utf-8')
 textEncoder.encode('𠮷a').length // 5
 ```
 
+### 合并两个数组
+
+```js
+function mergeSortedArrays(arr1, arr2) {
+  let mergedArr = []
+  let i = 0
+  let j = 0
+
+  while (i < arr1.length && j < arr2.length) {
+    if (arr1[i] < arr2[j]) {
+      mergedArr.push(arr1[i])
+      i++
+    } else {
+      mergedArr.push(arr2[j])
+      j++
+    }
+  }
+
+  while (i < arr1.length) {
+    mergedArr.push(arr1[i])
+    i++
+  }
+
+  while (j < arr2.length) {
+    mergedArr.push(arr2[j])
+    j++
+  }
+
+  return mergedArr
+}
+```
+
+这个函数接受两个有序数组作为参数，并返回一个合并后的有序数组。它使用两个指针 i 和 j 来比较两个数组中的元素，并将较小的元素添加到合并数组中。一旦一个数组的指针到达其末尾，该函数将继续将另一个数组中的所有元素添加到合并数组中。最后，它返回合并后的有序数组。
+
+### 实现一个数组的全排列
+
+```js
+function permute(input) {
+  var permArr = [],
+    usedChars = []
+
+  function permuteHelper(input) {
+    for (var i = 0; i < input.length; i++) {
+      var ch = input.splice(i, 1)[0]
+      usedChars.push(ch)
+
+      if (input.length == 0) {
+        permArr.push(usedChars.slice())
+      }
+
+      permuteHelper(input)
+      input.splice(i, 0, ch)
+      usedChars.pop()
+    }
+    return permArr
+  }
+
+  return permuteHelper(input)
+}
+
+// 示例用法
+console.log(permute([1, 2, 3]))
+```
+
+1. 首先，函数遍历输入字符串的每个字符，并将其从输入字符串中删除。
+2. 然后，将该字符添加到 usedChars 数组中，并检查输入字符串的长度是否为 0。
+3. 如果是，将 usedChars 数组的副本添加到 permArr 数组中。
+4. 然后，继续递归调用 permuteHelper 函数，直到所有排列都被生成。在返回到上一层递归时，将该字符重新添加到输入字符串中，并将其从 usedChars 数组中删除。
+
+最后，函数返回 permuteHelper 函数的结果，即所有排列的数组。
+
 ## 第二部分：递归
 
 简单来说，函数的递归调用就是自己调用自己，即一个函数在调用其他函数的过程中，又出现了对自身的调用，这种函数称为递归函数。
@@ -478,7 +549,28 @@ console.log(trap(heights)) // 1
 console.log(trap([3, 1, 3])) // 2
 ```
 
-## 第三部分：数组
+## 第三部分：字符串
+
+### 去除相邻的字符串
+
+类似消消乐，凡是相邻挨着的字符串，全部干掉
+
+```js
+function removeAdjacentDuplicates(str) {
+  let stack = []
+  for (let i = 0; i < str.length; i++) {
+    // 利用栈结构，如果相同则弹出
+    if (stack.length && stack[stack.length - 1] === str[i]) {
+      stack.pop()
+    } else {
+      stack.push(str[i])
+    }
+  }
+  return stack.join('')
+}
+
+console.log(removeAdjacentDuplicates('abbbad')) // 输出 "d"
+```
 
 ## 第三部分：数组
 

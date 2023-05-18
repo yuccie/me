@@ -469,9 +469,183 @@ function findDuplicates(arr1, arr2) {
 }
 ```
 
-## 时间循环
+## 文件下载
 
-## 时间循环
+### 图片下载
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Save Image to Local Album</title>
+  </head>
+  <body>
+    <img
+      src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c94f4f5c114a4bf4b5f40ae5a8d6b805~tplv-k3u1fbpfcp-zoom-1.png"
+      id="image"
+    />
+    <button style="width: 100px; height: 50px" id="save">点击我，保存图片</button>
+    <script>
+      var image = document.getElementById('image')
+      var saveButton = document.getElementById('save')
+
+      saveButton.addEventListener('click', function () {
+        var canvas = document.createElement('canvas')
+        canvas.width = image.width
+        canvas.height = image.height
+        var context = canvas.getContext('2d')
+        context.drawImage(image, 0, 0)
+
+        canvas.toBlob(function (blob) {
+          var url = URL.createObjectURL(blob)
+          var a = document.createElement('a')
+          a.href = url
+          a.download = 'image.jpg'
+          a.click()
+          URL.revokeObjectURL(url)
+        })
+      })
+    </script>
+  </body>
+</html>
+```
+
+由于 JavaScript 的同源策略，无法直接监听上面 a 标签文件的下载完成事件。但是，可以通过以下几种方式来实现类似的效果：
+
+- 使用 XMLHttpRequest 请求文件，监听其 load 事件，然后使用 Blob 对象创建 URL，将其赋值给 a 标签的 href 属性，从而实现文件下载。
+- 使用 iframe 或者 window.open 打开文件下载链接，然后使用定时器轮询判断文件是否下载完成。
+- 使用第三方库，如 FileSaver.js，它提供了一些方法可以直接将文件保存到本地，同时也提供了下载完成的回调函数。
+
+## 继承
+
+1. 原型链继承：通过将子类的原型设置为父类的实例，实现继承。缺点是父类的引用类型属性会被所有子类实例共享。
+2. 构造函数继承：通过在子类构造函数中调用父类构造函数，实现继承。缺点是父类原型上的方法和属性无法被继承。
+3. 组合继承：将原型链继承和构造函数继承结合起来，既能继承父类原型上的方法和属性，又能避免共享父类引用类型属性的问题。
+4. 原型式继承：通过创建一个空对象，将父类实例作为该对象的原型，实现继承。缺点是无法传递参数，同时存在共享父类引用类型属性的问题。
+5. 寄生式继承：使用原型式继承，但在返回新对象之前，通过添加方法等操作，增强新对象。缺点同原型式继承。
+6. 寄生组合式继承：通过借用构造函数继承父类属性和方法，再通过寄生式继承父类原型上的方法和属性，实现继承。是一种比较完善的继承方式。
+
+### 原型链继承
+
+```javascript
+function Parent() {
+  this.name = 'parent'
+}
+Parent.prototype.sayName = function () {
+  console.log(this.name)
+}
+
+function Child() {
+  this.age = 18
+}
+Child.prototype = new Parent()
+
+var child = new Child()
+child.sayName() // parent
+```
+
+- 将父类的实例作为子类的原型
+- 缺点是父类的引用类型属性会被所有子类实例共享。
+
+### 借用构造函数继承
+
+```javascript
+function Parent(name) {
+  this.name = name
+}
+Parent.prototype.sayName = function () {
+  console.log(this.name)
+}
+
+function Child(name, age) {
+  // 在子类里，调用父类的构造函数
+  Parent.call(this, name)
+  this.age = age
+}
+
+var child = new Child('child', 18)
+console.log(child.name) // child
+console.log(child.age) // 18
+```
+
+- 在子类中，直接调用父类的构造函数
+- 缺点是父类原型上的方法和属性无法被继承。
+
+### 组合继承
+
+```javascript
+function Parent(name) {
+  this.name = name
+}
+Parent.prototype.sayName = function () {
+  console.log(this.name)
+}
+
+function Child(name, age) {
+  Parent.call(this, name)
+  this.age = age
+}
+Child.prototype = new Parent()
+Child.prototype.constructor = Child
+
+var child = new Child('child', 18)
+child.sayName() // child
+```
+
+- 父类的实例，作为子类的原型
+- 在子类的构造函数里，调用父类构造函数
+- 既能继承父类原型上的方法和属性，又能避免共享父类引用类型属性的问题？？？这是怎么避免的？
+
+### 原型式继承
+
+```javascript
+function createObj(o) {
+  function F() {}
+  F.prototype = o
+  return new F()
+}
+
+var parent = {
+  name: 'parent',
+  sayName: function () {
+    console.log(this.name)
+  },
+}
+
+var child = createObj(parent)
+child.sayName() // parent
+```
+
+- 创建一个空对象，或者空函数
+- 通过创建一个空对象，将父类实例作为该对象的原型，实现继承。
+- 缺点是无法传递参数，同时存在共享父类引用类型属性的问题。
+
+#### 寄生式继承
+
+```javascript
+function createObj(o) {
+  function F() {}
+  F.prototype = o
+  return new F()
+}
+
+function createChild(parent, age) {
+  var child = createObj(parent)
+  child.age = age
+  return child
+}
+
+var parent = {
+  name: 'parent',
+  sayName: function () {
+    console.log(this.name)
+  },
+}
+
+var child = createChild(parent, 18)
+child.sayName() // parent
+```
 
 ## 时间循环
 
