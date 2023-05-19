@@ -461,6 +461,7 @@ const BeautifulJs = () => {
     console.log(cache.keys())   // 输出可迭代对象 MapIterator {'b', 'c'}
     // 0 : "b"
     // 1 : "c"
+    // 其实还可以 cache.values() 得到全是value的迭代器。因此可根据情况使用
 
     // 下面一行勿动 🚫
     `
