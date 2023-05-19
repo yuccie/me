@@ -24,6 +24,16 @@ canonicalUrl: https://dume.vercel.app/blog/2023/react-skills
 
 React Hook 可以减少组件的渲染次数，是因为它可以让组件在不需要重新渲染时，跳过 render 函数的执行，比如使用 useMemo，useCallback，只有依赖项发生变化，才会重新计算或者重新创建函数，从而避免不必要的函数创建和渲染。
 
+### 如何减少不必要的渲染
+
+1. 使用 PureComponent 或 shouldComponentUpdate：PureComponent 是 React 提供的一个优化性能的组件，它会自动对比 props 和 state 的变化，如果没有变化就不会触发 render 方法。如果没有使用 PureComponent，可以在自定义组件中实现 shouldComponentUpdate 方法，手动判断 props 和 state 是否变化，如果没有变化也返回 false，避免不必要的 render。
+2. 使用 React.memo：React.memo 是一个高阶组件，它可以缓存组件的渲染结果，只有在 props 发生变化时才重新渲染组件。可以将需要优化的组件包裹在 React.memo 中，避免不必要的 render。
+3. 将组件拆分成更小的组件：如果一个组件包含多个子组件，而只有其中一个子组件的 props 发生变化，那么整个父组件也会重新。可以将这个父组件拆分成更小的组件，避免不必要的 render。
+4. 避免在 render 方法中使用对象字面量：在 render 方法中使用对象字面量会导致每次 render 都创建一个新的对象，这会影响性能。可以在组件的构造函数或 componentDidMount 方法中创建对象，并将其保存在组件的 state 中，避免不必要的对象创建。
+5. 使用函数式组件：函数式组件没有 state，只有 props，因此它的渲染结果只与 props 相关，不会受到 state 的影响。如果一个组件没有 state，可以将其改写为函数式组件，避免不必要的 render。
+
+总之，避免不必要的 render 是提高 React 应用性能的重要手段，可以通过 PureComponent、shouldComponentUpdate、React.memo、组件拆分、避免对象字面量等方法来实现。
+
 ### Fiber
 
 React 中的 Fiber 架构是一种新的实现方式，用于替换旧的 Reconciler 架构。Fiber 架构的目的是提高 React 的性能和可维护性，同时也提供了更多的灵活性。

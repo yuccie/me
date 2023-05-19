@@ -683,7 +683,164 @@ console.log(isValid('[({})]')) // true
 console.log(isValid('[({)}]')) // false字符串的replace方法是用于将字符串中的某个子串替换为另一个子串。当入参是正则表达式时，可以使用正则表达式来匹配要替换的子串。
 ```
 
-## 第三部分：数组
+## 第三部分：二叉树
+
+二叉树的特点:
+
+- 左侧节点小于根节点
+- 根节点小于右节点
+
+### 增删改查
+
+二叉树是一种常用的数据结构，它由节点组成，每个节点最多有两个子节点，左子节点比父节点小，右子节点比父节点大。以下是使用 JavaScript 实现二叉树的插入、搜索、删除和排序算法的示例：
+
+```js
+class Node {
+  constructor(value) {
+    this.value = value
+    this.left = null
+    this.right = null
+  }
+}
+
+class BinaryTree {
+  constructor() {
+    // 初始化二叉树时，是否需要初始化根节点
+    this.root = null
+  }
+
+  // 插入节点，则需要找到对应的位置
+  insert(value) {
+    const node = new Node(value)
+
+    if (!this.root) {
+      this.root = node
+    } else {
+      let current = this.root
+
+      while (current) {
+        // 小值在左侧
+        if (value < current.value) {
+          if (!current.left) {
+            current.left = node
+            break
+          }
+          current = current.left
+        } else if (value > current.value) {
+          if (!current.right) {
+            current.right = node
+            break
+          }
+          current = current.right
+        } else {
+          break
+        }
+      }
+    }
+  }
+  // 搜索节点
+  search(value) {
+    // 取出根节点
+    let current = this.root
+
+    while (current) {
+      if (value < current.value) {
+        current = current.left
+      } else if (value > current.value) {
+        current = current.right
+      } else {
+        return current
+      }
+    }
+
+    return null
+  }
+
+  // 删除节点
+  delete(value) {
+    this.root = this._delete(this.root, value)
+  }
+
+  _delete(node, value) {
+    if (!node) {
+      return null
+    }
+
+    if (value === node.value) {
+      if (!node.left && !node.right) {
+        return null
+      }
+
+      if (!node.left) {
+        return node.right
+      }
+
+      if (!node.right) {
+        return node.left
+      }
+
+      const temp = this._minValueNode(node.right)
+      node.value = temp.value
+      node.right = this._delete(node.right, temp.value)
+      return node
+    }
+
+    if (value < node.value) {
+      node.left = this._delete(node.left, value)
+      return node
+    }
+
+    node.right = this._delete(node.right, value)
+    return node
+  }
+
+  _minValueNode(node) {
+    let current = node
+
+    while (current.left) {
+      current = current.left
+    }
+
+    return current
+  }
+
+  // 排序
+  sort() {
+    const result = []
+
+    function traverse(node) {
+      if (node) {
+        traverse(node.left)
+        result.push(node.value)
+        traverse(node.right)
+      }
+    }
+
+    traverse(this.root)
+    return result
+  }
+}
+
+// 使用
+const tree = new BinaryTree()
+
+tree.insert(10)
+tree.insert(5)
+tree.insert(15)
+tree.insert(3)
+tree.insert(7)
+tree.insert(13)
+tree.insert(17)
+
+console.log(tree.sort()) // [3, 5, 7, 10, 13, 15, 17]
+
+tree.delete(15)
+
+console.log(tree.sort()) // [3, 5, 7, 10, 13, 17]
+
+console.log(tree.search(7)) // Node { value: 7, left: Node {...}, right: Node {...} }
+console.log(tree.search(15)) // null
+```
 
 ## 第三部分：数组
 

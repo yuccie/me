@@ -297,3 +297,47 @@ window.addEventListener('message', function (event) {
   console.log('收到了消息', event.data)
 })
 ```
+
+## performance
+
+Performance 是浏览器提供的一个 API，用于测量网页的性能表现。以下是使用 Performance 的步骤：
+
+- 使用 window.performance 对象来访问 Performance API。
+- 使用 performance.timing 属性来获取网页的加载时间信息，包括 DNS 解析时间、TCP 连接时间、页面加载时间等等。
+- 使用 performance.navigation 属性来获取网页的导航信息，包括重定向次数、是否使用了缓存等等。
+- 使用 performance.memory 属性来获取浏览器内存使用情况。
+- 使用 performance.mark()和 performance.measure()方法来记录自定义的性能指标，比如某个函数的执行时间。
+- 使用 performance.now()方法来获取当前时间戳，用于计算某个操作的执行时间。
+- 使用 performance.clearMarks()和 performance.clearMeasures()方法来清除自定义性能指标的记录。
+
+### 如何使用 performance
+
+```js
+// 获取Performance对象
+var perf =
+  window.performance || window.webkitPerformance || window.msPerformance || window.mozPerformance
+
+// 确保浏览器支持Performance API
+if (perf) {
+  // 获取各个阶段的性能指标
+  var timing = perf.timing
+
+  // 计算页面各个阶段的加载时长
+  var redirectTime = timing.redirectEnd - timing.redirectStart // 重定向耗时
+  var dnsTime = timing.domainLookupEnd - timing.domainLookupStart // DNS查询耗时
+  var tcpTime = timing.connectEnd - timing.connectStart // TCP连接耗时
+  var requestTime = timing.responseStart - timing.requestStart // 请求耗时
+  var responseTime = timing.responseEnd - timing.responseStart // 响应耗时
+  var domTime = timing.domContentLoadedEventEnd - timing.domContentLoadedEventStart // DOMContentLoaded事件耗时
+  var onLoadTime = timing.loadEventEnd - timing.loadEventStart // onLoad事件耗时
+
+  // 输出各个阶段的性能指标
+  console.log('重定向耗时：' + redirectTime + 'ms')
+  console.log('DNS查询耗时：' + dnsTime + 'ms')
+  console.log('TCP连接耗时：' + tcpTime + 'ms')
+  console.log('请求耗时：' + requestTime + 'ms')
+  console.log('响应耗时：' + responseTime + 'ms')
+  console.log('DOMContentLoaded事件耗时：' + domTime + 'ms')
+  console.log('onLoad事件耗时：' + onLoadTime + 'ms')
+}
+```
