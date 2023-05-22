@@ -273,7 +273,7 @@ var textEncoder = new TextEncoder('utf-8')
 textEncoder.encode('𠮷a').length // 5
 ```
 
-### 合并两个数组
+### 合并两个有序数组
 
 ```js
 function mergeSortedArrays(arr1, arr2) {
@@ -358,6 +358,81 @@ Array.prototype.get = function (index) {
 // 使用负索引获取数组元素
 const list = [1, 2, 3]
 console.log(list.get(-1)) // 输出 3
+```
+
+### 最长连续递增序列
+
+给定一个未经排序的整数数组，找到最长且 连续递增的子序列，并返回该序列的长度。
+
+连续递增的子序列 可以由两个下标 l 和 r（l < r）确定，如果对于每个 l <= i < r，都有 nums[i] < nums[i + 1] ，那么子序列 `[nums[l], nums[l + 1], ..., nums[r - 1], nums[r]]` 就是连续递增子序列。
+
+```
+输入：nums = [1,3,5,4,7]
+输出：3
+解释：最长连续递增序列是 [1,3,5], 长度为3。
+尽管 [1,3,5,7] 也是升序的子序列, 但它不是连续的，因为 5 和 7 在原数组里被 4 隔开。
+```
+
+```js
+function findLengthOfLCIS(nums) {
+  // 没有长度，直接返回0
+  if (nums.length === 0) {
+    return 0
+  }
+
+  // 定义最大和当前长度分别为1，当前长度每次都会运行，而最大值只会在特定时机发生变化
+  let maxLength = 1
+  let currentLength = 1
+
+  for (let i = 1; i < nums.length; i++) {
+    // 如果后面的比前面的大，则当前长度增加
+    if (nums[i] > nums[i - 1]) {
+      currentLength++
+    } else {
+      // 否则，对比最大值，重新赋值
+      maxLength = Math.max(maxLength, currentLength)
+      // 同时清空当前值
+      currentLength = 1
+    }
+  }
+  // 最后再次对比
+  return Math.max(maxLength, currentLength)
+}
+```
+
+- 属于快慢指针，双指针
+
+### 删除有序数组中的重复项
+
+给你一个 升序排列 的数组 nums ，请你 原地 删除重复出现的元素，使每个元素 只出现一次 ，返回删除后数组的新长度。元素的 相对顺序 应该保持 一致 。然后返回 nums 中唯一元素的个数。
+
+```js
+var removeDuplicates = function (nums) {
+  // 使用for循环遍历
+  for (let i = 0; i < nums.length; i++) {
+    if (nums[i] === nums[i + 1]) {
+      nums.splice(i, 1)
+      // 如果删除了，数组长度会变化，所以i需要后退一位
+      i--
+    }
+  }
+  return nums.length
+}
+
+// 下面的这个在leetcode上不通过。。。但没毛病啊
+var removeDuplicates = function (nums) {
+  let i = 0
+  while (i < nums.length - 1) {
+    // 修改循环条件
+    if (nums[i] === nums[i + 1]) {
+      nums.splice(i + 1, 1)
+    } else {
+      i++ // 不相同则继续往后遍历
+    }
+  }
+  return nums
+}
+//
 ```
 
 ## 第二部分：递归
@@ -599,25 +674,53 @@ console.log(trap([3, 1, 3])) // 2
 - 线段树算法：通过将字符串转换为数值表示，可以使用线段树来维护区间信息，例如区间最大值、区间和等问题。
 - 后缀数组算法：通过将字符串的所有后缀排序，可以快速地求解多种字符串问题，例如最长重复子串、最长公共前缀等问题。
 
-### 判断是否为回文字符串
+### 最长回文子串
 
-从中间分开，然后从两侧挨个判断是否一致
+给你一个字符串 s，找到 s 中最长的回文子串。
 
-```js
-function isPalindrome(str) {
-  var len = str.length
-  for (var i = 0; i < len / 2; i++) {
-    if (str[i] !== str[len - 1 - i]) {
-      return false
-    }
-  }
-  return true
-}
-console.log(isPalindrome('racecar')) // true
-console.log(isPalindrome('hello')) // false
+如果字符串的反序与原始字符串相同，则该字符串称为回文字符串。
+
+```
+输入：s = "babad"
+输出："bab"
+解释："aba" 同样是符合题意的答案。
 ```
 
-### 获取最长回文子串
+#### 方式一
+
+```js
+var longestPalindrome = function (s) {
+  // 思路，利用左右两个指针，分别向两边扩散
+  // 扩散完以后，两个指针之间的内容
+  if (s.length < 2) return s
+  let res = ''
+
+  for (let i = 0; i < s.length; i++) {
+    // 这里虽然执行了两次helper，但不用担心，因为其实同一时刻，只会有一个helper里的逻辑有效
+    // 回文子串是奇数，相当于此时左右两个指针处于同一点
+    helper(i, i)
+    // 回文子串是偶数，比如abba
+    helper(i, i + 1)
+  }
+  function helper(l, r) {
+    // 如果二者相等，则继续向两侧扩展
+    while (l >= 0 && r < s.length && s[l] === s[r]) {
+      l--
+      r++
+    }
+    // 当循环完后，因为l--，和r++了，因此这两个值相当于边界，不能截取
+    // 另外咱要获取的是最长的那个子串，因此每次都需要与res.length比较,也就是最长的子串
+    // 因为r 与 l指针之间有三个空隙，但只有两个字符，因此为 r - l - 1
+    if (r - l - 1 > res.length) {
+      // slice前包后不包
+      res = s.slice(l + 1, r)
+    }
+  }
+  return res
+}
+```
+
+#### 方式二
 
 其基本思路是利用中心扩展算法，从字符串中的每个字符开始，向左右两边扩展，判断是否为回文子串，同时记录最长的回文子串的长度和起始位置。具体实现中，利用了一个辅助函数 expandAroundCenter()来实现中心扩展，该函数的作用是在给定的字符串 str 中，以 left 和 right 为中心，向左右两边扩展，判断是否为回文子串，并返回其长度。最终，利用主函数 longestPalindrome()来遍历字符串中的每个字符，调用 expandAroundCenter()函数，找到最长回文子串的位置和长度，并返回该子串。
 
@@ -654,6 +757,102 @@ console.log(longestPalindrome('babad')) // "bab" 或 "aba"
 console.log(longestPalindrome('cbbd')) // "bb"
 ```
 
+### 最长回文子序列
+
+给你一个字符串 s ，找出其中最长的回文子序列，并返回该序列的长度。
+
+子序列定义为：不改变剩余字符顺序的情况下，删除某些字符或者不删除任何字符形成的一个序列。
+
+注意：子序列，不要求顺序
+
+```
+输入：s = "bbbab"
+输出：4
+解释：一个可能的最长回文子序列为 "bbbb" 。
+```
+
+### 最长回文串
+
+给定一个包含大写字母和小写字母的字符串  s ，返回   通过这些字母构造成的 最长的回文串  。
+
+在构造过程中，请注意 区分大小写 。比如  "Aa"  不能当做一个回文字符串。
+
+```js
+/**
+ * @param {string} s
+ * @return {number}
+ */
+var longestPalindrome = function (s) {
+  // 比如打牌，成对的都打出去，最后剩的都是单张的，只需再抽一张，就是最长的
+  // 因为要求的是回文串的长度，并不是回文串的种类
+  let tempSet = new Set()
+  let num = 0
+  s.split('').forEach((code) => {
+    if (tempSet.has(code)) {
+      tempSet.delete(code)
+      // 删除后，相当于打出去两张，此时num需要加2
+      num += 2
+    } else {
+      // 如果没有的话，先加进去
+      tempSet.add(code)
+    }
+  })
+
+  // 最后，如果还有剩余的牌，只需要再抽出来一张即可
+  return num + (tempSet.size ? 1 : 0)
+}
+```
+
+### 重复的子字符串
+
+给定一个非空的字符串 s ，检查是否可以通过由它的一个子串重复多次构成。
+
+```
+输入: s = "abab"
+输出: true
+```
+
+```js
+/**
+ * @param {string} s
+ * @return {boolean}
+ */
+var repeatedSubstringPattern1 = function (s) {
+  // \1+ 表示匹配一个或多个与第一个捕获组相同的字符。其中 \1 表示第一个捕获组的内容，+ 表示至少匹配一个。
+  let reg = /^(\w+)\1+$/
+  return reg.test(s)
+}
+
+var repeatedSubstringPattern2 = function (s) {
+  // abab abab => 'bababa'
+  let s1 = (s + s).slice(1, -1)
+  // bababa  abab
+  return s1.indexOf(s) !== -1
+}
+// 假设原始字符串是 "abab"，如果它是由它的子串 "ab" 重复两次组成的，那么它应该变成 "abababab"。
+// 注意到这个新字符串的开头和结尾都是 "ab"，但是中间有一个 "ba"。
+// 为了避免这种情况，我们可以将原始字符串拼接起来，得到 "abababab"，然后去掉开头和结尾的一个字符，得到 "bababa"。
+// 这样做的目的是为了防止原始字符串的第一个字符和最后一个字符同时作为两个相邻子串的一部分，从而导致判断错误。
+```
+
+### 判断是否为回文字符串
+
+从中间分开，然后从两侧挨个判断是否一致
+
+```js
+function isPalindrome(str) {
+  var len = str.length
+  for (var i = 0; i < len / 2; i++) {
+    if (str[i] !== str[len - 1 - i]) {
+      return false
+    }
+  }
+  return true
+}
+console.log(isPalindrome('racecar')) // true
+console.log(isPalindrome('hello')) // false
+```
+
 ### 最小覆盖子串
 
 滑动窗口算法是一种解决字符串子串问题的算法，它的基本思想是维护一个窗口，通过滑动窗口的方式来寻找最小覆盖子串。具体实现过程如下：
@@ -681,7 +880,7 @@ function minWindow(s, target) {
 
   while (right < s.length) {
     let char = s[right]
-    //
+
     if (map[char] > 0) {
       counter--
     }
@@ -762,12 +961,16 @@ function longestSubstring(s) {
   const set = new Set()
 
   while (right < s.length) {
-    if (!set.has(s.charAt(right))) {
-      set.add(s.charAt(right))
+    // 如果不包含，则一直往里压入
+    // 从字符串里获取指定索引的值，还可以 s.charAt(right)，如果超过阈值，则返回''，
+    // 如果使用 s[right] 超过阈值，则返回 undefined
+    if (!set.has(s[right])) {
+      set.add(s[right])
       maxLen = Math.max(maxLen, set.size)
       right++
     } else {
-      set.delete(s.charAt(left))
+      // 如果包含的话，肯定是最左侧的先开始包含
+      set.delete(s[left])
       left++
     }
   }
@@ -802,6 +1005,43 @@ function longestSubstring(s) {
   return [maxLen, res.join()]
 }
 longestSubstring('baddcddaabea') //  [3, 'b,e,a']
+```
+
+### 最长公共前缀
+
+编写一个函数来查找字符串数组中的最长公共前缀。
+
+如果不存在公共前缀，返回空字符串 ""。
+
+```
+输入：strs = ["flower","flow","flight"]
+输出："fl"
+```
+
+```js
+function longestCommonPrefix(strs) {
+  if (strs.length === 0) {
+    // 如果数组为空，返回空字符串
+    return ''
+  }
+
+  let prefix = strs[0] // 将第一个字符串作为前缀
+  for (let i = 1; i < strs.length; i++) {
+    // 循环遍历数组中的每一个字符串
+    while (strs[i].indexOf(prefix) !== 0) {
+      // 如果当前字符串不以前缀开头
+      prefix = prefix.slice(0, prefix.length - 1) // 将前缀缩短一个字符
+      // 如果为空，则直接返回，下面不需要也行，最后直接返回 prefix
+      // 下面要的话，效率可以高一些
+      if (prefix === '') {
+        // 如果前缀为空，则说明不存在公共前缀
+        return ''
+      }
+    }
+  }
+  // 循环结束后，直接返回
+  return prefix // 返回最长公共前缀
+}
 ```
 
 ### 大数相加
