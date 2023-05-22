@@ -341,3 +341,12 @@ if (perf) {
   console.log('onLoad事件耗时：' + onLoadTime + 'ms')
 }
 ```
+
+## 预取和预加载
+
+- prefetch：浏览器在加载完当前页面后，会在后台提前加载下一个页面的资源。因此，prefetch 发生在当前页面加载完成后，但下一个页面还没有开始加载时。
+  - This is done by adding a prefetch attribute to the HTML link tag, which tells the browser to download the resource in the background while the user is still browsing the pag
+- preload：浏览器在加载当前页面时，会提前加载该页面需要的资源。因此，preload 发生在当前页面加载时。
+  - 这是通过在 HTML 链接标签中添加 preload 属性来完成的，该属性告诉浏览器优先下载这些资源而不是页面上的其他资源
+
+因此，preload 发生在 prefetch 之前。

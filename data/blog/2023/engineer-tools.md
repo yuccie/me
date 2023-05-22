@@ -125,7 +125,7 @@ git 是一种分布式版本控制系统，它可以在本地仓库中跟踪文�
 
 ## webpeck
 
-## compiler 阶段和 compilation 阶段。
+### compiler 阶段和 compilation 阶段。
 
 在 compiler 阶段，Webpack 会调用插件的 apply 方法，将 compiler 对象作为参数传递给插件。在这个阶段，插件可以通过 compiler 对象访问到整个 Webpack 环境，包括配置、options、entry、output 等信息。插件可以利用这些信息进行预处理，比如在编译前根据配置生成一些代码、修改配置、添加 loader 等。
 
@@ -379,6 +379,48 @@ compiler.hooks.done.tap('webpack-dev-server', function (stats) {
 - 优化图片：通过压缩和优化图片，可以减少文件大小，提高加载速度。
 - 使用 webpack-dev-server：此插件可以在开发过程中提供实时重新加载和热替换功能，从而提高开发效率。
 - 使用 webpack-bundle-analyzer：此插件可以帮助您分析应用程序的打包结果，找出包含大量代码的模块，并使用 Code Splitting 和懒加载来优化它们。
+
+### 分包策略
+
+按照入口文件分包：多个入口文件可以分别打包成不同的文件，减小文件的大小，提高页面加载速度。
+
+- 按照模块分包：webpack 可以通过代码分割的方式将不同模块打包成不同的文件，根据页面需要动态加载，提高页面加载速度。
+- 按照异步加载分包：在 webpack 中可以使用 import()或 require.ensure()方法实现异步加载，按需加载模块，提高页面加载速度。
+- 按照公共部分分包：将多个页面共用的代码打包成一个公共文件，减小重复代码，提高页面加载速度。
+- 按照缓存策略分包：webpack 可以根据缓存策略将不同的文件分别打包成不同的文件，提高缓存命中率，减小文件加载时间。
+
+主要是通过 webpack 的 splitChunks 插件来实现
+
+- 最大、最小体积
+- 并发数
+- 缓存组等
+- http2，无需担心并发数。
+- [更多配置选项](https://webpack.js.org/plugins/split-chunks-plugin/)
+
+```js
+module.exports = {
+  // ...
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      minSize: 30000,
+      maxSize: 0,
+      minChunks: 1,
+      maxAsyncRequests: 5,
+      maxInitialRequests: 3,
+      automaticNameDelimiter: '~',
+      name: true,
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+      },
+    },
+  },
+}
+```
 
 ## rrweb 回放
 
