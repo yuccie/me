@@ -567,6 +567,58 @@ console.log(trap([3, 1, 3])) // 2
 
 ## 第三部分：字符串
 
+### 滑动窗口算法，实现无重复字符的最长子串
+
+```js
+function longestSubstring(s) {
+  let left = 0
+  let right = 0
+  let maxLen = 0
+  const set = new Set()
+
+  while (right < s.length) {
+    if (!set.has(s.charAt(right))) {
+      set.add(s.charAt(right))
+      maxLen = Math.max(maxLen, set.size)
+      right++
+    } else {
+      set.delete(s.charAt(left))
+      left++
+    }
+  }
+
+  return maxLen
+}
+```
+
+- 空间复杂度为 O(min(n,m))，其中 n 为字符串的长度，m 为字符集大小。因为 set 中最多存储 m 个字符。
+- 时间复杂度为 O(n)，其中 n 为字符串的长度。因为每个字符最多被访问两次（一次添加到 set 中，一次从 set 中删除），所以时间复杂度为线性的。
+
+上面方法，没办法直接返回最终结果，因为是迭代器对象
+
+```js
+function longestSubstring(s) {
+  let left = 0
+  let right = 0
+  let maxLen = 0
+  let res = []
+
+  while (right < s.length) {
+    if (!res.includes(s.charAt(right))) {
+      res.push(s.charAt(right))
+      maxLen = Math.max(maxLen, res.length)
+      right++
+    } else {
+      res.splice(0, 1)
+      left++
+    }
+  }
+
+  return [maxLen, res.join()]
+}
+longestSubstring('baddcddaabea') //  [3, 'b,e,a']
+```
+
 ### 大数相加
 
 ```js
