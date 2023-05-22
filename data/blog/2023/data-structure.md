@@ -12,7 +12,31 @@ canonicalUrl: https://dume.vercel.app/blog/2023/clean-architecture
 
 ## 前言
 
+## 算法归类
+
+### 双指针法与滑动窗口算法
+
+双指针法和滑动窗口算法都是解决数组或字符串的问题的常用算法，它们的区别如下：
+
+- 双指针法通常用于解决数组或字符串的查找、排序、去重等问题，而滑动窗口算法通常用于解决子串或子数组的问题，例如最长子串、最小覆盖子串等。
+- 双指针法通常是将两个指针从数组或字符串的两端开始移动，根据题目要求调整指针的移动方式，直到找到符合要求的结果。而滑动窗口算法通常是维护一个窗口，通过移动窗口的起点和终点来寻找符合要求的子串或子数组。
+- 双指针法的时间复杂度通常是 O(n)，因为需要遍历整个数组或字符串。而滑动窗口算法的时间复杂度通常是 O(n)，因为每个元素只会被访问一次。
+- 双指针法的空间复杂度通常是 O(1)，因为只需要维护两个指针。而滑动窗口算法的空间复杂度通常是 O(k)，其中 k 是窗口的大小。
+
+总的来说，双指针法和滑动窗口算法都是比较常用的算法，具体选择哪种算法取决于问题的具体要求。
+
 ## 第一部分：数组
+
+- 二分查找：在有序数组中查找指定元素，时间复杂度 O(logn)。
+- 双指针法：用两个指针从数组的两端开始向中间移动，解决一些数组相关的问题，如求和、查找等。
+- 滑动窗口：在数组或字符串上，通过维护一个窗口来解决一些子串或子序列相关的问题。
+- 前缀和：用于快速求解连续子数组的和，通过预处理数组的前缀和，可以在 O(1)时间内求解任意子数组的和。
+- 合并两个有序数组：将两个有序数组合并成一个有序数组，时间复杂度 O(n)，可以用于归并排序。
+- 快速排序：通过分治法的思想，将一个数组分成两个子数组，分别排序，最终合并成一个有序数组，时间复杂度 O(nlogn)。
+- 桶排序：将待排序数组元素根据某个特征值分配到不同的桶中，再对每个桶内的元素进行排序，最终将所有桶合并成一个有序数组，时间复杂度 O(n)。
+- 计数排序：统计待排序数组中每个元素出现的次数，再根据元素出现的次数将元素放到相应的位置上，时间复杂度 O(n)。
+- 二叉堆：一种基于完全二叉树的数据结构，可以用于实现优先队列、堆排序等算法，时间复杂度 O(nlogn)。
+- 动态规划：通过将问题分解成子问题的方式，得到最优解的算法，可以用于解决一些数组相关的问题，如最长递增子序列、最大子数组和等。
 
 ### 数组的几种创建方式：
 
@@ -566,6 +590,167 @@ console.log(trap([3, 1, 3])) // 2
 ```
 
 ## 第三部分：字符串
+
+- 双指针算法：使用两个指针分别指向字符串的不同位置，通过移动指针来解决问题，例如判断回文字符串、最长回文子串等问题。
+- 动态规划算法：通过拆分问题为子问题，然后通过递推求解的方式得到最终的解，例如最长公共子序列、编辑距离等问题。
+- KMP 算法：通过预处理模式字符串的信息，然后在匹配过程中利用这些信息来跳过不必要的比较，从而提高匹配效率。
+- 哈希算法：通过将字符串映射到一个哈希值上，可以快速判断两个字符串是否相等，例如字符串匹配问题。
+- Trie 树算法：通过构建一个树形结构来存储字符串集合，可以快速地查找、插入、删除字符串，例如前缀匹配、字符串排序等问题。
+- 线段树算法：通过将字符串转换为数值表示，可以使用线段树来维护区间信息，例如区间最大值、区间和等问题。
+- 后缀数组算法：通过将字符串的所有后缀排序，可以快速地求解多种字符串问题，例如最长重复子串、最长公共前缀等问题。
+
+### 判断是否为回文字符串
+
+从中间分开，然后从两侧挨个判断是否一致
+
+```js
+function isPalindrome(str) {
+  var len = str.length
+  for (var i = 0; i < len / 2; i++) {
+    if (str[i] !== str[len - 1 - i]) {
+      return false
+    }
+  }
+  return true
+}
+console.log(isPalindrome('racecar')) // true
+console.log(isPalindrome('hello')) // false
+```
+
+### 获取最长回文子串
+
+其基本思路是利用中心扩展算法，从字符串中的每个字符开始，向左右两边扩展，判断是否为回文子串，同时记录最长的回文子串的长度和起始位置。具体实现中，利用了一个辅助函数 expandAroundCenter()来实现中心扩展，该函数的作用是在给定的字符串 str 中，以 left 和 right 为中心，向左右两边扩展，判断是否为回文子串，并返回其长度。最终，利用主函数 longestPalindrome()来遍历字符串中的每个字符，调用 expandAroundCenter()函数，找到最长回文子串的位置和长度，并返回该子串。
+
+```js
+function longestPalindrome(str) {
+  let left = 0
+  let right = 0
+  let maxLen = 0
+
+  for (let i = 0; i < str.length; i++) {
+    let len1 = expandAroundCenter(str, i, i)
+    let len2 = expandAroundCenter(str, i, i + 1)
+    let len = Math.max(len1, len2)
+
+    if (len > maxLen) {
+      maxLen = len
+      left = i - Math.floor((len - 1) / 2)
+      right = i + Math.floor(len / 2)
+    }
+  }
+  return str.substring(left, right + 1)
+}
+
+function expandAroundCenter(str, left, right) {
+  while (left >= 0 && right < str.length && str.charAt(left) === str.charAt(right)) {
+    left--
+    right++
+  }
+  return right - left - 1
+}
+
+// 测试
+console.log(longestPalindrome('babad')) // "bab" 或 "aba"
+console.log(longestPalindrome('cbbd')) // "bb"
+```
+
+### 最小覆盖子串
+
+滑动窗口算法是一种解决字符串子串问题的算法，它的基本思想是维护一个窗口，通过滑动窗口的方式来寻找最小覆盖子串。具体实现过程如下：
+
+1. 定义两个指针 left 和 right，分别表示窗口的左右边界；
+2. 将 right 指针向右移动，扩大窗口，直到窗口中包含了所有的目标元素；
+3. 如果当前窗口中包含了所有的目标元素，那么更新最小覆盖子串的长度和起始位置，并将 left 指针向右移动，缩小窗口；
+4. 重复步骤 2 和 3，直到 right 指针到达字符串的末尾。
+
+具体实现时，可以用一个哈希表来记录窗口中各个元素出现的次数，用另外一个哈希表来记录目标元素的出现次数，通过比较这两个哈希表来判断窗口是否包含了所有的目标元素。同时，可以用一个计数器来记录窗口中包含的目标元素的个数，当计数器等于目标元素的个数时，说明窗口中已经包含了所有的目标元素。在移动 left 和 right 指针时，需要更新哈希表和计数器的值。
+
+```js
+function minWindow(s, target) {
+  let map = {}
+  // 统计目标字符串各个字母的次数
+  for (let char of target) {
+    map[char] = (map[char] || 0) + 1
+  }
+
+  let left = 0,
+    right = 0,
+    counter = target.length, // 目标串的长度
+    minLen = Infinity, // 最小子串长度minLen
+    minStart = 0
+
+  while (right < s.length) {
+    let char = s[right]
+    //
+    if (map[char] > 0) {
+      counter--
+    }
+    map[char] = (map[char] || 0) - 1
+    right++
+
+    while (counter === 0) {
+      if (right - left < minLen) {
+        minLen = right - left
+        minStart = left
+      }
+      let char = s[left]
+      if (map[char] === 0) {
+        counter++
+      }
+      map[char] = (map[char] || 0) + 1
+      left++
+    }
+  }
+  return minLen === Infinity ? '' : s.substr(minStart, minLen)
+}
+
+// 示例：
+console.log(minWindow('ADOBECODEBANC', 'ABC')) // "BANC"
+
+function minWindow(s, t) {
+  let charCount = new Array(128).fill(0)
+  let left = 0
+  let right = 0
+  let count = t.length
+  let minLen = Infinity
+  let minStart = 0
+
+  // 统计t中每个字符出现的次数
+  for (let i = 0; i < t.length; i++) {
+    charCount[t.charCodeAt(i)]++
+  }
+
+  // 移动右指针
+  while (right < s.length) {
+    // 如果当前字符是t中的字符，则count减1
+    if (charCount[s.charCodeAt(right)] > 0) {
+      count--
+    }
+    // 统计每个字符出现的次数
+    charCount[s.charCodeAt(right)]--
+    right++
+
+    // 当count为0时，说明已经找到一个覆盖t的子串
+    while (count === 0) {
+      // 更新最小长度和起始位置
+      if (right - left < minLen) {
+        minLen = right - left
+        minStart = left
+      }
+      // 移动左指针
+      charCount[s.charCodeAt(left)]++
+      // 如果当前字符在t中出现，则count加1
+      if (charCount[s.charCodeAt(left)] > 0) {
+        count++
+      }
+      left++
+    }
+  }
+
+  return minLen === Infinity ? '' : s.substring(minStart, minStart + minLen)
+}
+console.log(minWindow('ADOBECODEBANC', 'ABC')) // "BANC"
+```
 
 ### 滑动窗口算法，实现无重复字符的最长子串
 
