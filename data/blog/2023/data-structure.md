@@ -702,23 +702,37 @@ var longestPalindrome = function (s) {
     // 回文子串是偶数，比如abba
     helper(i, i + 1)
   }
+  // 比如 abba
+  // i = 0时，s[i] = a，此时s[l] === s[r] =》l->-1，r->1
+  //
   function helper(l, r) {
-    // 如果二者相等，则继续向两侧扩展
+    // 如果二者相等，则继续向两侧扩展，不相等则结束并统计回文串
     while (l >= 0 && r < s.length && s[l] === s[r]) {
       l--
       r++
     }
-    // 当循环完后，因为l--，和r++了，因此这两个值相当于边界，不能截取
+    console.log('djch l r', l, r)
+    // 当循环完后，因为l--，和r++了，因此这两个值相当于边界，不能包含截取
     // 另外咱要获取的是最长的那个子串，因此每次都需要与res.length比较,也就是最长的子串
-    // 因为r 与 l指针之间有三个空隙，但只有两个字符，因此为 r - l - 1
+    // r与l之间有多少个字符，应该是r-l，但l--，r++了，slice又是后不包括，所以 r - (l + 1) => r - l - 1
+    // 如果包括的话，因该是(r-1) - (l+1) => r-l-2
     if (r - l - 1 > res.length) {
       // slice前包后不包
       res = s.slice(l + 1, r)
+      console.log('djch res', res)
     }
   }
   return res
 }
+// 测试
+console.log(longestPalindrome('babad')) // "bab" 或 "aba"
+console.log(longestPalindrome('cbbd')) // "bb"
 ```
+
+- 这个题，是不改变现有字符串，从里面截取最长的子串，想象一个可伸缩的滑动窗口。
+- 想象：从头开始遍历字符串，每个字符串都需要向左，向右开始扩展，因为回文是对称相等
+- 如果相等，则继续扩展，如果不相等了，则说明回文串到边界了，需要记录和对比
+- 一个主函数，主要用来遍历，一个辅助函数主要用来执行具体的逻辑
 
 #### 方式二
 
@@ -751,10 +765,6 @@ function expandAroundCenter(str, left, right) {
   }
   return right - left - 1
 }
-
-// 测试
-console.log(longestPalindrome('babad')) // "bab" 或 "aba"
-console.log(longestPalindrome('cbbd')) // "bb"
 ```
 
 ### 最长回文子序列
@@ -776,6 +786,13 @@ console.log(longestPalindrome('cbbd')) // "bb"
 给定一个包含大写字母和小写字母的字符串  s ，返回   通过这些字母构造成的 最长的回文串  。
 
 在构造过程中，请注意 区分大小写 。比如  "Aa"  不能当做一个回文字符串。
+
+```
+输入:s = "abccccdd"
+输出:7
+解释:
+我们可以构造的最长的回文串是"dccaccd", 它的长度是 7。
+```
 
 ```js
 /**
@@ -802,6 +819,8 @@ var longestPalindrome = function (s) {
   return num + (tempSet.size ? 1 : 0)
 }
 ```
+
+- 这个题，是根据已有的字符，重新构造，看最终有多少种可能
 
 ### 重复的子字符串
 
@@ -835,11 +854,31 @@ var repeatedSubstringPattern2 = function (s) {
 // 这样做的目的是为了防止原始字符串的第一个字符和最后一个字符同时作为两个相邻子串的一部分，从而导致判断错误。
 ```
 
+- 字符串判断是否有规则，可以用正则
+- 该题其实就是判断，整串，是不是有多个相同的子串组成。
+
 ### 判断是否为回文字符串
 
 从中间分开，然后从两侧挨个判断是否一致
 
 ```js
+function isPalindrome(str) {
+  let left = 0
+  let right = str.length - 1
+  let i = 0
+  // 注意，这里只能遍历到 1/2的长度
+  // for (i; i < str.length-1; i++) {
+  for (i; i < str.length / 2; i++) {
+    if (str[left] === str[right]) {
+      left++
+      right--
+    } else {
+      return false
+    }
+  }
+  return true
+}
+
 function isPalindrome(str) {
   var len = str.length
   for (var i = 0; i < len / 2; i++) {
@@ -853,7 +892,18 @@ console.log(isPalindrome('racecar')) // true
 console.log(isPalindrome('hello')) // false
 ```
 
+- 遍历字符串，对比两头的字符是否相等
+- 注意，遍历字符串只需 length / 2，不需要考虑 length 的奇偶，兼容
+
 ### 最小覆盖子串
+
+给你一个字符串 s 、一个字符串 t 。返回 s 中涵盖 t 所有字符的最小子串。如果 s 中不存在涵盖 t 所有字符的子串，则返回空字符串 "" 。
+
+```
+输入：s = "ADOBECODEBANC", t = "ABC"
+输出："BANC"
+解释：最小覆盖子串 "BANC" 包含来自字符串 t 的 'A'、'B' 和 'C'。
+```
 
 滑动窗口算法是一种解决字符串子串问题的算法，它的基本思想是维护一个窗口，通过滑动窗口的方式来寻找最小覆盖子串。具体实现过程如下：
 
@@ -953,6 +1003,14 @@ console.log(minWindow('ADOBECODEBANC', 'ABC')) // "BANC"
 
 ### 滑动窗口算法，实现无重复字符的最长子串
 
+给定一个字符串 s ，请你找出其中不含有重复字符的 最长子串 的长度。
+
+```
+输入: s = "abcabcbb"
+输出: 3
+解释: 因为无重复字符的最长子串是 "abc"，所以其长度为 3。
+```
+
 ```js
 function longestSubstring(s) {
   let left = 0
@@ -981,6 +1039,9 @@ function longestSubstring(s) {
 
 - 空间复杂度为 O(min(n,m))，其中 n 为字符串的长度，m 为字符集大小。因为 set 中最多存储 m 个字符。
 - 时间复杂度为 O(n)，其中 n 为字符串的长度。因为每个字符最多被访问两次（一次添加到 set 中，一次从 set 中删除），所以时间复杂度为线性的。
+- 因为只需要求长度，只需要用 set 记录就可
+- 遍历字符串，利用滑动窗口，如果没有则一直压入，并更新最长的记录，同时右侧指针向右移动
+- 如果包含，肯定是左侧先包含，left++
 
 上面方法，没办法直接返回最终结果，因为是迭代器对象
 
@@ -1044,22 +1105,31 @@ function longestCommonPrefix(strs) {
 }
 ```
 
+- 假想第一个字符串，就是前缀
+- 然后挨个匹配后续的字符串，如果`strs[i].indexOf(prefix) !== 0` 则从最后一个字符串开始缩短
+- 缩短后继续匹配，知道匹配上位置。。。for 循环内部，还需要一个 while 循环
+
 ### 大数相加
 
 ```js
 function bigNumAdd(a, b) {
-  // 获取两个数的长度
+  // 获取两个数的长度，大数是个字符串？
+  // (123).length -> undefined 啊
   let i = a.length - 1
   let j = b.length - 1
 
   let res = '' // 最终结果
   let carry = 0 // 进位
+
   // 只要有一个长度大于等于0，即循环
+  // 其实就是只要有任何一个数字有长度，则继续循环，肯定会先计算完小的数
+  // 等到循环结束，则两个数会被完全计算。
   while (i >= 0 || j >= 0) {
     let x = 0
     let y = 0
     let sum = 0 // 两个数的和
 
+    // 分别从最后获取大数字符串上的值，并记录
     if (i >= 0) {
       x = +a[i]
       i--
@@ -1069,8 +1139,10 @@ function bigNumAdd(a, b) {
       j--
     }
 
+    // 计算，并累加进位
     sum = x + y + carry
 
+    // 计算完，还需要判断是否大于10
     if (sum >= 10) {
       carry = 1
       sum -= 10 // 进位后，两个数的临时和就需要减10
@@ -1082,7 +1154,7 @@ function bigNumAdd(a, b) {
     res = sum + res
   }
 
-  // 循环结束后，还需判断进位
+  // 循环结束后，再判断进位
   if (carry) {
     res = carry + res
   }
