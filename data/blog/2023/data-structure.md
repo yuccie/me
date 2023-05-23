@@ -402,6 +402,334 @@ function findLengthOfLCIS(nums) {
 
 - 属于快慢指针，双指针
 
+### 最长连续序列
+
+给定一个未排序的整数数组 nums ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。
+
+请你设计并实现时间复杂度为  O(n) 的算法解决此问题。
+
+```
+输入：nums = [100,4,200,1,3,2]
+输出：4
+解释：最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4。
+```
+
+```js
+function longestConsecutive(nums) {
+  // 去重
+  let set = new Set(nums)
+  let maxLen = 0 // 最大
+  for (let num of set) {
+    // 这个for循环，其实就是找到起始位置
+    if (!set.has(num - 1)) {
+      // 如果没有包含 num - 1，说明 num 是 起始位置
+      let curNum = num
+      let curLen = 1
+      // 确定了起点，就开始向后循环，如果连续则记录并更行
+      while (set.has(curNum + 1)) {
+        curNum++
+        curLen++
+      }
+      // 如果循环结束，则更新最大值
+      maxLen = Math.max(maxLen, curLen)
+    }
+  }
+  return maxLen
+}
+longestConsecutive([100, 4, 200, 1, 3, 2]) // 4
+```
+
+- 时间复杂度为 O(n)，空间复杂度为 O(n)，其中 n 为数组 nums 的长度。
+- 因为需要用一个 set 来进行去重操作，所以需要额外的空间来存储 set，所以空间复杂度为 O(n)。
+- 在 for 循环和 while 循环中，每个元素最多被访问两次，所以时间复杂度为 O(n)。因此，总的时间复杂度为 O(n)，空间复杂度为 O(n)。
+
+### 寻找两个正序数组的中位数
+
+给定两个大小分别为 m 和 n 的正序（从小到大）数组  nums1 和  nums2。请你找出并返回这两个正序数组的 中位数 。
+
+算法的时间复杂度应该为 O(log (m+n)) 。
+
+```
+输入：nums1 = [1,2], nums2 = [3,4]
+输出：2.50000
+解释：合并数组 = [1,2,3,4] ，中位数 (2 + 3) / 2 = 2.5
+```
+
+```js
+/**
+ * @param {number[]} nums1
+ * @param {number[]} nums2
+ * @return {number}
+ */
+var findMedianSortedArrays = function (nums1, nums2) {
+  // 合并两个有序数组，然后找到中间的那个
+  let res = []
+  let i = 0
+  let j = 0
+  // 利用双指针，先合并有序数组
+  while (i < nums1.length && j < nums2.length) {
+    if (nums1[i] < nums2[j]) {
+      res.push(nums1[i])
+      i++
+    } else {
+      res.push(nums2[j])
+      j++
+    }
+  }
+
+  while (i < nums1.length) {
+    res.push(nums1[i])
+    i++
+  }
+  while (j < nums2.length) {
+    res.push(nums2[j])
+    j++
+  }
+  const minddle = Math.floor(res.length / 2)
+  const isEven = res.length % 2 === 0
+  const final = isEven ? (res[minddle - 1] + res[minddle]) / 2 : res[minddle]
+  return final
+}
+```
+
+- 时间复杂度为 O(m+n)，其中 m 和 n 分别为 nums1 和 nums2 的长度，因为需要遍历两个数组并将它们合并成一个有序数组。
+- 空间复杂度为 O(m+n)，因为需要创建一个新数组来存储合并后的有序数组。
+
+### 和为 K 的子数组
+
+给你一个整数数组 nums 和一个整数 k ，请你统计并返回 该数组中和为 k 的连续子数组的个数 。
+
+- 这里和返回和为 target 的所有集合还不太一样，这里是连续的子数组
+
+```
+输入：nums = [1,2,3], k = 3
+输出：2
+```
+
+1. 遍历数组，计算当前的前缀和 sum，然后将 sum 减去 k，得到一个目标值 target。
+2. 如果哈希表中已经存在 target，说明存在一个子数组的和为 k。如果哈希表中不存在 target，则将当前的前缀和 sum 存入哈希表中。3. 最后返回子数组和为 k 的个数即可。
+
+```js
+var subarraySum = function (nums, k) {
+  const map = new Map()
+  map.set(0, 1)
+  let sum = 0
+  let count = 0
+  // [1,1,1] 2
+  for (let i = 0; i < nums.length; i++) {
+    // 累加
+    sum += nums[i]
+    //
+    if (map.has(sum - k)) {
+      count += map.get(sum - k)
+    }
+
+    // 如果之前有过，则继续累加
+    if (map.has(sum)) {
+      map.set(sum, map.get(sum) + 1)
+    } else {
+      // 将不同累加的和都放在map里
+      map.set(sum, 1)
+    }
+  }
+  return count
+}
+
+// 下面的这个思路是错误的
+var subarraySumError = function (nums, k) {
+  // 这里需要返回连续的子数组，数组的项可以为一项
+  let tempRes = []
+  let tempSum = 0
+  const res = []
+  for (let num of nums) {
+    if (tempSum > k) {
+      tempRes = []
+      tempSum = 0
+      // 重新计数
+    }
+    if (tempSum === k) {
+      res.push(tempRes)
+      // 这个算法有问题，因为他每次满足条件，都截断重新计算了
+      // 其实[1,1,1] => 2 的场景是 [1,1] [1,1] 前两个和后两个都可以
+      tempRes = []
+      tempSum = 0
+    }
+    tempSum += num
+    tempRes.push(num)
+  }
+  return res.length
+}
+```
+
+### 两数之和 II - 输入有序数组
+
+给你一个下标从 1 开始的整数数组  numbers ，该数组已按 非递减顺序排列, 请你从数组中找出满足相加之和等于目标数  target 的两个数。如果设这两个数分别是 `numbers[index1] 和 numbers[index2]` ，则 `1 <= index1 < index2 <= numbers.length 。`
+
+以长度为 2 的整数数组 `[index1, index2]` 的形式返回这两个整数的下标 index1 和 index2。
+
+你可以假设每个输入 只对应唯一的答案 ，而且你 不可以 重复使用相同的元素。
+
+你所设计的解决方案必须只使用常量级的额外空间。
+
+```
+输入：numbers = [2,3,4], target = 6
+输出：[1,3]
+解释：2 与 4 之和等于目标数 6 。因此 index1 = 1, index2 = 3 。返回 [1, 3] 。
+```
+
+```js
+function twoSum(numbers, target) {
+  let left = 0,
+    right = numbers.length - 1
+
+  while (left < right) {
+    // 利用双指针，因为已经是排好序的了
+    const sum = numbers[left] + numbers[right]
+
+    if (sum === target) {
+      return [left + 1, right + 1]
+    } else if (sum < target) {
+      // 小于target时，需要慢慢的变成大值
+      left++
+    } else {
+      // 如果大于target，则需要变小
+      right--
+    }
+  }
+  return [-1, -1]
+}
+
+twoSum([2, 7, 11, 15], 9) // [1, 2]
+```
+
+### 三数之和
+
+给你一个整数数组 nums ，判断是否存在三元组 `[nums[i], nums[j], nums[k]] 满足 i != j、i != k 且 j != k` ，同时还满足 `nums[i] + nums[j] + nums[k] == 0 `。请
+
+你返回所有和为 0 且不重复的三元组。
+
+注意：答案中不可以包含重复的三元组。
+
+```
+输入：nums = [-1,0,1,2,-1,-4]
+输出：[[-1,-1,2],[-1,0,1]]
+解释：
+nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0 。
+nums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0 。
+nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0 。
+不同的三元组是 [-1,0,1] 和 [-1,-1,2] 。
+注意，输出的顺序和三元组的顺序并不重要。
+```
+
+```js
+function threeSum(nums) {
+  nums.sort((a, b) => a - b) // 先排序
+
+  const res = []
+  for (let i = 0; i < nums.length - 2; i++) {
+    if (i > 0 && nums[i] === nums[i - 1]) continue // 避免重复
+
+    let left = i + 1,
+      right = nums.length - 1 // 双指针
+    while (left < right) {
+      const sum = nums[i] + nums[left] + nums[right]
+      if (sum === 0) {
+        res.push([nums[i], nums[left], nums[right]])
+        while (left < right && nums[left] === nums[left + 1]) left++ // 避免重复
+        while (left < right && nums[right] === nums[right - 1]) right-- // 避免重复
+        left++
+        right--
+      } else if (sum < 0) {
+        left++
+      } else {
+        right--
+      }
+    }
+  }
+  return res
+}
+
+var threeSum = function (nums) {
+  let arr = []
+  // 排序，然后固定一个，然后两侧指针，排序不能直接sort，因为涉及到Unicode的排序
+  nums = nums.sort((a, b) => a - b)
+  const len = nums.length
+  if (nums == null || len < 3) return arr
+
+  for (let i = 0; i < len; i++) {
+    if (nums[i] > 0) break
+
+    let left = i + 1
+    let right = len - 1
+    if (i > 0 && nums[i] == nums[i - 1]) continue // 去重，不要看原数组，要看排好序的数组
+
+    while (left < right) {
+      let a = nums[i]
+      let b = nums[left]
+      let c = nums[right]
+
+      let sum = a + b + c
+      if (!sum) {
+        arr.push([a, b, c])
+        while (left < right && nums[left] === nums[left + 1]) left++ // 去重
+        while (left < right && nums[right] === nums[right - 1]) right-- // 去重
+        // 此时都需要走，不然会重复
+        left++
+        right--
+      } else if (sum < 0) {
+        // 和小，说明需要增大
+        left++
+      } else if (sum > 0) {
+        // 因为排好序了，此时降低大值就是小值
+        right--
+      }
+    }
+  }
+  return arr
+}
+threeSum([-1, 0, 1, 2, -1, -4]) // [[-1,-1,2],[-1,0,1]]
+```
+
+### 四数之和
+
+给你一个由 n 个整数组成的数组  nums ，和一个目标值 target 。请你找出并返回满足下述全部条件且不重复的四元组  `[nums[a], nums[b], nums[c], nums[d]]`（若两个四元组元素一一对应，则认为两个四元组重复）：
+
+```
+输入：nums = [1,0,-1,0,-2,2], target = 0
+输出：[[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]
+```
+
+```js
+function fourSum(nums, target) {
+  const result = []
+  nums.sort((a, b) => a - b)
+
+  for (let i = 0; i < nums.length - 3; i++) {
+    if (i > 0 && nums[i] === nums[i - 1]) continue
+    for (let j = i + 1; j < nums.length - 2; j++) {
+      if (j > i + 1 && nums[j] === nums[j - 1]) continue
+      let left = j + 1,
+        right = nums.length - 1
+      while (left < right) {
+        const sum = nums[i] + nums[j] + nums[left] + nums[right]
+        if (sum === target) {
+          result.push([nums[i], nums[j], nums[left], nums[right]])
+          while (left < right && nums[left] === nums[left + 1]) left++
+          while (left < right && nums[right] === nums[right - 1]) right--
+          left++
+          right--
+        } else if (sum < target) {
+          left++
+        } else {
+          right--
+        }
+      }
+    }
+  }
+  return result
+}
+```
+
 ### 删除有序数组中的重复项
 
 给你一个 升序排列 的数组 nums ，请你 原地 删除重复出现的元素，使每个元素 只出现一次 ，返回删除后数组的新长度。元素的 相对顺序 应该保持 一致 。然后返回 nums 中唯一元素的个数。
@@ -432,7 +760,6 @@ var removeDuplicates = function (nums) {
   }
   return nums
 }
-//
 ```
 
 ## 第二部分：递归
@@ -632,7 +959,7 @@ const trap = (heights) => {
   let left = 0,
     right = heights.length - 1 // 左右指针索引
   let maxLeft = 0,
-    maxRight = 0 // 左右最大值，其实这里最大值的意义是：如果比他小才可能有谁
+    maxRight = 0 // 左右最大值，其实这里最大值的意义是：如果比他小才可能有水
   let results = 0 // 结果
 
   // 双指针，使用while，运行条件：左侧索引小于右侧索引
@@ -662,6 +989,81 @@ const trap = (heights) => {
 const heights = [2, 1, 2]
 console.log(trap(heights)) // 1
 console.log(trap([3, 1, 3])) // 2
+```
+
+### 跳跃游戏
+
+给定一个非负整数数组 nums ，你最初位于数组的 第一个下标 。
+
+数组中的每个元素代表你在该位置可以跳跃的最大长度。
+
+判断你是否能够到达最后一个下标。
+
+```
+输入：nums = [2,3,1,1,4]
+输出：true
+解释：可以先跳 1 步，从下标 0 到达下标 1, 然后再从下标 1 跳 3 步到达最后一个下标。
+```
+
+```js
+function canJump(nums) {
+  let maxJump = 0 // 当前能够跳到的最远距离
+  const n = nums.length // 数组长度
+
+  for (let i = 0; i < n; i++) {
+    if (maxJump < i) return false // 如果当前位置无法到达，返回false
+    maxJump = Math.max(maxJump, i + nums[i]) // 更新能够跳到的最远距离
+    if (maxJump >= n - 1) return true // 如果能够跳到最后一个位置，返回true
+  }
+  return true
+}
+```
+
+该函数用于判断一个数组中的元素是否能够跳到最后一个位置。
+
+- 其中，maxJump 表示当前能够跳到的最远距离，n 表示数组长度。
+- 在循环中，首先判断当前位置是否能够到达，如果不能则返回 false，
+- 否则更新能够跳到的最远距离。当能够跳到最后一个位置时，返回 true。
+- 最后，如果循环结束后仍未返回 false，则说明能够跳到最后一个位置，返回 true。
+
+### 盛最多水的容器
+
+给定一个长度为 n 的整数数组  height 。有  n  条垂线，第 i 条线的两个端点是  `(i, 0) 和 (i, height[i])` 。
+
+找出其中的两条线，使得它们与  x  轴共同构成的容器可以容纳最多的水。
+
+返回容器可以储存的最大水量。
+
+```
+输入：[1,8,6,2,5,4,8,3,7]
+输出：49
+解释：图中垂直线代表输入数组 [1,8,6,2,5,4,8,3,7]。在此情况下，容器能够容纳水（表示为蓝色部分）的最大值为 49。
+```
+
+- 这里的垂线其实不占用体积，因此可以只考虑两个挡板间的距离和矮挡板的高度就可以了
+
+```js
+function maxArea(arr) {
+  // 双指针法
+  let len = arr.length
+  let leftIdx = 0
+  let rightIdx = len - 1
+  let max = 0
+
+  // 左指针小于右指针，则一直循环
+  while (leftIdx < rightIdx) {
+    // 计算两个挡板间的空间，矩形，高度以矮的为准
+    let tempArea = (rightIdx - leftIdx) * Math.min(arr[leftIdx], arr[rightIdx])
+    // 更新最大值
+    max = Math.max(max, tempArea)
+
+    // 移动指针，移动小的
+    arr[leftIdx] < arr[rightIdx] ? leftIdx++ : rightIdx--
+  }
+  return max
+}
+maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
+// 其实就是 height[8]  height[1] => (8 - 1) * Math.min(7, 8) => 49
 ```
 
 ## 第三部分：字符串
