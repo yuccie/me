@@ -305,9 +305,87 @@ function mergeSortedArrays(arr1, arr2) {
 }
 ```
 
-这个函数接受两个有序数组作为参数，并返回一个合并后的有序数组。它使用两个指针 i 和 j 来比较两个数组中的元素，并将较小的元素添加到合并数组中。一旦一个数组的指针到达其末尾，该函数将继续将另一个数组中的所有元素添加到合并数组中。最后，它返回合并后的有序数组。
+- 注意，因为数组本来就有序，而且 i，j 其实并不是同步变化的
+
+这个函数接受两个有序数组作为参数，并返回一个合并后的有序数组。
+
+1. 它使用两个指针 i 和 j 来比较两个数组中的元素，并将较小的元素添加到合并数组中。
+2. 一旦一个数组的指针到达其末尾，该函数将继续将另一个数组中的所有元素添加到合并数组中。
+3. 最后，它返回合并后的有序数组。
 
 ### 实现一个数组的全排列
+
+#### 方式一
+
+1. 将数组分成两部分：第一个元素和剩余的元素
+2. 对剩余的元素进行全排列（递归）
+3. 将第一个元素插入到剩余元素全排列的每个位置
+4. 重复执行以上步骤，直到全部排列完毕
+
+```js
+function permute(arr) {
+  // 如果数组只有一个元素，直接返回该元素
+  if (arr.length === 1) {
+    return [arr]
+  }
+
+  // 获取第一个元素和剩余的元素
+  const [first, ...rest] = arr
+
+  // 递归获取剩余元素的全排列
+  const permutations = permute(rest)
+
+  // 将第一个元素插入到每个排列的位置
+
+  const result = []
+  for (let i = 0; i < permutations.length; i++) {
+    const permutation = permutations[i]
+    console.log('djch permutation', JSON.stringify(permutation))
+    for (let j = 0; j <= permutation.length; j++) {
+      const newPermutation = [...permutation.slice(0, j), first, ...permutation.slice(j)]
+      result.push(newPermutation)
+      console.log(
+        'djch newPermutation',
+        JSON.stringify(newPermutation),
+        first,
+        JSON.stringify(result)
+      )
+    }
+  }
+  // djch permutation [3]
+  // djch newPermutation [2,3] 2 [[2,3]]
+  // djch newPermutation [3,2] 2 [[2,3],[3,2]]
+  // djch permutation [2,3]
+  // djch newPermutation [1,2,3] 1 [[1,2,3]]
+  // djch newPermutation [2,1,3] 1 [[1,2,3],[2,1,3]]
+  // djch newPermutation [2,3,1] 1 [[1,2,3],[2,1,3],[2,3,1]]
+  // djch permutation [3,2]
+  // djch newPermutation [1,3,2] 1 [[1,2,3],[2,1,3],[2,3,1],[1,3,2]]
+  // djch newPermutation [3,1,2] 1 [[1,2,3],[2,1,3],[2,3,1],[1,3,2],[3,1,2]]
+  // djch newPermutation [3,2,1] 1 [[1,2,3],[2,1,3],[2,3,1],[1,3,2],[3,1,2],[3,2,1]]
+
+  return result
+}
+
+// 示例
+const arr = [1, 2, 3]
+const result = permute(arr)
+console.log(result)
+```
+
+该算法的时间复杂度为 O(n\*n!)，其中 n 为数组 arr 的长度。
+
+首先，在函数的第一行，如果数组只有一个元素，直接返回该元素，时间复杂度为 O(1)。
+
+然后，获取第一个元素和剩余的元素的时间复杂度为 O(1)。
+
+接着，递归获取剩余元素的全排列的时间复杂度为 O((n-1) \* (n-1)!)，因为每次递归都会减少一个元素，所以递归的次数是 n-1，每次递归都要进行全排列，因此时间复杂度为(n-1)!。
+
+最后，将第一个元素插入到每个排列的位置的时间复杂度为 O(n!)，因为每个排列的长度为 n-1，所以需要将第一个元素插入到 n-1 个位置，共有(n-1)!个排列。
+
+因此，总的时间复杂度为 O(n\*n!)。
+
+#### 方式二
 
 ```js
 function permute(input) {
@@ -322,10 +400,30 @@ function permute(input) {
       if (input.length == 0) {
         permArr.push(usedChars.slice())
       }
-
+      console.log(
+        'djch ',
+        i,
+        JSON.stringify(input),
+        ch,
+        JSON.stringify(usedChars),
+        JSON.stringify(permArr)
+      )
+      // djch  0 [2,3] 1 [1]     []
+      // djch  0 [3]   2 [1,2]   []
+      // djch  0 []    3 [1,2,3] [[1,2,3]]
       permuteHelper(input)
       input.splice(i, 0, ch)
       usedChars.pop()
+      console.log(
+        'djch _',
+        i,
+        JSON.stringify(input),
+        ch,
+        JSON.stringify(usedChars),
+        JSON.stringify(permArr)
+      )
+      // djch _ 0 [3]   3 [1,2] [[1,2,3]]
+      // djch _ 0 [2,3] 2 [1]   [[1,2,3]]
     }
     return permArr
   }
@@ -340,11 +438,20 @@ console.log(permute([1, 2, 3]))
 1. 首先，函数遍历输入字符串的每个字符，并将其从输入字符串中删除。
 2. 然后，将该字符添加到 usedChars 数组中，并检查输入字符串的长度是否为 0。
 3. 如果是，将 usedChars 数组的副本添加到 permArr 数组中。
-4. 然后，继续递归调用 permuteHelper 函数，直到所有排列都被生成。在返回到上一层递归时，将该字符重新添加到输入字符串中，并将其从 usedChars 数组中删除。
+4. 然后，继续递归调用 permuteHelper 函数，直到所有排列都被生成。
+5. 在返回到上一层递归时，将该字符重新添加到输入字符串中，并将其从 usedChars 数组中删除。
 
 最后，函数返回 permuteHelper 函数的结果，即所有排列的数组。
 
+该函数的原理是通过递归调用自身来生成所有可能的排列。在每次递归调用中，函数从输入数组中取出一个元素，并将其添加到已使用的字符数组中。当输入数组为空时，表示已经生成了一个排列，将其添加到结果数组中。然后，函数将当前元素重新插入到输入数组中，并从已使用的字符数组中删除它，以便生成下一个排列。最终，函数返回包含所有排列的结果数组。
+
+这个算法的时间复杂度为 O(n!),其中 n 是输入数组 input 的长度。这是因为该算法使用递归来生成所有可能的排列，每次递归都会将数组 input 中的一个元素与已经生成的排列组合，因此总共需要进行 n 次递归。在每次递归中，需要遍历 input 数组中的所有元素，因此总共需要进行 n!次遍历。因此，该算法的时间复杂度为 O(n!)。
+
+该算法的空间复杂度为 O(n^2)，其中 n 是输入数组的长度。这是因为该算法使用了两个辅助数组：permArr 和 usedChars，每个数组的长度最大为 n。此外，递归调用 permuteHelper 函数时，会创建 n 个新的函数调用栈，每个函数调用栈的空间复杂度为 O(n)。因此，总空间复杂度为 O(n^2 + n\*n) = O(n^2)。
+
 ### 数组支持负索引
+
+- 数组除了常规的 `arr[index]` 获取数据外，还可以 arr.get(index) 获取
 
 ```js
 Array.prototype.get = function (index) {
@@ -358,6 +465,13 @@ Array.prototype.get = function (index) {
 // 使用负索引获取数组元素
 const list = [1, 2, 3]
 console.log(list.get(-1)) // 输出 3
+
+// 还可以如下，自定义负索引
+list[-1] = list[list.length - 1]
+list[-2] = list[list.length - 2]
+list[-3] = list[list.length - 3]
+
+console.log(list[-1]) // 输出 3
 ```
 
 ### 最长连续递增序列
@@ -402,6 +516,10 @@ function findLengthOfLCIS(nums) {
 
 - 属于快慢指针，双指针
 
+时间复杂度为 O(n)，其中 n 是数组 nums 的长度，因为算法需要遍历整个数组一次。
+
+空间复杂度为 O(1)，因为算法只使用了常数个额外变量来存储当前长度和最大长度，不随输入规模变化。
+
 ### 最长连续序列
 
 给定一个未排序的整数数组 nums ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。
@@ -421,6 +539,7 @@ function longestConsecutive(nums) {
   let maxLen = 0 // 最大
   for (let num of set) {
     // 这个for循环，其实就是找到起始位置
+    // 对于示例中的100,200只会执行一次，而对于4直接就不会进去
     if (!set.has(num - 1)) {
       // 如果没有包含 num - 1，说明 num 是 起始位置
       let curNum = num
@@ -558,6 +677,22 @@ var subarraySumError = function (nums, k) {
     tempRes.push(num)
   }
   return res.length
+}
+```
+
+### 两数之和
+
+```js
+function twoSum(nums, target) {
+  let map = new Map()
+  for (let i = 0; i < nums.length; i++) {
+    let rest = target - nums[i]
+    if (map.has(rest)) {
+      return [map.get(rest), i]
+    }
+    map.set(nums[i], i)
+  }
+  return -1
 }
 ```
 
@@ -1011,7 +1146,10 @@ function canJump(nums) {
   const n = nums.length // 数组长度
 
   for (let i = 0; i < n; i++) {
+    // 刚开始在第一个下标位置，如果想移动到下一个下标，则可跳的最远距离必须要大于索引，否则直接就过不去啊
     if (maxJump < i) return false // 如果当前位置无法到达，返回false
+
+    // 下标位置 + nums[i]
     maxJump = Math.max(maxJump, i + nums[i]) // 更新能够跳到的最远距离
     if (maxJump >= n - 1) return true // 如果能够跳到最后一个位置，返回true
   }
