@@ -182,6 +182,38 @@ JWT（JSON Web Token）是一种开放标准（RFC 7519），用于在网络应�
 
 ## 跨域
 
+### cors
+
+CORS（Cross-Origin Resource Sharing）是一种浏览器的安全机制，用于限制跨域访问。在默认情况下，浏览器不允许跨域访问其他域名下的资源，但是可以通过配置 CORS 来允许跨域访问。
+
+CORS 跨域配置有两种方式：服务器端配置和客户端配置。
+
+服务器端配置：
+
+在响应头中添加 Access-Control-Allow-Origin 字段，表示允许跨域访问的域名，可以使用通配符 \* 表示允许所有域名跨域访问。例如：
+
+Access-Control-Allow-Origin: \*
+在响应头中添加 Access-Control-Allow-Methods 字段，表示允许跨域访问的 HTTP 方法，例如：
+
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+在响应头中添加 Access-Control-Allow-Headers 字段，表示允许跨域访问的 HTTP 头部信息，例如：
+
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+如果需要发送 Cookie 等认证信息，需要在响应头中添加 Access-Control-Allow-Credentials 字段，并将其设置为 true，例如：
+Access-Control-Allow-Credentials: true
+
+客户端配置：
+
+在发送跨域请求时，需要在请求头中添加 Origin 字段，表示当前请求来自哪个域名。例如：
+
+Origin: http://example.com
+如果需要发送认证信息，需要将 withCredentials 属性设置为 true，例如：
+
+xhr.withCredentials = true;
+以上是 CORS 跨域的基本配置方式，具体实现还需要根据不同的服务器语言和框架进行相应的配置。
+
+注意：Access-Control-Allow-Origin 的域名后面不能添加斜杠（/），因为它是指定允许跨域请求的源，而不是指定具体的路径。如果添加斜杠，就会限制只能从该域名下的某个路径发起跨域请求，而不是整个域名都可以跨域访问。
+
 ### jsonp
 
 jsonp 是一种跨域解决方法，它利用了浏览器允许跨域请求资源的特性。

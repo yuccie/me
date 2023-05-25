@@ -1104,4 +1104,57 @@ module.exports = {
 }
 ```
 
-## 时间循环
+## 事件循环
+
+## 空间占用
+
+- 1GB = 1024MB = 1024 _ 1024Kb = 1024 _ 1024 \* 1024Byte（字节）
+- 一个字节 就是 8 位
+- 整数（int）：通常占用 4 个字节（32 位），但在某些编程语言中可能占用 2 个或 8 个字节。
+- 长整数（long）：通常占用 8 个字节（64 位），但在某些编程语言中可能占用 4 个或 16 个字节。
+- 浮点数（float）：通常占用 4 个字节（32 位），但在某些编程语言中可能占用 8 个字节。
+- 双精度浮点数（double）：通常占用 8 个字节（64 位），但在某些编程语言中可能占用 4 个或 16 个字节。
+- 字符（char）：通常占用 1 个字节，但在某些编程语言中可能占用 2 个或更多字节。
+
+需要注意的是，这些数字类型的大小可能因编程语言、硬件平台和操作系统而异。
+
+```js
+function memorySizeOf(obj) {
+  var bytes = 0
+
+  function sizeOf(obj) {
+    if (obj !== null && obj !== undefined) {
+      switch (typeof obj) {
+        case 'number':
+          bytes += 8
+          break
+        case 'string':
+          bytes += obj.length * 2
+          break
+        case 'boolean':
+          bytes += 4
+          break
+        case 'object':
+          var objClass = Object.prototype.toString.call(obj).slice(8, -1)
+          if (objClass === 'Object' || objClass === 'Array') {
+            for (var key in obj) {
+              if (!obj.hasOwnProperty(key)) continue
+              sizeOf(obj[key])
+            }
+          } else bytes += obj.toString().length * 2
+          break
+      }
+    }
+    return bytes
+  }
+
+  function formatByteSize(bytes) {
+    if (bytes < 1024) return bytes + ' bytes'
+    else if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(3) + ' KiB'
+    else if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(3) + ' MiB'
+    else return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(3) + ' GiB'
+  }
+
+  return formatByteSize(sizeOf(obj))
+}
+```
