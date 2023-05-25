@@ -335,12 +335,12 @@ function permute(arr) {
   // 递归获取剩余元素的全排列
   const permutations = permute(rest)
 
-  // 将第一个元素插入到每个排列的位置
-
+  // 将第一个元素插入到每个排列各个位置
   const result = []
   for (let i = 0; i < permutations.length; i++) {
     const permutation = permutations[i]
     console.log('djch permutation', JSON.stringify(permutation))
+
     for (let j = 0; j <= permutation.length; j++) {
       const newPermutation = [...permutation.slice(0, j), first, ...permutation.slice(j)]
       result.push(newPermutation)
@@ -626,24 +626,29 @@ var findMedianSortedArrays = function (nums1, nums2) {
 ```
 
 1. 遍历数组，计算当前的前缀和 sum，然后将 sum 减去 k，得到一个目标值 target。
-2. 如果哈希表中已经存在 target，说明存在一个子数组的和为 k。如果哈希表中不存在 target，则将当前的前缀和 sum 存入哈希表中。3. 最后返回子数组和为 k 的个数即可。
+2. 如果哈希表中已经存在 target，说明存在一个子数组的和为 k。如果哈希表中不存在 target，则将当前的前缀和 sum 存入哈希表中
+3. 最后返回子数组和为 k 的个数即可。
 
 ```js
 var subarraySum = function (nums, k) {
   const map = new Map()
-  map.set(0, 1)
+  map.set(0, 1) //
   let sum = 0
   let count = 0
-  // [1,1,1] 2
+  // [1,2,3] 2
   for (let i = 0; i < nums.length; i++) {
     // 累加
     sum += nums[i]
-    //
+
+    // 如果有 sum - k 则说明，两个位置之间的子数组的和为k，累加即可
+    // 这个地方必须是 sum - k，其实可以想象下 两数之和 A + B = C ,那这里的 C 就是sum，然后A或B就是K
+    // 如何 C - B 存在，则说明存在一个和为k的子数组，直接累加即可
     if (map.has(sum - k)) {
       count += map.get(sum - k)
+      // console.log('djch count', count)
     }
 
-    // 如果之前有过，则继续累加
+    // 如果之前有过，则继续累加，属于不同的组合了
     if (map.has(sum)) {
       map.set(sum, map.get(sum) + 1)
     } else {
@@ -653,32 +658,60 @@ var subarraySum = function (nums, k) {
   }
   return count
 }
+// [1,2,3] 3
+// {0 => 1}
+// {1 => 1}
+// {3 => 1}
+// {6 => 1}
+```
 
-// 下面的这个思路是错误的
-var subarraySumError = function (nums, k) {
-  // 这里需要返回连续的子数组，数组的项可以为一项
-  let tempRes = []
-  let tempSum = 0
-  const res = []
-  for (let num of nums) {
-    if (tempSum > k) {
-      tempRes = []
-      tempSum = 0
-      // 重新计数
-    }
-    if (tempSum === k) {
-      res.push(tempRes)
-      // 这个算法有问题，因为他每次满足条件，都截断重新计算了
-      // 其实[1,1,1] => 2 的场景是 [1,1] [1,1] 前两个和后两个都可以
-      tempRes = []
-      tempSum = 0
-    }
-    tempSum += num
-    tempRes.push(num)
+具体实现如下：
+
+1. 创建一个哈希表 map，并将值 0 和出现次数 1 存入哈希表中，因为当累加到某个位置时，如果前面的所有数的和为 0，则当前位置到该位置的子数组的和为当前位置的值。
+2. 定义变量 sum 和 count，其中 sum 用于记录当前位置之前的所有数的和，count 用于记录和为 k 的子数组数量。
+3. 遍历给定数组 nums，对于每个位置 i，累加当前位置的值到 sum 中。
+4. 检查 map 中是否存在 sum-k 的值，如果存在，则说明之前某个位置的前缀和值与当前位置的前缀和值之差为 k，即存在一个和为 k 的子数组，累加其出现次数到 count 中。
+5. 检查 map 中是否存在当前位置的前缀和值 sum，如果存在，则将其出现次数加 1，否则将其存入 map 中并将出现次数初始化为 1。
+6. 返回 count，即为和为 k 的子数组数量。
+
+总结思想：使用前缀和和哈希表记录之前出现过的前缀和值及其出现次数，通过检查 map 中是否存在 sum-k 的值来判断是否存在和为 k 的子数组，从而实现高效计算。该思想在解决和为 k 的子数组问题中非常常用。
+
+#### 前缀和 思想
+
+前缀和算法是一种常用的算法，它可以用来求解区间和等问题。它的思路是先预处理出一个前缀和数组，然后通过前缀和数组来快速求解区间和等问题。
+
+下面是一个简单的前缀和算法的 JavaScript 代码：
+
+```javascript
+function prefixSum(arr) {
+  let n = arr.length
+  let preSum = new Array(n)
+  // 第一项的和，肯定就是arr[0]
+  preSum[0] = arr[0]
+  // 后续的都是累加
+  for (let i = 1; i < n; i++) {
+    preSum[i] = preSum[i - 1] + arr[i]
   }
-  return res.length
+  return preSum
+}
+
+function getSum(preSum, left, right) {
+  // 如果left等于0，可以想象一个窗口，相当于覆盖了整个数组
+  if (left == 0) {
+    return preSum[right]
+  }
+  // 如果left不等于0，相当于窗口覆盖了数组的一部分
+  return preSum[right] - preSum[left - 1]
 }
 ```
+
+在这个代码中，`prefixSum`函数用来计算前缀和数组，`getSum`函数用来求解区间和。具体解释如下：
+
+1. `prefixSum`函数接受一个数组`arr`作为参数，返回一个前缀和数组`preSum`。首先创建一个长度为`n`的数组`preSum`，其中`n`是`arr`的长度。然后初始化`preSum[0]`为`arr[0]`。接着使用循环遍历数组`arr`，从下标`1`开始，依次计算`preSum[i]`，使其等于`preSum[i-1] + arr[i]`。最后返回`preSum`数组。
+
+2. `getSum`函数接受三个参数，分别是前缀和数组`preSum`、区间左端点`left`和区间右端点`right`。如果左端点`left`等于`0`，那么区间和就等于`preSum[right]`。否则，区间和就等于`preSum[right] - preSum[left-1]`。
+
+总的来说，前缀和算法的核心思想是预处理出前缀和数组，然后利用前缀和数组来快速求解区间和等问题。这种算法在一些数据量较大的问题中非常实用，可以大大减少计算量。
 
 ### 两数之和
 
@@ -687,6 +720,7 @@ function twoSum(nums, target) {
   let map = new Map()
   for (let i = 0; i < nums.length; i++) {
     let rest = target - nums[i]
+    // A + B = C，如果当前值是B，而A已经在map里了，是不是就找到了
     if (map.has(rest)) {
       return [map.get(rest), i]
     }
@@ -737,6 +771,8 @@ function twoSum(numbers, target) {
 twoSum([2, 7, 11, 15], 9) // [1, 2]
 ```
 
+- 利用双指针，查找和为 target 的序列。
+
 ### 三数之和
 
 给你一个整数数组 nums ，判断是否存在三元组 `[nums[i], nums[j], nums[k]] 满足 i != j、i != k 且 j != k` ，同时还满足 `nums[i] + nums[j] + nums[k] == 0 `。请
@@ -764,14 +800,15 @@ function threeSum(nums) {
   for (let i = 0; i < nums.length - 2; i++) {
     if (i > 0 && nums[i] === nums[i - 1]) continue // 避免重复
 
-    let left = i + 1,
-      right = nums.length - 1 // 双指针
+    let left = i + 1
+    let right = nums.length - 1 // 双指针
     while (left < right) {
       const sum = nums[i] + nums[left] + nums[right]
       if (sum === 0) {
         res.push([nums[i], nums[left], nums[right]])
         while (left < right && nums[left] === nums[left + 1]) left++ // 避免重复
         while (left < right && nums[right] === nums[right - 1]) right-- // 避免重复
+        // 等于时，同时缩进
         left++
         right--
       } else if (sum < 0) {
@@ -783,7 +820,18 @@ function threeSum(nums) {
   }
   return res
 }
+threeSum([-1, 0, 1, 2, -1, -4]) // [[-1,-1,2],[-1,0,1]]
+```
 
+这是一个求三数之和为 0 的函数，采用了双指针的方法。
+
+1. 首先将数组排序，然后从左到右遍历数组，以当前元素作为三数之和的第一个数，用双指针 left 和 right 分别指向当前元素的下一个元素和数组末尾元素。
+2. 在双指针的循环中，计算三数之和，如果等于 0，则将三个数加入结果数组中，并将 left 和 right 分别向中间移动一位，同时跳过重复的数（因为已经排序，所以相同的数一定在一起）。
+3. 如果三数之和小于 0，则将 left 向右移动一位，因为数组已经排序，所以将 left 右移可以让三数之和变大。
+4. 如果三数之和大于 0，则将 right 向左移动一位，可以让三数之和变小。
+5. 1 最终返回结果数组。
+
+```js
 var threeSum = function (nums) {
   let arr = []
   // 排序，然后固定一个，然后两侧指针，排序不能直接sort，因为涉及到Unicode的排序
@@ -822,7 +870,6 @@ var threeSum = function (nums) {
   }
   return arr
 }
-threeSum([-1, 0, 1, 2, -1, -4]) // [[-1,-1,2],[-1,0,1]]
 ```
 
 ### 四数之和
@@ -841,12 +888,15 @@ function fourSum(nums, target) {
 
   for (let i = 0; i < nums.length - 3; i++) {
     if (i > 0 && nums[i] === nums[i - 1]) continue
+
     for (let j = i + 1; j < nums.length - 2; j++) {
       if (j > i + 1 && nums[j] === nums[j - 1]) continue
-      let left = j + 1,
-        right = nums.length - 1
+
+      let left = j + 1
+      let right = nums.length - 1
       while (left < right) {
         const sum = nums[i] + nums[j] + nums[left] + nums[right]
+
         if (sum === target) {
           result.push([nums[i], nums[j], nums[left], nums[right]])
           while (left < right && nums[left] === nums[left + 1]) left++
@@ -864,6 +914,8 @@ function fourSum(nums, target) {
   return result
 }
 ```
+
+- 四数之和的原理，类似三数之和，只是以当前元素和下一个元素作为前两个
 
 ### 删除有序数组中的重复项
 
