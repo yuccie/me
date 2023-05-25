@@ -1278,6 +1278,50 @@ maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
 解释："aba" 同样是符合题意的答案。
 ```
 
+```js
+function longestPalindrome(s) {
+  let longest = ''
+  for (let i = 0; i < s.length; i++) {
+    // 以当前字符为中心的奇数长度的回文子串
+    let l = i,
+      r = i
+    while (l >= 0 && r < s.length && s[l] === s[r]) {
+      l--
+      r++
+    }
+    // 最后会执行一次，l--,r++，而slice又是[)，因此可以直接如下
+    let palindrome = s.slice(l + 1, r)
+    // 如果比最长的还长，则更新最长的
+    if (palindrome.length > longest.length) {
+      longest = palindrome
+    }
+
+    // 以当前字符和下一个字符为中心的偶数长度的回文子串
+    // 奇数或偶数，不一定哪个的值是最大值，因此需要考虑奇偶
+    ;(l = i), (r = i + 1)
+    while (l >= 0 && r < s.length && s[l] === s[r]) {
+      l--
+      r++
+    }
+    palindrome = s.slice(l + 1, r)
+    if (palindrome.length > longest.length) {
+      longest = palindrome
+    }
+  }
+  return longest
+}
+
+// 示例
+console.log(longestPalindrome('babad')) // 'bab' 或 'aba'
+console.log(longestPalindrome('cbbd')) // 'bb'
+```
+
+1. 遍历字符串中的每一个字符，以该字符为中心向两侧扩展，检查是否存在奇数长度的回文子串。
+2. 如果存在，则将该回文子串与当前最长回文子串进行比较，更新最长回文子串。
+3. 接着，以当前字符和下一个字符为中心向两侧扩展，检查是否存在偶数长度的回文子串。
+4. 如果存在，则将该回文子串与当前最长回文子串进行比较，更新最长回文子串。
+5. 最后，返回最长的回文子串。
+
 #### 方式一
 
 ```js
@@ -1326,39 +1370,6 @@ console.log(longestPalindrome('cbbd')) // "bb"
 - 如果相等，则继续扩展，如果不相等了，则说明回文串到边界了，需要记录和对比
 - 一个主函数，主要用来遍历，一个辅助函数主要用来执行具体的逻辑
 
-#### 方式二
-
-其基本思路是利用中心扩展算法，从字符串中的每个字符开始，向左右两边扩展，判断是否为回文子串，同时记录最长的回文子串的长度和起始位置。具体实现中，利用了一个辅助函数 expandAroundCenter()来实现中心扩展，该函数的作用是在给定的字符串 str 中，以 left 和 right 为中心，向左右两边扩展，判断是否为回文子串，并返回其长度。最终，利用主函数 longestPalindrome()来遍历字符串中的每个字符，调用 expandAroundCenter()函数，找到最长回文子串的位置和长度，并返回该子串。
-
-```js
-function longestPalindrome(str) {
-  let left = 0
-  let right = 0
-  let maxLen = 0
-
-  for (let i = 0; i < str.length; i++) {
-    let len1 = expandAroundCenter(str, i, i)
-    let len2 = expandAroundCenter(str, i, i + 1)
-    let len = Math.max(len1, len2)
-
-    if (len > maxLen) {
-      maxLen = len
-      left = i - Math.floor((len - 1) / 2)
-      right = i + Math.floor(len / 2)
-    }
-  }
-  return str.substring(left, right + 1)
-}
-
-function expandAroundCenter(str, left, right) {
-  while (left >= 0 && right < str.length && str.charAt(left) === str.charAt(right)) {
-    left--
-    right++
-  }
-  return right - left - 1
-}
-```
-
 ### 最长回文子序列
 
 给你一个字符串 s ，找出其中最长的回文子序列，并返回该序列的长度。
@@ -1371,6 +1382,47 @@ function expandAroundCenter(str, left, right) {
 输入：s = "bbbab"
 输出：4
 解释：一个可能的最长回文子序列为 "bbbb" 。
+```
+
+动态规划通常是通过将原问题分解成更小的子问题来求解，然后将子问题的解组合成原问题的解。在这个算法中，我们将原问题分解成许多子问题，每个子问题都是求解给定字符串的一个子串的最长回文子序列的长度。
+
+我们用一个二维数组 dp 来保存子问题的解。数组`dp[i][j]`表示给定字符串 s 的子串`s[i...j]`的最长回文子序列的长度。最终我们要求的就是`dp[0][n-1]`，即整个字符串 s 的最长回文子序列的长度。
+
+1. 我们从右下角开始，从右向左、从下向上地填写 dp 数组。
+2. 当 i=j 时，子串`s[i...j]`只有一个字符，它肯定是回文的，所以 dp[i][j]=1。
+3. 当`i<j`时，如果 s[i]=s[j]，那么 s[i...j]可以看作是`s[i+1...j-1]`的两端加上相同的字符 s[i]和 s[j]，此时`dp[i][j]=dp[i+1][j-1]+2`
+4. 如果 s[i]!=s[j]，那么我们可以选择舍弃 s[i]或者舍弃 s[j]，然后求解子问题 s[i+1...j]或者 s[i...j-1]的最长回文子序列的长度，取其中的最大值作为 dp[i][j]的值。
+
+最后，dp[0][n-1]就是整个字符串 s 的最长回文子序列的长度。
+
+这个算法的时间复杂度是 O(n^2)，空间复杂度也是 O(n^2)。
+
+```js
+var longestPalindromeSubseq = function (s) {
+  // 利用动态规划
+  const len = s.length
+  if (len <= 1) return len
+
+  // 定义dp table，二位数组，dp[i][j],i表示左边的指针，j表示右边的指针，因为字符串有长度嘛
+  const dp = Array.from(Array(len), () => Array(len).fill(0))
+  // 当i和j相等时，其实就是一个字符嘛，所以此时长度为1
+  for (let i = 0; i < len; i++) {
+    dp[i][i] = 1
+  }
+  // 想象一个方格纸贴在墙上，然后你看着方格纸，顶部向右是j轴，左侧向下是i轴。
+  // 因此dp[0][len-1]就是右上角位置的元素。
+  // 穷举，现在的情况是左下角的位置其实都是无效数据，可以不遍历
+  for (let i = len - 1; i >= 0; i--) {
+    for (let j = i + 1; j < len; j++) {
+      if (s[i] === s[j]) {
+        dp[i][j] = dp[i + 1][j - 1] + 2
+      } else {
+        dp[i][j] = Math.max(dp[i + 1][j], dp[i][j - 1])
+      }
+    }
+  }
+  return dp[0][len - 1]
+}
 ```
 
 ### 最长回文串
@@ -1504,7 +1556,15 @@ console.log(isPalindrome('hello')) // false
 3. 如果当前窗口中包含了所有的目标元素，那么更新最小覆盖子串的长度和起始位置，并将 left 指针向右移动，缩小窗口；
 4. 重复步骤 2 和 3，直到 right 指针到达字符串的末尾。
 
-具体实现时，可以用一个哈希表来记录窗口中各个元素出现的次数，用另外一个哈希表来记录目标元素的出现次数，通过比较这两个哈希表来判断窗口是否包含了所有的目标元素。同时，可以用一个计数器来记录窗口中包含的目标元素的个数，当计数器等于目标元素的个数时，说明窗口中已经包含了所有的目标元素。在移动 left 和 right 指针时，需要更新哈希表和计数器的值。
+这个算法的思路是利用滑动窗口来找到包含目标字符串的最小子串。
+
+1. 首先，我们需要统计目标字符串中各个字符的出现次数，用一个 map 来存储。
+2. 然后，我们设置两个指针 left 和 right，从字符串 s 的最左侧开始，不断移动右指针，同时更新 map 中对应字符的出现次数。如果移动后某个字符的出现次数小于等于 0，说明该字符已经被包含在窗口中，counter 减一。
+3. 当 counter 等于 0 时，说明我们已经找到了一个包含目标字符串的窗口，此时我们可以尝试缩小窗口，即移动左指针。如果左指针移动后某个字符的出现次数变为正数，说明该字符是目标字符串中的字符，此时我们需要将 counter 加一。
+4. 不断移动左指针和右指针，直到右指针到达字符串 s 的末尾，或者找到了最小子串为止。
+5. 最后，如果找到了最小子串，就返回该子串，否则返回空字符串。
+
+这个算法的时间复杂度是 O(n)，其中 n 是字符串 s 的长度，因为左指针和右指针都只会移动 n 次。空间复杂度是 O(k)，其中 k 是目标字符串的长度，因为 map 中最多存储 k 个字符
 
 ```js
 function minWindow(s, target) {
@@ -1517,31 +1577,42 @@ function minWindow(s, target) {
   let left = 0,
     right = 0,
     counter = target.length, // 目标串的长度
-    minLen = Infinity, // 最小子串长度minLen
+    minLen = Infinity, // 最小子串长度minLen，最小值一般都设置为正无穷，反之则设置为负无穷
     minStart = 0
 
   while (right < s.length) {
+    // 右侧指针，也是从最左侧开始
     let char = s[right]
 
     if (map[char] > 0) {
+      // 如果包含，则相当于找到一个，减小次数
       counter--
     }
+    // 不管包含与否，目标里的次数为何都减一？？
+    // 其实这里，有两层含义，包含则减一，不包含则置为负一
     map[char] = (map[char] || 0) - 1
     right++
 
+    // 当counter === 0 时，说明所有的字符都包含了
     while (counter === 0) {
+      // 更新最小值，越小越好
       if (right - left < minLen) {
         minLen = right - left
-        minStart = left
+        minStart = left // 更新左侧索引
       }
+
+      // 第一层while主要是遍历right指针，遍历完，肯定包含
+      // 这里再缩小左侧指针，从而缩小区间
       let char = s[left]
       if (map[char] === 0) {
         counter++
       }
+      //
       map[char] = (map[char] || 0) + 1
       left++
     }
   }
+
   return minLen === Infinity ? '' : s.substr(minStart, minLen)
 }
 
