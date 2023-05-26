@@ -305,9 +305,87 @@ function mergeSortedArrays(arr1, arr2) {
 }
 ```
 
-这个函数接受两个有序数组作为参数，并返回一个合并后的有序数组。它使用两个指针 i 和 j 来比较两个数组中的元素，并将较小的元素添加到合并数组中。一旦一个数组的指针到达其末尾，该函数将继续将另一个数组中的所有元素添加到合并数组中。最后，它返回合并后的有序数组。
+- 注意，因为数组本来就有序，而且 i，j 其实并不是同步变化的
+
+这个函数接受两个有序数组作为参数，并返回一个合并后的有序数组。
+
+1. 它使用两个指针 i 和 j 来比较两个数组中的元素，并将较小的元素添加到合并数组中。
+2. 一旦一个数组的指针到达其末尾，该函数将继续将另一个数组中的所有元素添加到合并数组中。
+3. 最后，它返回合并后的有序数组。
 
 ### 实现一个数组的全排列
+
+#### 方式一
+
+1. 将数组分成两部分：第一个元素和剩余的元素
+2. 对剩余的元素进行全排列（递归）
+3. 将第一个元素插入到剩余元素全排列的每个位置
+4. 重复执行以上步骤，直到全部排列完毕
+
+```js
+function permute(arr) {
+  // 如果数组只有一个元素，直接返回该元素
+  if (arr.length === 1) {
+    return [arr]
+  }
+
+  // 获取第一个元素和剩余的元素
+  const [first, ...rest] = arr
+
+  // 递归获取剩余元素的全排列
+  const permutations = permute(rest)
+
+  // 将第一个元素插入到每个排列各个位置
+  const result = []
+  for (let i = 0; i < permutations.length; i++) {
+    const permutation = permutations[i]
+    console.log('djch permutation', JSON.stringify(permutation))
+
+    for (let j = 0; j <= permutation.length; j++) {
+      const newPermutation = [...permutation.slice(0, j), first, ...permutation.slice(j)]
+      result.push(newPermutation)
+      console.log(
+        'djch newPermutation',
+        JSON.stringify(newPermutation),
+        first,
+        JSON.stringify(result)
+      )
+    }
+  }
+  // djch permutation [3]
+  // djch newPermutation [2,3] 2 [[2,3]]
+  // djch newPermutation [3,2] 2 [[2,3],[3,2]]
+  // djch permutation [2,3]
+  // djch newPermutation [1,2,3] 1 [[1,2,3]]
+  // djch newPermutation [2,1,3] 1 [[1,2,3],[2,1,3]]
+  // djch newPermutation [2,3,1] 1 [[1,2,3],[2,1,3],[2,3,1]]
+  // djch permutation [3,2]
+  // djch newPermutation [1,3,2] 1 [[1,2,3],[2,1,3],[2,3,1],[1,3,2]]
+  // djch newPermutation [3,1,2] 1 [[1,2,3],[2,1,3],[2,3,1],[1,3,2],[3,1,2]]
+  // djch newPermutation [3,2,1] 1 [[1,2,3],[2,1,3],[2,3,1],[1,3,2],[3,1,2],[3,2,1]]
+
+  return result
+}
+
+// 示例
+const arr = [1, 2, 3]
+const result = permute(arr)
+console.log(result)
+```
+
+该算法的时间复杂度为 O(n\*n!)，其中 n 为数组 arr 的长度。
+
+首先，在函数的第一行，如果数组只有一个元素，直接返回该元素，时间复杂度为 O(1)。
+
+然后，获取第一个元素和剩余的元素的时间复杂度为 O(1)。
+
+接着，递归获取剩余元素的全排列的时间复杂度为 O((n-1) \* (n-1)!)，因为每次递归都会减少一个元素，所以递归的次数是 n-1，每次递归都要进行全排列，因此时间复杂度为(n-1)!。
+
+最后，将第一个元素插入到每个排列的位置的时间复杂度为 O(n!)，因为每个排列的长度为 n-1，所以需要将第一个元素插入到 n-1 个位置，共有(n-1)!个排列。
+
+因此，总的时间复杂度为 O(n\*n!)。
+
+#### 方式二
 
 ```js
 function permute(input) {
@@ -322,10 +400,30 @@ function permute(input) {
       if (input.length == 0) {
         permArr.push(usedChars.slice())
       }
-
+      console.log(
+        'djch ',
+        i,
+        JSON.stringify(input),
+        ch,
+        JSON.stringify(usedChars),
+        JSON.stringify(permArr)
+      )
+      // djch  0 [2,3] 1 [1]     []
+      // djch  0 [3]   2 [1,2]   []
+      // djch  0 []    3 [1,2,3] [[1,2,3]]
       permuteHelper(input)
       input.splice(i, 0, ch)
       usedChars.pop()
+      console.log(
+        'djch _',
+        i,
+        JSON.stringify(input),
+        ch,
+        JSON.stringify(usedChars),
+        JSON.stringify(permArr)
+      )
+      // djch _ 0 [3]   3 [1,2] [[1,2,3]]
+      // djch _ 0 [2,3] 2 [1]   [[1,2,3]]
     }
     return permArr
   }
@@ -340,11 +438,20 @@ console.log(permute([1, 2, 3]))
 1. 首先，函数遍历输入字符串的每个字符，并将其从输入字符串中删除。
 2. 然后，将该字符添加到 usedChars 数组中，并检查输入字符串的长度是否为 0。
 3. 如果是，将 usedChars 数组的副本添加到 permArr 数组中。
-4. 然后，继续递归调用 permuteHelper 函数，直到所有排列都被生成。在返回到上一层递归时，将该字符重新添加到输入字符串中，并将其从 usedChars 数组中删除。
+4. 然后，继续递归调用 permuteHelper 函数，直到所有排列都被生成。
+5. 在返回到上一层递归时，将该字符重新添加到输入字符串中，并将其从 usedChars 数组中删除。
 
 最后，函数返回 permuteHelper 函数的结果，即所有排列的数组。
 
+该函数的原理是通过递归调用自身来生成所有可能的排列。在每次递归调用中，函数从输入数组中取出一个元素，并将其添加到已使用的字符数组中。当输入数组为空时，表示已经生成了一个排列，将其添加到结果数组中。然后，函数将当前元素重新插入到输入数组中，并从已使用的字符数组中删除它，以便生成下一个排列。最终，函数返回包含所有排列的结果数组。
+
+这个算法的时间复杂度为 O(n!),其中 n 是输入数组 input 的长度。这是因为该算法使用递归来生成所有可能的排列，每次递归都会将数组 input 中的一个元素与已经生成的排列组合，因此总共需要进行 n 次递归。在每次递归中，需要遍历 input 数组中的所有元素，因此总共需要进行 n!次遍历。因此，该算法的时间复杂度为 O(n!)。
+
+该算法的空间复杂度为 O(n^2)，其中 n 是输入数组的长度。这是因为该算法使用了两个辅助数组：permArr 和 usedChars，每个数组的长度最大为 n。此外，递归调用 permuteHelper 函数时，会创建 n 个新的函数调用栈，每个函数调用栈的空间复杂度为 O(n)。因此，总空间复杂度为 O(n^2 + n\*n) = O(n^2)。
+
 ### 数组支持负索引
+
+- 数组除了常规的 `arr[index]` 获取数据外，还可以 arr.get(index) 获取
 
 ```js
 Array.prototype.get = function (index) {
@@ -358,6 +465,13 @@ Array.prototype.get = function (index) {
 // 使用负索引获取数组元素
 const list = [1, 2, 3]
 console.log(list.get(-1)) // 输出 3
+
+// 还可以如下，自定义负索引
+list[-1] = list[list.length - 1]
+list[-2] = list[list.length - 2]
+list[-3] = list[list.length - 3]
+
+console.log(list[-1]) // 输出 3
 ```
 
 ### 最长连续递增序列
@@ -402,6 +516,407 @@ function findLengthOfLCIS(nums) {
 
 - 属于快慢指针，双指针
 
+时间复杂度为 O(n)，其中 n 是数组 nums 的长度，因为算法需要遍历整个数组一次。
+
+空间复杂度为 O(1)，因为算法只使用了常数个额外变量来存储当前长度和最大长度，不随输入规模变化。
+
+### 最长连续序列
+
+给定一个未排序的整数数组 nums ，找出数字连续的最长序列（不要求序列元素在原数组中连续）的长度。
+
+请你设计并实现时间复杂度为  O(n) 的算法解决此问题。
+
+```
+输入：nums = [100,4,200,1,3,2]
+输出：4
+解释：最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4。
+```
+
+```js
+function longestConsecutive(nums) {
+  // 去重
+  let set = new Set(nums)
+  let maxLen = 0 // 最大
+  for (let num of set) {
+    // 这个for循环，其实就是找到起始位置
+    // 对于示例中的100,200只会执行一次，而对于4直接就不会进去
+    if (!set.has(num - 1)) {
+      // 如果没有包含 num - 1，说明 num 是 起始位置
+      let curNum = num
+      let curLen = 1
+      // 确定了起点，就开始向后循环，如果连续则记录并更行
+      while (set.has(curNum + 1)) {
+        curNum++
+        curLen++
+      }
+      // 如果循环结束，则更新最大值
+      maxLen = Math.max(maxLen, curLen)
+    }
+  }
+  return maxLen
+}
+longestConsecutive([100, 4, 200, 1, 3, 2]) // 4
+```
+
+- 时间复杂度为 O(n)，空间复杂度为 O(n)，其中 n 为数组 nums 的长度。
+- 因为需要用一个 set 来进行去重操作，所以需要额外的空间来存储 set，所以空间复杂度为 O(n)。
+- 在 for 循环和 while 循环中，每个元素最多被访问两次，所以时间复杂度为 O(n)。因此，总的时间复杂度为 O(n)，空间复杂度为 O(n)。
+
+### 寻找两个正序数组的中位数
+
+给定两个大小分别为 m 和 n 的正序（从小到大）数组  nums1 和  nums2。请你找出并返回这两个正序数组的 中位数 。
+
+算法的时间复杂度应该为 O(log (m+n)) 。
+
+```
+输入：nums1 = [1,2], nums2 = [3,4]
+输出：2.50000
+解释：合并数组 = [1,2,3,4] ，中位数 (2 + 3) / 2 = 2.5
+```
+
+```js
+/**
+ * @param {number[]} nums1
+ * @param {number[]} nums2
+ * @return {number}
+ */
+var findMedianSortedArrays = function (nums1, nums2) {
+  // 合并两个有序数组，然后找到中间的那个
+  let res = []
+  let i = 0
+  let j = 0
+  // 利用双指针，先合并有序数组
+  while (i < nums1.length && j < nums2.length) {
+    if (nums1[i] < nums2[j]) {
+      res.push(nums1[i])
+      i++
+    } else {
+      res.push(nums2[j])
+      j++
+    }
+  }
+
+  while (i < nums1.length) {
+    res.push(nums1[i])
+    i++
+  }
+  while (j < nums2.length) {
+    res.push(nums2[j])
+    j++
+  }
+  const minddle = Math.floor(res.length / 2)
+  const isEven = res.length % 2 === 0
+  const final = isEven ? (res[minddle - 1] + res[minddle]) / 2 : res[minddle]
+  return final
+}
+```
+
+- 时间复杂度为 O(m+n)，其中 m 和 n 分别为 nums1 和 nums2 的长度，因为需要遍历两个数组并将它们合并成一个有序数组。
+- 空间复杂度为 O(m+n)，因为需要创建一个新数组来存储合并后的有序数组。
+
+### 和为 K 的子数组
+
+给你一个整数数组 nums 和一个整数 k ，请你统计并返回 该数组中和为 k 的连续子数组的个数 。
+
+- 这里和返回和为 target 的所有集合还不太一样，这里是连续的子数组
+
+```
+输入：nums = [1,2,3], k = 3
+输出：2
+```
+
+1. 遍历数组，计算当前的前缀和 sum，然后将 sum 减去 k，得到一个目标值 target。
+2. 如果哈希表中已经存在 target，说明存在一个子数组的和为 k。如果哈希表中不存在 target，则将当前的前缀和 sum 存入哈希表中
+3. 最后返回子数组和为 k 的个数即可。
+
+```js
+var subarraySum = function (nums, k) {
+  const map = new Map()
+  map.set(0, 1) //
+  let sum = 0
+  let count = 0
+  // [1,2,3] 2
+  for (let i = 0; i < nums.length; i++) {
+    // 累加
+    sum += nums[i]
+
+    // 如果有 sum - k 则说明，两个位置之间的子数组的和为k，累加即可
+    // 这个地方必须是 sum - k，其实可以想象下 两数之和 A + B = C ,那这里的 C 就是sum，然后A或B就是K
+    // 如何 C - B 存在，则说明存在一个和为k的子数组，直接累加即可
+    if (map.has(sum - k)) {
+      count += map.get(sum - k)
+      // console.log('djch count', count)
+    }
+
+    // 如果之前有过，则继续累加，属于不同的组合了
+    if (map.has(sum)) {
+      map.set(sum, map.get(sum) + 1)
+    } else {
+      // 将不同累加的和都放在map里
+      map.set(sum, 1)
+    }
+  }
+  return count
+}
+// [1,2,3] 3
+// {0 => 1}
+// {1 => 1}
+// {3 => 1}
+// {6 => 1}
+```
+
+具体实现如下：
+
+1. 创建一个哈希表 map，并将值 0 和出现次数 1 存入哈希表中，因为当累加到某个位置时，如果前面的所有数的和为 0，则当前位置到该位置的子数组的和为当前位置的值。
+2. 定义变量 sum 和 count，其中 sum 用于记录当前位置之前的所有数的和，count 用于记录和为 k 的子数组数量。
+3. 遍历给定数组 nums，对于每个位置 i，累加当前位置的值到 sum 中。
+4. 检查 map 中是否存在 sum-k 的值，如果存在，则说明之前某个位置的前缀和值与当前位置的前缀和值之差为 k，即存在一个和为 k 的子数组，累加其出现次数到 count 中。
+5. 检查 map 中是否存在当前位置的前缀和值 sum，如果存在，则将其出现次数加 1，否则将其存入 map 中并将出现次数初始化为 1。
+6. 返回 count，即为和为 k 的子数组数量。
+
+总结思想：使用前缀和和哈希表记录之前出现过的前缀和值及其出现次数，通过检查 map 中是否存在 sum-k 的值来判断是否存在和为 k 的子数组，从而实现高效计算。该思想在解决和为 k 的子数组问题中非常常用。
+
+#### 前缀和 思想
+
+前缀和算法是一种常用的算法，它可以用来求解区间和等问题。它的思路是先预处理出一个前缀和数组，然后通过前缀和数组来快速求解区间和等问题。
+
+下面是一个简单的前缀和算法的 JavaScript 代码：
+
+```javascript
+function prefixSum(arr) {
+  let n = arr.length
+  let preSum = new Array(n)
+  // 第一项的和，肯定就是arr[0]
+  preSum[0] = arr[0]
+  // 后续的都是累加
+  for (let i = 1; i < n; i++) {
+    preSum[i] = preSum[i - 1] + arr[i]
+  }
+  return preSum
+}
+
+function getSum(preSum, left, right) {
+  // 如果left等于0，可以想象一个窗口，相当于覆盖了整个数组
+  if (left == 0) {
+    return preSum[right]
+  }
+  // 如果left不等于0，相当于窗口覆盖了数组的一部分
+  return preSum[right] - preSum[left - 1]
+}
+```
+
+在这个代码中，`prefixSum`函数用来计算前缀和数组，`getSum`函数用来求解区间和。具体解释如下：
+
+1. `prefixSum`函数接受一个数组`arr`作为参数，返回一个前缀和数组`preSum`。首先创建一个长度为`n`的数组`preSum`，其中`n`是`arr`的长度。然后初始化`preSum[0]`为`arr[0]`。接着使用循环遍历数组`arr`，从下标`1`开始，依次计算`preSum[i]`，使其等于`preSum[i-1] + arr[i]`。最后返回`preSum`数组。
+
+2. `getSum`函数接受三个参数，分别是前缀和数组`preSum`、区间左端点`left`和区间右端点`right`。如果左端点`left`等于`0`，那么区间和就等于`preSum[right]`。否则，区间和就等于`preSum[right] - preSum[left-1]`。
+
+总的来说，前缀和算法的核心思想是预处理出前缀和数组，然后利用前缀和数组来快速求解区间和等问题。这种算法在一些数据量较大的问题中非常实用，可以大大减少计算量。
+
+### 两数之和
+
+```js
+function twoSum(nums, target) {
+  let map = new Map()
+  for (let i = 0; i < nums.length; i++) {
+    let rest = target - nums[i]
+    // A + B = C，如果当前值是B，而A已经在map里了，是不是就找到了
+    if (map.has(rest)) {
+      return [map.get(rest), i]
+    }
+    map.set(nums[i], i)
+  }
+  return -1
+}
+```
+
+### 两数之和 II - 输入有序数组
+
+给你一个下标从 1 开始的整数数组  numbers ，该数组已按 非递减顺序排列, 请你从数组中找出满足相加之和等于目标数  target 的两个数。如果设这两个数分别是 `numbers[index1] 和 numbers[index2]` ，则 `1 <= index1 < index2 <= numbers.length 。`
+
+以长度为 2 的整数数组 `[index1, index2]` 的形式返回这两个整数的下标 index1 和 index2。
+
+你可以假设每个输入 只对应唯一的答案 ，而且你 不可以 重复使用相同的元素。
+
+你所设计的解决方案必须只使用常量级的额外空间。
+
+```
+输入：numbers = [2,3,4], target = 6
+输出：[1,3]
+解释：2 与 4 之和等于目标数 6 。因此 index1 = 1, index2 = 3 。返回 [1, 3] 。
+```
+
+```js
+function twoSum(numbers, target) {
+  let left = 0,
+    right = numbers.length - 1
+
+  while (left < right) {
+    // 利用双指针，因为已经是排好序的了
+    const sum = numbers[left] + numbers[right]
+
+    if (sum === target) {
+      return [left + 1, right + 1]
+    } else if (sum < target) {
+      // 小于target时，需要慢慢的变成大值
+      left++
+    } else {
+      // 如果大于target，则需要变小
+      right--
+    }
+  }
+  return [-1, -1]
+}
+
+twoSum([2, 7, 11, 15], 9) // [1, 2]
+```
+
+- 利用双指针，查找和为 target 的序列。
+
+### 三数之和
+
+给你一个整数数组 nums ，判断是否存在三元组 `[nums[i], nums[j], nums[k]] 满足 i != j、i != k 且 j != k` ，同时还满足 `nums[i] + nums[j] + nums[k] == 0 `。请
+
+你返回所有和为 0 且不重复的三元组。
+
+注意：答案中不可以包含重复的三元组。
+
+```
+输入：nums = [-1,0,1,2,-1,-4]
+输出：[[-1,-1,2],[-1,0,1]]
+解释：
+nums[0] + nums[1] + nums[2] = (-1) + 0 + 1 = 0 。
+nums[1] + nums[2] + nums[4] = 0 + 1 + (-1) = 0 。
+nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0 。
+不同的三元组是 [-1,0,1] 和 [-1,-1,2] 。
+注意，输出的顺序和三元组的顺序并不重要。
+```
+
+```js
+function threeSum(nums) {
+  nums.sort((a, b) => a - b) // 先排序
+
+  const res = []
+  for (let i = 0; i < nums.length - 2; i++) {
+    if (i > 0 && nums[i] === nums[i - 1]) continue // 避免重复
+
+    let left = i + 1
+    let right = nums.length - 1 // 双指针
+    while (left < right) {
+      const sum = nums[i] + nums[left] + nums[right]
+      if (sum === 0) {
+        res.push([nums[i], nums[left], nums[right]])
+        while (left < right && nums[left] === nums[left + 1]) left++ // 避免重复
+        while (left < right && nums[right] === nums[right - 1]) right-- // 避免重复
+        // 等于时，同时缩进
+        left++
+        right--
+      } else if (sum < 0) {
+        left++
+      } else {
+        right--
+      }
+    }
+  }
+  return res
+}
+threeSum([-1, 0, 1, 2, -1, -4]) // [[-1,-1,2],[-1,0,1]]
+```
+
+这是一个求三数之和为 0 的函数，采用了双指针的方法。
+
+1. 首先将数组排序，然后从左到右遍历数组，以当前元素作为三数之和的第一个数，用双指针 left 和 right 分别指向当前元素的下一个元素和数组末尾元素。
+2. 在双指针的循环中，计算三数之和，如果等于 0，则将三个数加入结果数组中，并将 left 和 right 分别向中间移动一位，同时跳过重复的数（因为已经排序，所以相同的数一定在一起）。
+3. 如果三数之和小于 0，则将 left 向右移动一位，因为数组已经排序，所以将 left 右移可以让三数之和变大。
+4. 如果三数之和大于 0，则将 right 向左移动一位，可以让三数之和变小。
+5. 1 最终返回结果数组。
+
+```js
+var threeSum = function (nums) {
+  let arr = []
+  // 排序，然后固定一个，然后两侧指针，排序不能直接sort，因为涉及到Unicode的排序
+  nums = nums.sort((a, b) => a - b)
+  const len = nums.length
+  if (nums == null || len < 3) return arr
+
+  for (let i = 0; i < len; i++) {
+    if (nums[i] > 0) break
+
+    let left = i + 1
+    let right = len - 1
+    if (i > 0 && nums[i] == nums[i - 1]) continue // 去重，不要看原数组，要看排好序的数组
+
+    while (left < right) {
+      let a = nums[i]
+      let b = nums[left]
+      let c = nums[right]
+
+      let sum = a + b + c
+      if (!sum) {
+        arr.push([a, b, c])
+        while (left < right && nums[left] === nums[left + 1]) left++ // 去重
+        while (left < right && nums[right] === nums[right - 1]) right-- // 去重
+        // 此时都需要走，不然会重复
+        left++
+        right--
+      } else if (sum < 0) {
+        // 和小，说明需要增大
+        left++
+      } else if (sum > 0) {
+        // 因为排好序了，此时降低大值就是小值
+        right--
+      }
+    }
+  }
+  return arr
+}
+```
+
+### 四数之和
+
+给你一个由 n 个整数组成的数组  nums ，和一个目标值 target 。请你找出并返回满足下述全部条件且不重复的四元组  `[nums[a], nums[b], nums[c], nums[d]]`（若两个四元组元素一一对应，则认为两个四元组重复）：
+
+```
+输入：nums = [1,0,-1,0,-2,2], target = 0
+输出：[[-2,-1,1,2],[-2,0,0,2],[-1,0,0,1]]
+```
+
+```js
+function fourSum(nums, target) {
+  const result = []
+  nums.sort((a, b) => a - b)
+
+  for (let i = 0; i < nums.length - 3; i++) {
+    if (i > 0 && nums[i] === nums[i - 1]) continue
+
+    for (let j = i + 1; j < nums.length - 2; j++) {
+      if (j > i + 1 && nums[j] === nums[j - 1]) continue
+
+      let left = j + 1
+      let right = nums.length - 1
+      while (left < right) {
+        const sum = nums[i] + nums[j] + nums[left] + nums[right]
+
+        if (sum === target) {
+          result.push([nums[i], nums[j], nums[left], nums[right]])
+          while (left < right && nums[left] === nums[left + 1]) left++
+          while (left < right && nums[right] === nums[right - 1]) right--
+          left++
+          right--
+        } else if (sum < target) {
+          left++
+        } else {
+          right--
+        }
+      }
+    }
+  }
+  return result
+}
+```
+
+- 四数之和的原理，类似三数之和，只是以当前元素和下一个元素作为前两个
+
 ### 删除有序数组中的重复项
 
 给你一个 升序排列 的数组 nums ，请你 原地 删除重复出现的元素，使每个元素 只出现一次 ，返回删除后数组的新长度。元素的 相对顺序 应该保持 一致 。然后返回 nums 中唯一元素的个数。
@@ -432,7 +947,6 @@ var removeDuplicates = function (nums) {
   }
   return nums
 }
-//
 ```
 
 ## 第二部分：递归
@@ -477,18 +991,21 @@ console.log(oddOrEven(20)) // Even
 console.log(oddOrEven(75)) // Odd
 ```
 
+- 其实递归，就是将大问题，不断的拆解成小问题。
+- 最后那个最小的问题，可以直接返回，相当于终止了递归，因此必须有终止条件
+
 **示例三：输出 50 以内斐波那契数列**
 
 斐波那契额数列的特点：`1,1,2,3,5,8,13`，从第三个值开始，每个值都是前两者的和
 
 ```js
 const fib = (num) => {
-  // 停止条件
+  // 停止条件：前两个直接返回
   if (num === 1 || num === 2) {
     return 1
   }
 
-  // 每次减小范围
+  // 每次减小范围：后面的都返回 前一个 + 前两个 的和
   return fib(num - 1) + fib(num - 2)
 }
 
@@ -506,6 +1023,8 @@ console.timeEnd()
 // 130814.3779296875 也就是 130s -> 2分钟10秒
 ```
 
+- 50 以内的斐波那契数列，就很耗费时间
+
 ```js
 // 用数组存放对应的值
 const fib1 = (num) => {
@@ -517,6 +1036,7 @@ const fib1 = (num) => {
 
   // 倒数第二位
   let arr = fib1(num - 1)
+
   // 加入最后一位的值
   arr.push(arr[arr.length - 1] + arr[arr.length - 2])
   return arr
@@ -527,24 +1047,29 @@ fib1(10) // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 
 在使用递归的地方，都是可以使用迭代的，而且效率更高
 
-递归效率低，是因为每次递归都会创建函数备份，占用内存空间，同时也有堆栈溢出的风险
+递归效率低，是因为每次递归都会**创建函数备份，占用内存空间，同时也有堆栈溢出的风险**
 
-所谓迭代，一般就是循环
+所谓迭代，一般就是循环，
+
+- 注意如果想返回斐波那契额数列，则用数组
+- 如果想返回单个的值，则用
 
 ```js
 const fib2 = (num) => {
+  // 定义个基础数组，当num的长度小于2时，直接返回数组的前几项
   let arr = [0, 1]
-  if (num < 2) return arr.slice(0, n) // slice语法是：[)，也就是前闭后开
+  if (num < 2) return arr.slice(0, num) // slice语法是：[)，也就是前闭后开
 
-  // 大于2之后，则都是之前的累加
+  // 大于2之后，比如3，则是前一项和前两项的和
   for (let i = 2; i < num; i++) {
+    // 这里面都是数组里单个的值，然后累加
     arr.push(arr[i - 1] + arr[i - 2])
   }
 
   return arr
 }
-fib2(10) // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 fib2(5) // [0, 1, 1, 2, 3]
+fib2(10) // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 ```
 
 ```js
@@ -564,6 +1089,7 @@ fib2(5) // [0, 1, 1, 2, 3]
 // }
 // console.log(fib3([]))  // NaN ❌❌❌❌
 
+// 下面的是计算前前n项的斐波那契数列和。
 function fibonacciSum(n) {
   let sum = 0
   let a = 0
@@ -632,7 +1158,7 @@ const trap = (heights) => {
   let left = 0,
     right = heights.length - 1 // 左右指针索引
   let maxLeft = 0,
-    maxRight = 0 // 左右最大值，其实这里最大值的意义是：如果比他小才可能有谁
+    maxRight = 0 // 左右最大值，其实这里最大值的意义是：如果比他小才可能有水
   let results = 0 // 结果
 
   // 双指针，使用while，运行条件：左侧索引小于右侧索引
@@ -664,6 +1190,86 @@ console.log(trap(heights)) // 1
 console.log(trap([3, 1, 3])) // 2
 ```
 
+### 跳跃游戏
+
+给定一个非负整数数组 nums ，你最初位于数组的 第一个下标 。
+
+数组中的每个元素代表你在该位置可以跳跃的最大长度。
+
+判断你是否能够到达最后一个下标。
+
+```
+输入：nums = [2,3,1,1,4]
+输出：true
+解释：可以先跳 1 步，从下标 0 到达下标 1, 然后再从下标 1 跳 3 步到达最后一个下标。
+```
+
+```js
+function canJump(nums) {
+  let maxJump = 0 // 当前能够跳到的最远距离
+  const n = nums.length // 数组长度
+
+  for (let i = 0; i < n; i++) {
+    // 刚开始在第一个下标位置，如果想移动到下一个下标，则可跳的最远距离必须要大于索引，否则直接就过不去啊
+    if (maxJump < i) return false // 如果当前位置无法到达，返回false
+
+    // 下标位置 + nums[i]
+    maxJump = Math.max(maxJump, i + nums[i]) // 更新能够跳到的最远距离
+    // 循环中，有一个就表示可以
+    if (maxJump >= n - 1) return true // 如果能够跳到最后一个位置，返回true
+  }
+  // 循环结束了，都没有过去，那肯定为false
+  return false
+}
+```
+
+该函数用于判断一个数组中的元素是否能够跳到最后一个位置。
+
+- 其中，maxJump 表示当前能够跳到的最远距离，n 表示数组长度。
+- 在循环中，首先判断当前位置是否能够到达，如果不能则返回 false，
+- 否则更新能够跳到的最远距离。当能够跳到最后一个位置时，返回 true。
+- 最后，如果循环结束后仍未返回 false，则说明能够跳到最后一个位置，返回 true。
+
+### 盛最多水的容器
+
+给定一个长度为 n 的整数数组  height 。有  n  条垂线，第 i 条线的两个端点是  `(i, 0) 和 (i, height[i])` 。
+
+找出其中的两条线，使得它们与  x  轴共同构成的容器可以容纳最多的水。
+
+返回容器可以储存的最大水量。
+
+```
+输入：[1,8,6,2,5,4,8,3,7]
+输出：49
+解释：图中垂直线代表输入数组 [1,8,6,2,5,4,8,3,7]。在此情况下，容器能够容纳水（表示为蓝色部分）的最大值为 49。
+```
+
+- 这里的垂线其实不占用体积，因此可以只考虑两个挡板间的距离和矮挡板的高度就可以了
+
+```js
+function maxArea(arr) {
+  // 双指针法
+  let len = arr.length
+  let leftIdx = 0
+  let rightIdx = len - 1
+  let max = 0
+
+  // 左指针小于右指针，则一直循环
+  while (leftIdx < rightIdx) {
+    // 计算两个挡板间的空间，矩形，高度以矮的为准
+    let tempArea = (rightIdx - leftIdx) * Math.min(arr[leftIdx], arr[rightIdx])
+    // 更新最大值
+    max = Math.max(max, tempArea)
+
+    // 移动指针，移动小的
+    arr[leftIdx] < arr[rightIdx] ? leftIdx++ : rightIdx--
+  }
+  return max
+}
+maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
+// 其实就是 height[8]  height[1] => (8 - 1) * Math.min(7, 8) => 49
+```
+
 ## 第三部分：字符串
 
 - 双指针算法：使用两个指针分别指向字符串的不同位置，通过移动指针来解决问题，例如判断回文字符串、最长回文子串等问题。
@@ -685,6 +1291,50 @@ console.log(trap([3, 1, 3])) // 2
 输出："bab"
 解释："aba" 同样是符合题意的答案。
 ```
+
+```js
+function longestPalindrome(s) {
+  let longest = ''
+  for (let i = 0; i < s.length; i++) {
+    // 以当前字符为中心的奇数长度的回文子串
+    let l = i,
+      r = i
+    while (l >= 0 && r < s.length && s[l] === s[r]) {
+      l--
+      r++
+    }
+    // 最后会执行一次，l--,r++，而slice又是[)，因此可以直接如下
+    let palindrome = s.slice(l + 1, r)
+    // 如果比最长的还长，则更新最长的
+    if (palindrome.length > longest.length) {
+      longest = palindrome
+    }
+
+    // 以当前字符和下一个字符为中心的偶数长度的回文子串
+    // 奇数或偶数，不一定哪个的值是最大值，因此需要考虑奇偶
+    ;(l = i), (r = i + 1)
+    while (l >= 0 && r < s.length && s[l] === s[r]) {
+      l--
+      r++
+    }
+    palindrome = s.slice(l + 1, r)
+    if (palindrome.length > longest.length) {
+      longest = palindrome
+    }
+  }
+  return longest
+}
+
+// 示例
+console.log(longestPalindrome('babad')) // 'bab' 或 'aba'
+console.log(longestPalindrome('cbbd')) // 'bb'
+```
+
+1. 遍历字符串中的每一个字符，以该字符为中心向两侧扩展，检查是否存在奇数长度的回文子串。
+2. 如果存在，则将该回文子串与当前最长回文子串进行比较，更新最长回文子串。
+3. 接着，以当前字符和下一个字符为中心向两侧扩展，检查是否存在偶数长度的回文子串。
+4. 如果存在，则将该回文子串与当前最长回文子串进行比较，更新最长回文子串。
+5. 最后，返回最长的回文子串。
 
 #### 方式一
 
@@ -734,39 +1384,6 @@ console.log(longestPalindrome('cbbd')) // "bb"
 - 如果相等，则继续扩展，如果不相等了，则说明回文串到边界了，需要记录和对比
 - 一个主函数，主要用来遍历，一个辅助函数主要用来执行具体的逻辑
 
-#### 方式二
-
-其基本思路是利用中心扩展算法，从字符串中的每个字符开始，向左右两边扩展，判断是否为回文子串，同时记录最长的回文子串的长度和起始位置。具体实现中，利用了一个辅助函数 expandAroundCenter()来实现中心扩展，该函数的作用是在给定的字符串 str 中，以 left 和 right 为中心，向左右两边扩展，判断是否为回文子串，并返回其长度。最终，利用主函数 longestPalindrome()来遍历字符串中的每个字符，调用 expandAroundCenter()函数，找到最长回文子串的位置和长度，并返回该子串。
-
-```js
-function longestPalindrome(str) {
-  let left = 0
-  let right = 0
-  let maxLen = 0
-
-  for (let i = 0; i < str.length; i++) {
-    let len1 = expandAroundCenter(str, i, i)
-    let len2 = expandAroundCenter(str, i, i + 1)
-    let len = Math.max(len1, len2)
-
-    if (len > maxLen) {
-      maxLen = len
-      left = i - Math.floor((len - 1) / 2)
-      right = i + Math.floor(len / 2)
-    }
-  }
-  return str.substring(left, right + 1)
-}
-
-function expandAroundCenter(str, left, right) {
-  while (left >= 0 && right < str.length && str.charAt(left) === str.charAt(right)) {
-    left--
-    right++
-  }
-  return right - left - 1
-}
-```
-
 ### 最长回文子序列
 
 给你一个字符串 s ，找出其中最长的回文子序列，并返回该序列的长度。
@@ -779,6 +1396,47 @@ function expandAroundCenter(str, left, right) {
 输入：s = "bbbab"
 输出：4
 解释：一个可能的最长回文子序列为 "bbbb" 。
+```
+
+动态规划通常是通过将原问题分解成更小的子问题来求解，然后将子问题的解组合成原问题的解。在这个算法中，我们将原问题分解成许多子问题，每个子问题都是求解给定字符串的一个子串的最长回文子序列的长度。
+
+我们用一个二维数组 dp 来保存子问题的解。数组`dp[i][j]`表示给定字符串 s 的子串`s[i...j]`的最长回文子序列的长度。最终我们要求的就是`dp[0][n-1]`，即整个字符串 s 的最长回文子序列的长度。
+
+1. 我们从右下角开始，从右向左、从下向上地填写 dp 数组。
+2. 当 i=j 时，子串`s[i...j]`只有一个字符，它肯定是回文的，所以 dp[i][j]=1。
+3. 当`i<j`时，如果 s[i]=s[j]，那么 s[i...j]可以看作是`s[i+1...j-1]`的两端加上相同的字符 s[i]和 s[j]，此时`dp[i][j]=dp[i+1][j-1]+2`
+4. 如果 s[i]!=s[j]，那么我们可以选择舍弃 s[i]或者舍弃 s[j]，然后求解子问题 s[i+1...j]或者 s[i...j-1]的最长回文子序列的长度，取其中的最大值作为 dp[i][j]的值。
+
+最后，dp[0][n-1]就是整个字符串 s 的最长回文子序列的长度。
+
+这个算法的时间复杂度是 O(n^2)，空间复杂度也是 O(n^2)。
+
+```js
+var longestPalindromeSubseq = function (s) {
+  // 利用动态规划
+  const len = s.length
+  if (len <= 1) return len
+
+  // 定义dp table，二位数组，dp[i][j],i表示左边的指针，j表示右边的指针，因为字符串有长度嘛
+  const dp = Array.from(Array(len), () => Array(len).fill(0))
+  // 当i和j相等时，其实就是一个字符嘛，所以此时长度为1
+  for (let i = 0; i < len; i++) {
+    dp[i][i] = 1
+  }
+  // 想象一个方格纸贴在墙上，然后你看着方格纸，顶部向右是j轴，左侧向下是i轴。
+  // 因此dp[0][len-1]就是右上角位置的元素。
+  // 穷举，现在的情况是左下角的位置其实都是无效数据，可以不遍历
+  for (let i = len - 1; i >= 0; i--) {
+    for (let j = i + 1; j < len; j++) {
+      if (s[i] === s[j]) {
+        dp[i][j] = dp[i + 1][j - 1] + 2
+      } else {
+        dp[i][j] = Math.max(dp[i + 1][j], dp[i][j - 1])
+      }
+    }
+  }
+  return dp[0][len - 1]
+}
 ```
 
 ### 最长回文串
@@ -912,7 +1570,15 @@ console.log(isPalindrome('hello')) // false
 3. 如果当前窗口中包含了所有的目标元素，那么更新最小覆盖子串的长度和起始位置，并将 left 指针向右移动，缩小窗口；
 4. 重复步骤 2 和 3，直到 right 指针到达字符串的末尾。
 
-具体实现时，可以用一个哈希表来记录窗口中各个元素出现的次数，用另外一个哈希表来记录目标元素的出现次数，通过比较这两个哈希表来判断窗口是否包含了所有的目标元素。同时，可以用一个计数器来记录窗口中包含的目标元素的个数，当计数器等于目标元素的个数时，说明窗口中已经包含了所有的目标元素。在移动 left 和 right 指针时，需要更新哈希表和计数器的值。
+这个算法的思路是利用滑动窗口来找到包含目标字符串的最小子串。
+
+1. 首先，我们需要统计目标字符串中各个字符的出现次数，用一个 map 来存储。
+2. 然后，我们设置两个指针 left 和 right，从字符串 s 的最左侧开始，不断移动右指针，同时更新 map 中对应字符的出现次数。如果移动后某个字符的出现次数小于等于 0，说明该字符已经被包含在窗口中，counter 减一。
+3. 当 counter 等于 0 时，说明我们已经找到了一个包含目标字符串的窗口，此时我们可以尝试缩小窗口，即移动左指针。如果左指针移动后某个字符的出现次数变为正数，说明该字符是目标字符串中的字符，此时我们需要将 counter 加一。
+4. 不断移动左指针和右指针，直到右指针到达字符串 s 的末尾，或者找到了最小子串为止。
+5. 最后，如果找到了最小子串，就返回该子串，否则返回空字符串。
+
+这个算法的时间复杂度是 O(n)，其中 n 是字符串 s 的长度，因为左指针和右指针都只会移动 n 次。空间复杂度是 O(k)，其中 k 是目标字符串的长度，因为 map 中最多存储 k 个字符
 
 ```js
 function minWindow(s, target) {
@@ -925,31 +1591,42 @@ function minWindow(s, target) {
   let left = 0,
     right = 0,
     counter = target.length, // 目标串的长度
-    minLen = Infinity, // 最小子串长度minLen
+    minLen = Infinity, // 最小子串长度minLen，最小值一般都设置为正无穷，反之则设置为负无穷
     minStart = 0
 
   while (right < s.length) {
+    // 右侧指针，也是从最左侧开始
     let char = s[right]
 
     if (map[char] > 0) {
+      // 如果包含，则相当于找到一个，减小次数
       counter--
     }
+    // 不管包含与否，目标里的次数为何都减一？？
+    // 其实这里，有两层含义，包含则减一，不包含则置为负一
     map[char] = (map[char] || 0) - 1
     right++
 
+    // 当counter === 0 时，说明所有的字符都包含了
     while (counter === 0) {
+      // 更新最小值，越小越好
       if (right - left < minLen) {
         minLen = right - left
-        minStart = left
+        minStart = left // 更新左侧索引
       }
+
+      // 第一层while主要是遍历right指针，遍历完，肯定包含
+      // 这里再缩小左侧指针，从而缩小区间
       let char = s[left]
       if (map[char] === 0) {
         counter++
       }
+      //
       map[char] = (map[char] || 0) + 1
       left++
     }
   }
+
   return minLen === Infinity ? '' : s.substr(minStart, minLen)
 }
 
