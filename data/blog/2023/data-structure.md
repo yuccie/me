@@ -25,7 +25,7 @@ canonicalUrl: https://dume.vercel.app/blog/2023/clean-architecture
 
 总的来说，双指针法和滑动窗口算法都是比较常用的算法，具体选择哪种算法取决于问题的具体要求。
 
-## 第一部分：数组
+## 数组
 
 - 二分查找：在有序数组中查找指定元素，时间复杂度 O(logn)。
 - 双指针法：用两个指针从数组的两端开始向中间移动，解决一些数组相关的问题，如求和、查找等。
@@ -614,6 +614,75 @@ var findMedianSortedArrays = function (nums1, nums2) {
 - 时间复杂度为 O(m+n)，其中 m 和 n 分别为 nums1 和 nums2 的长度，因为需要遍历两个数组并将它们合并成一个有序数组。
 - 空间复杂度为 O(m+n)，因为需要创建一个新数组来存储合并后的有序数组。
 
+### 寻找数组中第二大的数
+
+#### 方式一
+
+```js
+const findSecondLargestBad = (arr) => {
+  const depuliationArr = [...new Set(arr)].sort()
+  console.log('djch depuliationArr', depuliationArr)
+  return depuliationArr[depuliationArr.length - 2]
+}
+```
+
+- 时间复杂度：O(nlogn)，因为在数组去重时使用了 Set，Set 内部使用哈希表实现，时间复杂度为 O(n)，而数组排序使用了快速排序，时间复杂度为 O(nlogn)，所以总的时间复杂度为 O(nlogn)。
+- 空间复杂度：O(n)，因为在去重时使用了 Set，需要将所有不同的元素存储在一个新的数组中，所以空间复杂度为 O(n)。
+
+#### 方式二
+
+```js
+const findSecondLargest = (arr) => {
+  // 定义一个最大，一个次大
+  let max = arr[0]
+  let secondMax = -Infinity
+
+  // 遍历数组
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] > max) {
+      secondMax = max // 既然有数据比max大，那之前的max就是次大
+      max = arr[i]
+    } else if (arr[i] < max && arr[i] > secondMax) {
+      // 想象一下，将条件分成x轴上的三段，
+      secondMax = arr[i] // 其实相当于只记录 次大的数据
+    }
+  }
+
+  return secondMax
+}
+
+// 这个算法的时间复杂度为 O(n)，空间复杂度O(1)
+console.log(findSecondLargest([1, 1, 2, 3, 4, 4]))
+console.log(findSecondLargestBad([1, 1, 2, 3, 4, 4]))
+```
+
+### 快速排序
+
+```js
+const quickSort = (arr) => {
+  if (arr.length <= 1) return arr
+
+  const pivot = arr[0]
+  const left = []
+  const right = []
+
+  // 从索引1开始遍历
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] < pivot) {
+      left.push(arr[i])
+    } else {
+      right.push(arr[i])
+    }
+  }
+
+  return [...quickSort(left), pivot, ...quickSort(right)]
+}
+
+const unsortedArr = [3, 1, 6, 2, 4, 5]
+const sortedArr = quickSort(unsortedArr)
+console.log(sortedArr) // [1, 2, 3, 4, 5, 6]
+```
+
 ### 和为 K 的子数组
 
 给你一个整数数组 nums 和一个整数 k ，请你统计并返回 该数组中和为 k 的连续子数组的个数 。
@@ -949,7 +1018,7 @@ var removeDuplicates = function (nums) {
 }
 ```
 
-## 第二部分：递归
+## 递归
 
 简单来说，函数的递归调用就是自己调用自己，即一个函数在调用其他函数的过程中，又出现了对自身的调用，这种函数称为递归函数。
 
@@ -1117,7 +1186,7 @@ console.log(fibonacciSum(10)) // 输出：143
 
 ![递归过程](/static/images/recoursion-process.png)
 
-## 第三部分：动态规划
+## 动态规划
 
 动态规划是一种算法设计技术，它是解决一类最优化问题的有效方法。它的基本思想是将原问题分解成若干个子问题，通过求解子问题的最优解，得到原问题的最优解。
 
@@ -1270,7 +1339,7 @@ maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
 // 其实就是 height[8]  height[1] => (8 - 1) * Math.min(7, 8) => 49
 ```
 
-## 第三部分：字符串
+## 字符串
 
 - 双指针算法：使用两个指针分别指向字符串的不同位置，通过移动指针来解决问题，例如判断回文字符串、最长回文子串等问题。
 - 动态规划算法：通过拆分问题为子问题，然后通过递推求解的方式得到最终的解，例如最长公共子序列、编辑距离等问题。
@@ -1909,7 +1978,7 @@ console.log(isValid('[({})]')) // true
 console.log(isValid('[({)}]')) // false字符串的replace方法是用于将字符串中的某个子串替换为另一个子串。当入参是正则表达式时，可以使用正则表达式来匹配要替换的子串。
 ```
 
-## 第三部分：二叉树
+## 二叉树
 
 二叉树的特点:
 
@@ -2068,8 +2137,609 @@ console.log(tree.search(7)) // Node { value: 7, left: Node {...}, right: Node {.
 console.log(tree.search(15)) // null
 ```
 
-## 第三部分：数组
+## 链表
 
-## 第三部分：数组
+链表是由一系列节点组成的数据结构，每个节点包含两个部分：数据部分和指针部分。数据部分存储节点的值，指针部分存储下一个节点的地址。
 
-## 第三部分：数组
+链表的结构如下：
+
+```js
+function LinkedList() {
+  this.head = null
+  this.length = 0
+
+  function Node(data) {
+    this.data = data
+    this.next = null
+  }
+
+  this.add = function (data) {
+    var node = new Node(data)
+    // 如果head为null，则是第一个节点
+    if (this.head == null) {
+      this.head = node
+    } else {
+      // 拿到当前链表的头结点
+      var current = this.head
+      while (current.next !== null) {
+        // 循环找到尾节点
+        current = current.next
+      }
+      // 将新节点，挂载在尾节点上
+      current.next = node
+    }
+    // 更新长度
+    this.length++
+  }
+
+  this.remove = function (data) {
+    if (this.head == null) {
+      return null
+    }
+
+    // 移除节点时，是根据data来的
+    if (this.head.data === data) {
+      // 直接改变下一个节点的指向
+      this.head = this.head.next
+      this.length--
+      return data
+    }
+
+    // 如果删除的数据不是当前节点，则需要找到
+    var current = this.head
+    while (current.next !== null) {
+      // 如果找到，改变指向
+      if (current.next.data === data) {
+        current.next = current.next.next
+        this.length--
+        return data
+      }
+      // 循环找
+      current = current.next
+    }
+
+    return null
+  }
+
+  // 查找节点
+  this.search = function (data) {
+    var current = this.head
+    while (current !== null) {
+      if (current.data === data) {
+        return current
+      }
+      current = current.next
+    }
+    return null
+  }
+}
+```
+
+### 环形链表
+
+提示词：想象在同一个跑道上，同时有两个人在跑步，一快一慢，二者肯定会相遇
+
+```js
+const circleLink = (head) => {
+  // ❌ 注意下面的赋值语句❗️❗️❗️ 首先fast = head 是赋值表达式，然后fast的值为head，然后再赋值给slow，但是fast变成全局变量了。。。在浏览器里fast会泄露到全局
+  // 在该项目中，会直接报错：caught ReferenceError: fast is not defined
+  // let slow = fast = head
+  let fast = head
+  let slow = head
+
+  while (fast && fast.next) {
+    if (fast === slow) {
+      return true
+    }
+    fast = fast.next.next
+    slow = slow.next
+  }
+  // 遍历完，都没相遇，则肯定不是环形
+  return false
+}
+```
+
+### 相交链表
+
+提示词：想象两条交汇的路 A 和 B，但 A 和 B 从哪里来是未知的
+
+思路：
+
+1. 因为 A 和 B 的长度不一，所以二者需要先走 Math.abs(A - B) 长度
+2. 然后再挨个判断是否一致
+
+```js
+const intersectLink = (head1, head2) => {
+  let len1 = 0
+  let curt1 = head1
+  let len2 = 0
+  let curt1 = head2
+  // 遍历二者的长度
+  while (curt1 && curt1.next) {
+    curt1 = curt1.next
+    len1++
+  }
+
+  while (curt2 && curt2.next) {
+    curt2 = curt2.next
+    len2++
+  }
+  // 提高效率，如果遍历完，这里还不相等，那肯定就不想交了
+  if (curt2 !== curt1) return null
+
+  curt1 = head1
+  curt2 = head2
+  // 下面❌错误，二者不能同时走，应该是长的走
+  // 二者同时走 Math.abs(len1 - len2)，用什么计量呢？
+  // let counter = Math.abs(len1 - len2)
+  // while(counter) {
+  //   curt1 = curt1.next
+  //   curt2 = curt2.next
+  //   counter--
+  // }
+  if (len1 > len2) {
+    for (let i = 0; i < len1 - len2; i++) {
+      curt1 = curt1.next
+    }
+  } else {
+    // 注意 len2 - len1 与上方不同
+    for (let j = 0; j < len2 - len1; j++) {
+      curt2 = curt2.next
+    }
+  }
+
+  // 等到二者站在同一起跑线时，挨个对比，如果不相等，则继续向下
+  while (curt1 !== curt2) {
+    curt1 = curt1.next
+    curt2 = curt2.next
+  }
+  // 最后，只需返回节点就行，如果二者相交，curt1肯定不是null
+  return curt1
+}
+```
+
+```js
+const intersectLink = (headA, headB) => {
+  let len1 = 0,
+    len2 = 0
+  let tail1 = headA,
+    tail2 = headB
+
+  while (tail1 && tail1.next) {
+    tail1 = tail1.next
+    len1++
+  }
+  while (tail2 && tail2.next) {
+    tail2 = tail2.next
+    len2++
+  }
+
+  if (tail1 !== tail2) {
+    return null
+  }
+
+  // 步骤二：战线拉的长的，赶赶进度
+  let cur1 = headA,
+    cur2 = headB
+  if (len1 > len2) {
+    for (let i = 0; i < len1 - len2; i++) {
+      cur1 = cur1.next
+    }
+  } else {
+    for (let i = 0; i < len2 - len1; i++) {
+      cur2 = cur2.next
+    }
+  }
+
+  // 步骤三：赶完进度后，挨个对比，如果不一样，再继续往后走
+  while (cur1 !== cur2) {
+    cur1 = cur1.next
+    cur2 = cur2.next
+  }
+
+  // 若相同，则直接返回，二者都可以；如果cur1最后是null那就是不相交
+  return cur1
+}
+```
+
+### 反转链表
+
+反转链表的方法有很多种，最常用的是迭代法和递归法。这里我们采用迭代法来实现。
+
+```
+输入: 1->2->3->4->5->NULL
+输出: 5->4->3->2->1->NULL
+```
+
+提示词：
+
+```js
+const reverseList = (head) => {
+  let cur = head
+  let newNext = null // 定义中间变量，作为中转
+
+  while (cur) {
+    // 暂存当前节点的指向，其实是下一个节点
+    let oldNext = cur.next
+
+    // 改变当前节点指向，指向反向的新节点
+    cur.next = newNext
+
+    // 继续向下走，cur已经修改完毕，后续作为新的节点，即newNext
+    newNext = cur
+    // 将之前缓存的节点，作为当前的节点
+    cur = oldNext
+  }
+  // 根据循环，当while(5)，进入最后一轮循环，结束后cur为null
+  // 因此应该返回nexNext
+  return nexNext
+}
+```
+
+### 合并 K 个升序链表
+
+给你一个链表数组，每个链表都已经按升序排列。
+
+请你将所有链表合并到一个升序链表中，返回合并后的链表。
+
+```
+输入：lists = [[1,4,5],[1,3,4],[2,6]]
+输出：[1,1,2,3,4,4,5,6]
+解释：链表数组如下：
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+将它们合并到一个有序链表中得到。
+1->1->2->3->4->4->5->6
+```
+
+```js
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+
+/**
+ * @param {ListNode[]} lists
+ * @return {ListNode}
+ */
+var mergeKLists = function (lists) {
+  // 前提条件，如果长度为0或者为1，特殊处理
+  const len = lists.length
+  if (!len) return null
+  if (len === 1) return lists[0]
+
+  // 因为lists的长度不确定，但每次也只能同时操作两个
+  const mergeTwoLists = (l1, l2) => {
+    if (!l1) return l2
+    if (!l2) return l1
+
+    // 这是链表，虽然题目描述里，模拟的数组接口，不要真的按数组方式处理
+    // 链表结构，l1.val就是头结点的值
+    if (l1.val < l2.val) {
+      // 谁小，谁在前面
+      l1.next = mergeTwoLists(l1.next, l2)
+      // 执行完，还需要返回，外界还需要
+      return l1
+    } else {
+      l2.next = mergeTwoLists(l1, l2.next)
+      return l2
+    }
+  }
+
+  // 假定第一项就是基准
+  let merged = lists[0]
+
+  for (let i = 1; i < lists.length; i++) {
+    merged = mergeTwoLists(merged, lists[i])
+  }
+
+  return merged
+}
+```
+
+### 回文链表
+
+#### 方式一
+
+1. 使用快慢指针找到链表的中点，将链表分为两部分。
+2. 将后半部分链表反转。
+3. 比较前半部分链表和后半部分链表的值是否相等，如果有一个不相等则返回 false，否则返回 true。
+
+```js
+function isPalindrome(head) {
+  if (!head || !head.next) {
+    return true
+  }
+
+  let slow = head
+  let fast = head
+
+  // 快慢指针走到中间位置
+  while (fast.next && fast.next.next) {
+    slow = slow.next
+    fast = fast.next.next
+  }
+
+  let pre = null
+  let cur = slow.next
+  slow.next = null
+
+  // 反转后半部分
+  while (cur) {
+    let next = cur.next
+    cur.next = pre
+    pre = cur
+    cur = next
+  }
+
+  // 对比头部和尾部
+  while (head && pre) {
+    if (head.val !== pre.val) {
+      return false
+    }
+    head = head.next
+    pre = pre.next
+  }
+
+  return true
+}
+```
+
+#### 方式二
+
+```js
+var isPalindrome = function (head) {
+  let res = ''
+  while (head) {
+    res += head.val
+    head = head.next
+  }
+  for (let i = 0, j = res.length - 1; i < j; i++, j--) {
+    if (res[i] !== res[j]) {
+      return false
+    }
+  }
+  return true
+}
+```
+
+### K 个一组翻转链表
+
+给你链表的头节点 head ，每  k  个节点一组进行翻转，请你返回修改后的链表。
+
+k 是一个正整数，它的值小于或等于链表的长度。如果节点总数不是  k  的整数倍，那么请将最后剩余的节点保持原有顺序。
+
+你不能只是单纯的改变节点内部的值，而是需要实际进行节点交换。
+
+```
+输入：head = [1,2,3,4,5], k = 2
+输出：[2,1,4,3,5]
+
+输入：head = [1,2,3,4,5], k = 3
+输出：[3,2,1,4,5]
+```
+
+1. 先定义一个函数 reverse，用来反转一个链表。
+2. 定义一个函数 reverseKGroup，用来实现每 k 个节点反转一次的功能。
+3. 首先，我们需要统计链表的长度，以便确定要反转几次。
+4. 然后，我们从头节点开始遍历链表，每遍历 k 个节点，就将这 k 个节点反转一次。
+5. 反转 k 个节点的方法是先将它们全部取出来，然后调用 reverse 函数进行反转，最后将它们重新连接起来。
+6. 如果剩下的节点不足 k 个，就不进行反转，直接将它们连接到已经反转好的部分的末尾。
+7. 最后，返回反转后的链表头节点。
+
+```js
+// 反转链表的方法
+function reverse(head) {
+  let prev = null
+  let curr = head
+  while (curr) {
+    let next = curr.next
+    curr.next = prev
+    prev = curr
+    curr = next
+  }
+  return prev
+}
+
+// 反转k
+function reverseKGroup(head, k) {
+  let len = 0
+  let curr = head
+  // 得到链表的长度
+  while (curr) {
+    len++
+    curr = curr.next
+  }
+
+  // 实例化节点，并将新节点指向head
+  let dummy = new ListNode()
+  dummy.next = head
+  let prev = dummy
+
+  // 7 / 2 => 3 反转3次
+  for (let i = 0; i < Math.floor(len / k); i++) {
+    // 从头开始遍历
+    let start = prev.next
+    for (let j = 1; j < k; j++) {
+      // 暂存
+      let next = start.next
+      // 重写
+      start.next = next.next
+      // 覆盖
+      next.next = prev.next
+      // 继续
+      prev.next = next
+    }
+    prev = start
+  }
+  return dummy.next
+}
+```
+
+- 时间复杂度：O(n)，其中 n 是链表的长度。遍历链表一次的时间复杂度是 O(n)，反转每个长度为 k 的子链表的时间复杂度是 O(k)，因此总时间复杂度是 O(n)。
+- 空间复杂度：O(1)。我们只需要常数的空间存储若干变量。
+
+## Promise 相关
+
+### promiseLimit
+
+```js
+const promiseLimit = (ps, limit) => {
+  // 异步编程，肯定需要promise
+  return new Promise((resolve, reject) => {
+    let running = 0
+    let idx = 0
+    let results = []
+
+    // runTask 辅助函数：执行具体的异步任务
+    const runTask = (task) => {
+      running++
+      console.log('运行中的数量：', running)
+      // task本身是promise，所以直接then
+      task()
+        .then((res) => {
+          // 到这里一个任务就结束了
+          running--
+          results.push(res)
+          // 然后开启新的任务
+          walk()
+        })
+        .catch((err) => reject(err))
+    }
+
+    // 主函数，执行入口
+    const walk = () => {
+      // 正在运行的数量小于limit，则持续压入
+      while (running < limit && idx < ps.length) {
+        runTask(ps[idx])
+        idx++
+      }
+      // while循环结束后，如果running为0，说明已经全部结束
+      if (!running) resolve(results)
+    }
+    walk()
+  })
+}
+
+const tasks = [
+  () => new Promise((resolve) => setTimeout(() => resolve(1), 1000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(2), 2000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(3), 3000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(4), 4000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(5), 5000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(6), 6000)),
+]
+
+promiseLimit(tasks, 2)
+  .then((results) => {
+    console.log(results)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
+```
+
+### promiseAll
+
+```js
+const promiseAllV1 = (ps) => {
+  return new Promise((resolve, reject) => {
+    let count = 0
+    let results = []
+    const len = ps.length
+
+    // 遍历执行ps
+    for (let i = 0; i < len; i++) {
+      ps[i]
+        .then((val) => {
+          // 更新次数，压入值
+          count++
+          // results.push(val) // 需要保证顺序
+          results[i] = val
+
+          // 判断次数
+          if (count === len) {
+            resolve(results)
+          }
+        })
+        .catch((err) => reject(err))
+    }
+  })
+}
+
+const tasksV1 = [Promise.resolve(1), Promise.resolve(3)]
+
+// 以下几种操作方式都不对
+// console.log('promiseAllV1结果：', promiseAllV1(tasksV1))     // ❌ promiseAllV1是一个promise，需要.then调用才能拿到结果
+// const resV1 = promiseAllV1(tasksV1).then(res => res)        // ❌ 这个res并不会返回，因此resV1拿到的只是一个新的Promise
+// console.log('promiseAllV1结果：', resV1)                     // ❌ 打印：Promise {<pending>}
+promiseAllV1(tasksV1).then((res) => console.log('promiseAllV1结果：', res)) // ✅ [1, 3]
+```
+
+## 常见算法
+
+### LRU（Least Recently Used）
+
+```js
+const lruCache = (size) => {
+  const map = new Map()
+  const maxSize = size
+
+  return {
+    get(key) {
+      if (map.has(key)) {
+        const val = map.get(key)
+        // 删除再添加，从而达到更新效果
+        map.delete(key)
+        map.set(key, val)
+        // 最后返回val
+        return val
+      }
+      return -1
+    },
+
+    //
+    put(key, val) {
+      // 如果有，直接删除
+      if (map.has(key)) {
+        map.delete(key)
+      }
+
+      // 重新赋值
+      map.set(key, val)
+
+      // 设置完数据，需要检查大小
+      if (map.size > maxSize) {
+        // 找到最开始的那个干掉
+        const firstKey = map.keys().next().value
+        map.delete(firstKey)
+      }
+    }, // 注意是对象，需要逗号分割
+
+    keys() {
+      return map.keys()
+    },
+  }
+}
+
+const cache = lruCache(2)
+
+cache.put('a', 1)
+cache.put('b', 2)
+cache.put('c', 3) // 操作完这个 a 将会消失
+console.log(cache.get('a')) // 输出 -1
+
+// 💥 注意观察下面返回的可迭代对象，.next()，第一次迭代，就是第一个了
+console.log(cache.keys()) // 输出可迭代对象 MapIterator {'b', 'c'}
+// 0 : "b"
+// 1 : "c"
+
+// 💥 上面是拿key，如果想拿到value，可以用 cache.values()
+// 其实还可以 cache.values() 得到全是value的迭代器。因此可根据情况使用
+```
