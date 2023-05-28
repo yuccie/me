@@ -379,79 +379,98 @@ console.log(result)
 
 该算法的时间复杂度为 O(n\*n!)，其中 n 为数组 arr 的长度。
 
-首先，在函数的第一行，如果数组只有一个元素，直接返回该元素，时间复杂度为 O(1)。
-
-然后，获取第一个元素和剩余的元素的时间复杂度为 O(1)。
-
-接着，递归获取剩余元素的全排列的时间复杂度为 O((n-1) \* (n-1)!)，因为每次递归都会减少一个元素，所以递归的次数是 n-1，每次递归都要进行全排列，因此时间复杂度为(n-1)!。
-
-最后，将第一个元素插入到每个排列的位置的时间复杂度为 O(n!)，因为每个排列的长度为 n-1，所以需要将第一个元素插入到 n-1 个位置，共有(n-1)!个排列。
+1. 首先，在函数的第一行，如果数组只有一个元素，直接返回该元素，时间复杂度为 O(1)。
+2. 然后，获取第一个元素和剩余的元素的时间复杂度为 O(1)。
+3. 接着，递归获取剩余元素的全排列的时间复杂度为 O((n-1) \* (n-1)!)，因为每次递归都会减少一个元素，所以递归的次数是 n-1，每次递归都要进行全排列，因此时间复杂度为(n-1)!。
+4. 最后，将第一个元素插入到每个排列的位置的时间复杂度为 O(n!)，因为每个排列的长度为 n-1，所以需要将第一个元素插入到 n-1 个位置，共有(n-1)!个排列。
 
 因此，总的时间复杂度为 O(n\*n!)。
 
 #### 方式二
 
 ```js
-function permute(input) {
-  var permArr = [],
-    usedChars = []
+var permute = function (nums) {
+  // 存储全排列的结果
+  let res = []
 
-  function permuteHelper(input) {
-    for (var i = 0; i < input.length; i++) {
-      var ch = input.splice(i, 1)[0]
-      usedChars.push(ch)
+  // 初期的路径为空
+  dfs([])
 
-      if (input.length == 0) {
-        permArr.push(usedChars.slice())
-      }
-      console.log(
-        'djch ',
-        i,
-        JSON.stringify(input),
-        ch,
-        JSON.stringify(usedChars),
-        JSON.stringify(permArr)
-      )
-      // djch  0 [2,3] 1 [1]     []
-      // djch  0 [3]   2 [1,2]   []
-      // djch  0 []    3 [1,2,3] [[1,2,3]]
-      permuteHelper(input)
-      input.splice(i, 0, ch)
-      usedChars.pop()
-      console.log(
-        'djch _',
-        i,
-        JSON.stringify(input),
-        ch,
-        JSON.stringify(usedChars),
-        JSON.stringify(permArr)
-      )
-      // djch _ 0 [3]   3 [1,2] [[1,2,3]]
-      // djch _ 0 [2,3] 2 [1]   [[1,2,3]]
+  function dfs(path) {
+    // 如果路径长度和数组长度相等，说明一轮排列完成了
+    if (path.length === nums.length) {
+      res.push([...path])
     }
-    return permArr
-  }
 
-  return permuteHelper(input)
+    // 遍历剩余的选择，将不重复的选择添加进path里
+    for (let num of nums) {
+      // 重复选择了，就继续循环
+      if (path.includes(num)) continue
+
+      // 如果没用过，则加到路径中
+      path.push(num)
+      // dfs，一条路走到头
+      dfs(path)
+      // 一条路径包含所有的值，递归结束，然后后退
+      path.pop()
+    }
+  }
+  return res
 }
 
 // 示例用法
 console.log(permute([1, 2, 3]))
 ```
 
-1. 首先，函数遍历输入字符串的每个字符，并将其从输入字符串中删除。
-2. 然后，将该字符添加到 usedChars 数组中，并检查输入字符串的长度是否为 0。
-3. 如果是，将 usedChars 数组的副本添加到 permArr 数组中。
-4. 然后，继续递归调用 permuteHelper 函数，直到所有排列都被生成。
-5. 在返回到上一层递归时，将该字符重新添加到输入字符串中，并将其从 usedChars 数组中删除。
+### 全排列 2
 
-最后，函数返回 permuteHelper 函数的结果，即所有排列的数组。
+给定一个可包含重复数字的序列 nums ，按任意顺序 返回所有不重复的全排列。
 
-该函数的原理是通过递归调用自身来生成所有可能的排列。在每次递归调用中，函数从输入数组中取出一个元素，并将其添加到已使用的字符数组中。当输入数组为空时，表示已经生成了一个排列，将其添加到结果数组中。然后，函数将当前元素重新插入到输入数组中，并从已使用的字符数组中删除它，以便生成下一个排列。最终，函数返回包含所有排列的结果数组。
+- 注意：这里有重复的
+- 需要记录每个位置上的数字，是否使用过
 
-这个算法的时间复杂度为 O(n!),其中 n 是输入数组 input 的长度。这是因为该算法使用递归来生成所有可能的排列，每次递归都会将数组 input 中的一个元素与已经生成的排列组合，因此总共需要进行 n 次递归。在每次递归中，需要遍历 input 数组中的所有元素，因此总共需要进行 n!次遍历。因此，该算法的时间复杂度为 O(n!)。
+```
+输入：nums = [1,1,2]
+输出：[[1,1,2], [1,2,1], [2,1,1]]
+```
 
-该算法的空间复杂度为 O(n^2)，其中 n 是输入数组的长度。这是因为该算法使用了两个辅助数组：permArr 和 usedChars，每个数组的长度最大为 n。此外，递归调用 permuteHelper 函数时，会创建 n 个新的函数调用栈，每个函数调用栈的空间复杂度为 O(n)。因此，总空间复杂度为 O(n^2 + n\*n) = O(n^2)。
+```js
+var permuteUnique = function (nums) {
+  // 定义结果数组
+  const result = []
+  // 初始化一个数据，用来标记哪些使用过了
+  const used = Array(nums.length).fill(false)
+  // 排序，将相同的数字都挨着
+  nums.sort((a, b) => a - b)
+  // 执行回溯函数
+  backtrack([])
+
+  // 定义回溯函数
+  function backtrack(path) {
+    // 先判断是否满足条件
+    if (path.length === nums.length) {
+      result.push([...path])
+      return
+    }
+    // 遍历数组
+    for (let i = 0; i < nums.length; i++) {
+      // 如果使用过，则不用再遍历
+      if (used[i]) continue
+      // 如果前后重复了呢？上面需要先排序
+      // 这里判断，如果多个相邻的都重复，那就需要一直往后走
+      // 这里需要判断是前一个
+      if (i > 0 && nums[i] === nums[i - 1] && !used[i - 1]) continue
+
+      used[i] = true
+      path.push(nums[i])
+      backtrack(path)
+      path.pop()
+      used[i] = false
+    }
+  }
+  return result
+}
+```
 
 ### 数组支持负索引
 
@@ -1352,6 +1371,9 @@ maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
 - Trie 树算法：通过构建一个树形结构来存储字符串集合，可以快速地查找、插入、删除字符串，例如前缀匹配、字符串排序等问题。
 - 线段树算法：通过将字符串转换为数值表示，可以使用线段树来维护区间信息，例如区间最大值、区间和等问题。
 - 后缀数组算法：通过将字符串的所有后缀排序，可以快速地求解多种字符串问题，例如最长重复子串、最长公共前缀等问题。
+
+- substring 和 slice 的使用方法相同，但是 substring 不支持负数参数，而 slice 可以。substring 如何开始大于结束，则自动交换二者位置。slice 则直接返回空
+- substr 和 slice 的截取方式相同，但是 substr 的第二个参数是截取的长度，而 slice 的第二个参数是截取的结束位置。
 
 ### 最长回文子串
 
@@ -3175,6 +3197,208 @@ function subsets(nums) {
 ```
 
 - 子集，要求顺序
+
+### 括号生成
+
+数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合。
+
+```
+输入：n = 3
+输出：["((()))","(()())","(())()","()(())","()()()"]
+
+输入：n = 1
+输出：["()"]
+```
+
+```js
+/**
+ * @param {number} n
+ * @return {string[]}
+ */
+var generateParenthesis = function (n) {
+  // backtrack函数来生成所有可能的组合。初始时，当前字符串为空字符串，开括号数和闭括号数均为0，最大括号对数为n。
+  // 当当前字符串的长度，是最大括号对数的两倍时，可能得组合产生
+
+  // 回溯架构：先写结果、调用回溯、返回
+  const res = []
+  // 参数2是当前字符串，参数3左括号的数量
+  // 参数4是右括号的数量，参数5是括号的最大对数
+  backtrack(res, '', 0, 0, n)
+  return res
+
+  function backtrack(res, cur, open, close, max) {
+    // 当当前字符串的长度 是 max 的两倍时
+    if (cur.length === max * 2) {
+      res.push(cur)
+      // 并返回，说明这一轮的回溯结束了
+      return
+    }
+    // 如果左右括号的数量，不够，需要往里面添加对应的符号
+    if (open < max) {
+      backtrack(res, cur + '(', open + 1, close, max)
+    }
+    // 📢 注意，这里是close < open，不是 < max
+    // 因为括号是成对出现的，先构造左侧括号，再构造右侧括号。
+    // if (close < max) {
+    if (close < open) {
+      backtrack(res, cur + ')', open, close + 1, max)
+    }
+  }
+}
+
+generateParenthesis(3) // ['((()))', '(()())', '(())()', '()(())', '()()()']
+```
+
+### 复原 IP 地址
+
+有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 '.' 分隔。
+
+例如：`"0.1.2.201" 和 "192.168.1.1"` 是 有效 IP 地址，但是 `"0.011.255.245"、"192.168.1.312" 和 "192.168@1.1"` 是 无效 IP 地址。
+
+给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入  '.' 来形成。你 不能   重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。
+
+```
+输入：s = "25525511135"
+输出：["255.255.11.135","255.255.111.35"]
+
+输入：s = "0000"
+输出：["0.0.0.0"]
+
+输入：s = "101023"
+输出：["1.0.10.23","1.0.102.3","10.1.0.23","10.10.2.3","101.0.2.3"]
+```
+
+- 不管三七二十一，先写框架
+
+```js
+/**
+ * @param {string} s
+ * @return {string[]}
+ */
+var restoreIpAddresses = function (s) {
+  const res = []
+  // 这个回溯公式是啥呢。。。？记住回溯就是穷举，而且挨个穷举
+  // 从字符串的第一个位置，开始截取，使用dfs，不断地向下截取
+  // 参数1是截取的开始位置，参数2是最终的结果
+  backtrack(0, [])
+  return res
+
+  function backtrack(start, path) {
+    // 判断返回条件，如果长度，可以先遍历，后续再写这个边界，不然上来容易懵逼
+    // 如果path的长度正好是4段，因为ip地址就是4段，且start的位置在末尾，说明是一个组合
+    if (path.length === 4 && start === s.length) {
+      res.push(path.join('.'))
+      return
+    }
+    // 如果走完了全程或者找到了4段，但是没有同时满足，则无效
+    if (path.length === 4 || start === s.length) {
+      return
+    }
+
+    for (let len = 1; len <= 3; len++) {
+      if (start + len > s.length) {
+        // 如果长度，比总的字符串还长，直接结束
+        break
+      }
+
+      const str = s.substring(start, start + len)
+      if ((str.length > 1 && str.startsWith('0')) || (len === 3 && +str > 255)) {
+        // 这是前面和后面的边界值，触发后需要下一轮循环。不用再继续往path里添加了
+        continue
+      }
+
+      // path里不同位数的字符串
+      path.push(str)
+      // 下一个位置，就是 start + len
+      backtrack(start + len, path)
+      path.pop()
+    }
+  }
+}
+restoreIpAddresses('25525511135') // ['255.255.11.135', '255.255.111.35']
+```
+
+### n 皇后
+
+按照国际象棋的规则，皇后可以攻击与之处在同一行或同一列或同一斜线上的棋子。
+
+n  皇后问题 研究的是如何将 n  个皇后放置在 n×n 的棋盘上，并且使皇后彼此之间不能相互攻击。
+
+给你一个整数 n ，返回所有不同的  n  皇后问题 的解决方案。
+
+每一种解法包含一个不同的  n 皇后问题 的棋子放置方案，该方案中 'Q' 和 '.' 分别代表了皇后和空位。
+
+```js
+var solveNQueens = function (n) {
+  // 要求：1、不能在同一行或同一列；2、不能在对角线上
+  // 1、定义一个数组，下标为行号，值为皇后所在的列号，如果值不重复，即满足要求1
+  // 2、数组值相减、下标相减，如果绝对值不相等，则满足要求2
+
+  // 定义结果数组
+  let res = []
+
+  // 定义回溯函数
+  // 参数1是当前已经存放皇后的数组arr，curRow是当前行号
+  function backTrack(arr, curRow) {
+    let len = arr.length
+
+    // 如果当前行号curRow === len，说明回溯完成
+    // 只需将数组里的数据，转化为结果格式的数组即可
+    if (len === curRow) {
+      res.push(
+        arr.map((v) => {
+          return `${'.'.repeat(v)}Q${'.'.repeat(n - v - 1)}`
+        })
+      )
+    }
+
+    // 如果没有回溯完成，则需要遍历当前行的每一列存放皇后
+    for (let i = 0; i < len; i++) {
+      // 假设arr[i] = i 可以存放皇后
+      arr[curRow] = i
+      let flag = true
+
+      // 既然假设的位置已经存放皇后，则后续来的皇后需要与之对比
+      // 只需对比前curRow行
+      for (let j = 0; j < curRow; j++) {
+        // 如果循环结束，falg变为false了，说明该行不能再放皇后了
+        // i表示某一行待插入皇后的列，arr[j]表示已经存在的皇后列，
+        // curRow就是待插入的行，j就是已经插入的皇后的行
+        let abs = i - arr[j]
+        if (abs === 0 || (abs > 0 ? abs : -abs) === curRow - j) {
+          flag = false
+          // 整行都不行，直接退出循环
+          break
+        }
+      }
+
+      // 循环结束后，flag没变，说明 arr[i] = i假设成立，则开始遍历下一层
+      if (flag) {
+        console.log('arr', arr)
+        backTrack(arr.slice(), curRow + 1)
+      }
+    }
+  }
+  // 从第0行开始执行回溯
+  backTrack(Array(n), 0)
+
+  // 返回结果
+  return res
+}
+```
+
+这段代码实现了求解 n 皇后问题的功能。n 皇后问题是指在 n×n 的棋盘上，放置 n 个皇后，使得皇后彼此之间不能相互攻击（即不能在同一行、同一列或同一斜线上）。该函数使用回溯算法实现。具体实现如下：
+
+1. 定义一个结果数组 res，用于存放满足条件的解；
+2. 定义一个回溯函数 backTrack，该函数接收两个参数，一个是当前已经存放皇后的数组 arr，另一个是当前行号 curRow；
+3. 如果 curRow 等于数组长度 n，说明回溯完成，将 arr 转化为结果格式的数组，存入 res 中；
+4. 遍历当前行的每一列，假设该位置可以存放皇后，将该位置的列号存入 arr[curRow]中；
+5. 对于已经存放皇后的每一行，判断该位置是否满足条件，即不能在同一列，也不能在同一斜线上；
+6. 如果所有已经存放皇后的行都满足条件，则开始遍历下一层，即调用 backTrack 函数，传入一个新的 arr 数组和 curRow+1；
+7. 如果该位置不满足条件，则直接进入下一次循环，遍历下一个位置；
+8. 回溯结束后，返回结果数组 res。
+
+该函数使用了 slice()方法来复制数组，避免对原数组的修改。同时，使用了字符串的 repeat()方法来生成结果格式的字符串。
 
 ## 常见算法
 
