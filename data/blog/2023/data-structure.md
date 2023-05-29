@@ -1331,13 +1331,21 @@ var coinChange = function (coins, amount) {
     // i其实就是对应的金额，当金额为i时，最小需要多少个硬币
     for (let coin of coins) {
       if (i >= coin) {
-        // 当前金额所需数量最小，肯定是比前一个要小，即dp[i-coin]
-        // 但是需要加1，因为上一个的值，再加上1，理论上是当前值的最小值，
-        // 如果此时dp[i] < dp[i-coin]+1，那肯定就是最小值了
+        // 当前面额是coin，在不使用coin时，方案数量为 dp[i]
+        // 如果选择使用coin，那只能是 dp[i-coin] + 1，1就是coin，很明确
+        // 而dp[i-coin]，就是总金额i - coin
         dp[i] = Math.min(dp[i], dp[i - coin] + 1)
       }
     }
   }
+  // 上面的for循环还可以如下，更加高效
+  // for (let coin of coins) {
+  //   for (let i = coin; i <= amount; i++) {
+  //     // 当不使用coin时，就是dp[i]
+  //     // 当使用coin时，dp[i-coin] + 1,1就是coin本身
+  //     dp[i] = Math.min(dp[i], dp[i-coin]+1)
+  //   }
+  // }
   // 其实就是穷举，列出所有可能，然后找出最优
   // console.log(dp);
   return dp[amount] === Infinity ? -1 : dp[amount]
@@ -1394,6 +1402,11 @@ var change = (amount, coins) => {
 - 也可以选择使用当前硬币 coin，那么剩下的金额就是 i - coin，此时凑出金额 i 的组合数就是凑出金额 i - coin 的组合数加上当前硬币 coin 本身。
 - 因此，dp[i] += dp[i - coin] 就是将这两种情况的组合数加起来，得到凑出金额 i 的总组合数。
 - 而在选择 使用 coin 和不使用 coin 时，取二者的最大值，因此也就是 dp[i] + dp[i - coin]
+
+总结零钱兑换：
+
+- 多层循环，不要一下子看多层，先选定一个外层数字，然后执行一遍内层循环
+- 多层循环，无所谓谁在外层，还是在内层，但内外层有时候会导致一些不一样的代码逻辑，但本质是一样的
 
 ### 接雨水
 
