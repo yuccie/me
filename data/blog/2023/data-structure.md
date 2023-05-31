@@ -3499,7 +3499,10 @@ def backtrack(路径, 选择列表):
 输出：[[],[0]]
 ```
 
+- 子集，要求顺序
+
 ```js
+// 思想参考方案二或三
 function subsets(nums) {
   // 利用回溯
   const res = []
@@ -3508,18 +3511,98 @@ function subsets(nums) {
   return res
 
   function backtrack(start, path) {
+    // 每次进来都把结果放进去
     res.push([...path]) // 将 path 加入结果集 res 中
 
     for (let i = start; i < nums.length; i++) {
       path.push(nums[i]) // 将 nums[i] 加入 path 中
-      backtrack(i + 1, path) // 递归调用 backtrack
+      backtrack(i + 1, path) // 递归求解子问题
       path.pop() // 将 nums[i] 从 path 中删除，回溯到上一层
     }
   }
 }
 ```
 
-- 子集，要求顺序
+#### 方式二
+
+1. 原序列的每个位置在答案序列中的状态有被选中和不被选中两种，用 t 存放，n 是数组长度
+2. 在进入 dfs(cur, n)之前[0, cur-1]的位置的状态是确定的，而[cur, n-1]内位置的状态是不确定的
+3. dfs(cur, n) 需要确定 cur 位置的状态，然后求解子问题 dfs(cur+1, n)
+4. 对于 cur 位置，我们需要考虑 a[cur] 取或者不取，如果取，我们需要把 a[cur] 放到一个临时目录里，再执行 dfs(cur+1, n)，执行结束后对 t 进行回溯
+5. 如果不取，则直接执行 dfs(cur+1, n)
+6. 在整个递归调用的过程中，cur 是从小到大递增的，当 cur 增加到 n 的时候，记录答案并终止。
+7. 时间复杂度为：O^2
+
+```js
+var subsets = function (nums) {
+  const t = []
+  const ans = []
+
+  const dfs = (cur) => {
+    // 这个cur除了 cur + 1 改变外，每次递归都保留之前的堆栈现场，从而达到变化
+    if (cur === nums.length) {
+      ans.push(t.slice())
+      return
+    }
+    // 如果使用nums[cur]，则放在临时目录里
+    // 同时再求解子问题，dfs(cur + 1)
+    // 等所有子问题解决完后，回溯
+    t.push(nums[cur])
+    dfs(cur + 1)
+    t.pop()
+
+    // 如果不使用 nums[cur] ，则直接求解子问题
+    dfs(cur + 1)
+  }
+  dfs(0)
+  return ans
+}
+subsets([1, 2, 3])
+```
+
+#### 方式二：迭代法实现子集枚举
+
+1. 记原序列中元素的总数为 n，原序列中的每个数字 ai 的状态可能有两种，即「在子集中」和「不在子集中」。
+2. 我们用 1 表示「在子集中」，0 表示不在子集中，那么每一个子集可以对应一个长度为 n 的 1/0 序列
+3. 第 i 位表示 ai 是否在子集中，例如：n = 3，a = [5,2,9]，如下示例发现 1/0 序列对应的二进制数正好从 0 到 2^n - 1
+
+```
+000 -> []        -> 0
+001 -> [9]       -> 1
+010 -> [2]       -> 2
+011 -> [2, 9]    -> 3
+100 -> [5]       -> 4
+101 -> [5, 9]    -> 5
+110 -> [5, 2]    -> 6
+111 -> [5, 2, 9] -> 7
+```
+
+如果写个逻辑，将 二进制各种可能与集合按位与计算
+
+```js
+function subsets(nums) {
+  const ans = []
+  const n = nums.length
+
+  // 1 << n，表示 1 向左移动 n 位，空出的位置补0，也就是 1左移3位，就是8
+  // mask就是上面示例的二进制数的十进制表示
+  for (let mask = 0; mask < 1 << n; ++mask) {
+    const t = []
+
+    // 遍历每个位置的数字
+    for (let i = 0; i < n; i++) {
+      // 根据上面的序列示例知道，针对每一个mask，只需映射到数组里对应的索引即可
+      // 如何做呢，只需将对应索引左移 i 位，也变成对应的 二进制，且当前位置为ture
+      // 在与mask按位与操作，如果为true，就存放当前的值
+      if (mask & (1 << i)) {
+        t.push(nums[i])
+      }
+    }
+    ans.push(t)
+  }
+  return ans
+}
+```
 
 ### 括号生成
 
@@ -3532,6 +3615,8 @@ function subsets(nums) {
 输入：n = 1
 输出：["()"]
 ```
+
+- 想象下，你如何构造这些有效字符串，肯定先写一个左括号，然后判断
 
 ```js
 /**
@@ -3570,6 +3655,24 @@ var generateParenthesis = function (n) {
 }
 
 generateParenthesis(3) // ['((()))', '(()())', '(())()', '()(())', '()()()']
+```
+
+```js
+function test() {
+  function testDiGui(i) {
+    if (i === 3) return
+    testDiGui(i + 1)
+    console.log('djch', i)
+  }
+  testDiGui(0)
+}
+test()
+// 调用堆栈情况，也就是说当i 小于 3时，log一直不会执行
+// 等到 i === 3 时，递归递推过程结束，开始回推，也就是执行log，然后因为i被函数作为闭包变量，一直封存
+// 等到回推过程，继续执行下面的逻辑，同时i的值也变化了。
+// djch 2
+// djch 1
+// djch 0
 ```
 
 ### 复原 IP 地址
