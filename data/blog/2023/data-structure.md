@@ -1220,8 +1220,9 @@ var dp = function (memo, n) {
   // base case
   if (n == 0 || n == 1) return n
   // 已经计算过，不用再计算了
-  if (memo[n] != 0) return memo[n]
+  if (memo[n] !== 0) return memo[n]
 
+  // 将计算过的数据都放在缓存里
   memo[n] = dp(memo, n - 1) + dp(memo, n - 2)
   return memo[n]
 }
@@ -1235,7 +1236,7 @@ var dp = function (memo, n) {
 观察递归算法，其实有以下结论:
 
 - 上面的斐波那契数列计算是「自顶向下」进行「递归」求解，而这里直接求目标值
-- 而动态规划，则是「自底向上」进行「递推」求解，其实就是先求 最开始的值，
+- 而动态规划，则是「自底向上」进行「递推」求解，其实就是先求 最开始的值
 
 有了上一步「备忘录」的启发，我们可以把这个「备忘录」独立出来成为一张表，通常叫做 DP table，在这张表上完成「自底向上」的推算岂不美哉！
 
@@ -1269,7 +1270,9 @@ var fib = function (N) {
 
   // 状态转移方程
   for (let i = 2; i <= N; i++) {
+    // 累加和
     sum += b
+    // a,b不停的向后移动
     let temp = a + b
     a = b
     b = temp
@@ -1318,34 +1321,36 @@ var fib = function (N) {
 所以我们可以这样定义 dp 函数：dp(n) 表示，输入一个目标金额 n，返回凑出目标金额 n 所需的最少硬币数量。
 
 ```js
+// 具有最优子结构，然后想办法穷举所有，同时利用备忘录
 var coinChange = function (coins, amount) {
   // 定义dp数组，索引表示金额，数组中的值，表示对应硬币的数量
-  // 总金额是amount，但是总金额也是有 各个子金额叠加过来的
+  // 总金额是amount，但是总金额也是由 各个子金额叠加过来的
   // 先假设每个面值都需要很多个硬币组成
   let dp = Array(amount + 1).fill(Infinity) // 注意是 amount + 1，因为索引0开始
   // 初始化base case，当面值是0时，肯定不需要任何硬币
   dp[0] = 0
 
   // 列出状态转移方程，穷举出所有金额的可能性
-  for (let i = 1; i <= amount; i++) {
-    // i其实就是对应的金额，当金额为i时，最小需要多少个硬币
-    for (let coin of coins) {
-      if (i >= coin) {
-        // 当前面额是coin，在不使用coin时，方案数量为 dp[i]
-        // 如果选择使用coin，那只能是 dp[i-coin] + 1，1就是coin，很明确
-        // 而dp[i-coin]，就是总金额i - coin
-        dp[i] = Math.min(dp[i], dp[i - coin] + 1)
-      }
-    }
-  }
-  // 上面的for循环还可以如下，更加高效
-  // for (let coin of coins) {
-  //   for (let i = coin; i <= amount; i++) {
-  //     // 当不使用coin时，就是dp[i]
-  //     // 当使用coin时，dp[i-coin] + 1,1就是coin本身
-  //     dp[i] = Math.min(dp[i], dp[i-coin]+1)
+  // for (let i = 1; i <= amount; i++) {
+  //   // i其实就是对应的金额，当金额为i时，最小需要多少个硬币
+  //   for (let coin of coins) {
+  //     if (i >= coin) {
+  //       // 当前面额是coin，在不使用coin时，方案数量为 dp[i]
+  //       // 如果选择使用coin，那只能是 dp[i-coin] + 1，1就是coin，很明确
+  //       // 而dp[i-coin]，就是总金额i - coin
+  //       dp[i] = Math.min(dp[i], dp[i - coin] + 1)
+  //     }
   //   }
   // }
+  // 上面的for循环还可以如下，更加高效，谁在内层和外层，效果是一样的。
+  for (let coin of coins) {
+    for (let i = coin; i <= amount; i++) {
+      // 当不使用coin时，就是dp[i]
+      // 当使用coin时，dp[i-coin] + 1，1就是coin本身
+      // i 是总金额，若使用coin，则必存在 dp[i-coin]最优，在加上1个coin硬币，就出最优结果了
+      dp[i] = Math.min(dp[i], dp[i - coin] + 1)
+    }
+  }
   // 其实就是穷举，列出所有可能，然后找出最优
   // console.log(dp);
   return dp[amount] === Infinity ? -1 : dp[amount]
@@ -1382,11 +1387,12 @@ var change = (amount, coins) => {
   dp[0] = 1 // 金额为0，肯定只有一种方案
 
   // 穷举
+  // 外层循环枚举每一种硬币，内层循环则枚举使用当前硬币 coin 时，能够组成的所有金额 i。
   for (const coin of coins) {
-    // 然后一个coin，可以组成多少状态呢？也就是内层循环
-    // 然后就这一个coin，因此组成的金额肯定 >= coin，也就是i从coin开始
+    // 然后只使用一个coin，可以组成多少状态呢？也就是内层循环
+    // 如果就这一个coin，那组成的金额肯定 >= coin，也就是i从coin开始
     for (let i = coin; i <= amount; i++) {
-      // 对于面额为 coin的硬币，当 coin<=i<=amount时，如果存在一种硬币组合的金额之和等于i-coin
+      // 对于面额为 coin的硬币，当 coin<= i <=amount时，如果存在一种硬币组合的金额之和等于i-coin
       // 则在该硬币组合中增加一个面额为coin的硬币，即可得到一种金额之和为i的硬币组合。
       dp[i] = dp[i] + dp[i - coin]
     }
@@ -1396,12 +1402,13 @@ var change = (amount, coins) => {
 }
 ```
 
-`dp[i] += dp[i - coin]` 的含义是：在使用当前硬币 coin 的情况下，凑出金额 i 的组合数为之前已经凑出金额 i - coin 的组合数加上当前硬币 coin 本身。
+对于每个 i，我们需要考虑两种情况：
 
-- 这是因为，如果要凑出金额 i，可以选择不使用当前硬币 coin，那么凑出金额 i 的组合数就是之前已经凑出金额 i 的组合数 dp[i]
-- 也可以选择使用当前硬币 coin，那么剩下的金额就是 i - coin，此时凑出金额 i 的组合数就是凑出金额 i - coin 的组合数加上当前硬币 coin 本身。
-- 因此，dp[i] += dp[i - coin] 就是将这两种情况的组合数加起来，得到凑出金额 i 的总组合数。
-- 而在选择 使用 coin 和不使用 coin 时，取二者的最大值，因此也就是 dp[i] + dp[i - coin]
+- 不使用当前的硬币 coin。此时，组成金额 i 的方案数应当与组成金额 i 时不使用当前硬币 coin 的方案数相同，即 dp[i] = dp[i]。
+- 使用当前的硬币 coin。此时，我们需要考虑使用当前硬币 coin 之前的组合方案。
+  - 这些方案中，金额之和为 i - coin 的方案可以通过在这些方案中增加一个面额为 coin 的硬币得到。因此，使用当前硬币 coin 可以得到的组合方案数应当等于金额为 i - coin 的方案数，即 dp[i - coin]。
+
+因此，我们可以将这两种情况的方案数相加，得到组成金额 i 的所有方案数：dp[i] = dp[i] + dp[i - coin]。
 
 总结零钱兑换：
 
@@ -1539,7 +1546,7 @@ maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
 
 给你一个整数数组 nums ，找到其中最长严格递增子序列的长度。
 
-子序列   是由数组派生而来的序列，删除（或不删除）数组中的元素而不改变其余元素的顺序。例如，`[3,6,2,7] 是数组 [0,3,1,6,2,2,7]`的子序列。
+子序列是由数组派生而来的序列，删除（或不删除）数组中的元素而不改变其余元素的顺序。例如，`[3,6,2,7] 是数组 [0,3,1,6,2,2,7]`的子序列。
 
 ```
 输入：nums = [10,9,2,5,3,7,101,18]
@@ -3617,6 +3624,8 @@ function subsets(nums) {
 ```
 
 - 想象下，你如何构造这些有效字符串，肯定先写一个左括号，然后判断
+- 暴力递归：生成所有可能的字符串，然后判断是否有效，缺点是很多冗余且无效的计算
+- 回溯法如下：只有在满足条件下，才会拼接，更加高效
 
 ```js
 /**
@@ -3625,7 +3634,7 @@ function subsets(nums) {
  */
 var generateParenthesis = function (n) {
   // backtrack函数来生成所有可能的组合。初始时，当前字符串为空字符串，开括号数和闭括号数均为0，最大括号对数为n。
-  // 当当前字符串的长度，是最大括号对数的两倍时，可能得组合产生
+  // 当当前字符串的长度，是最大括号对数的两倍时，可能的组合产生
 
   // 回溯架构：先写结果、调用回溯、返回
   const res = []
@@ -3638,7 +3647,7 @@ var generateParenthesis = function (n) {
     // 当当前字符串的长度 是 max 的两倍时
     if (cur.length === max * 2) {
       res.push(cur)
-      // 并返回，说明这一轮的回溯结束了
+      // 并返回，说明这一轮的递归结束了
       return
     }
     // 如果左右括号的数量，不够，需要往里面添加对应的符号
@@ -3655,6 +3664,8 @@ var generateParenthesis = function (n) {
 }
 
 generateParenthesis(3) // ['((()))', '(()())', '(())()', '()(())', '()()()']
+
+// res: '((()))' cur：((()) -> ((() -> ((( -> (()
 ```
 
 ```js
@@ -3669,7 +3680,7 @@ function test() {
 test()
 // 调用堆栈情况，也就是说当i 小于 3时，log一直不会执行
 // 等到 i === 3 时，递归递推过程结束，开始回推，也就是执行log，然后因为i被函数作为闭包变量，一直封存
-// 等到回推过程，继续执行下面的逻辑，同时i的值也变化了。
+// 等到回推过程，继续执行下面的逻辑，同时i的值也变成以前的了
 // djch 2
 // djch 1
 // djch 0
@@ -3703,15 +3714,15 @@ test()
  */
 var restoreIpAddresses = function (s) {
   const res = []
-  // 这个回溯公式是啥呢。。。？记住回溯就是穷举，而且挨个穷举
+  // 这个回溯公式是啥呢。。。？记住回溯就是穷举，而且挨个穷举，但有个好处就是，不是无脑穷举，而是有效才继续存储
   // 从字符串的第一个位置，开始截取，使用dfs，不断地向下截取
   // 参数1是截取的开始位置，参数2是最终的结果
   backtrack(0, [])
   return res
 
   function backtrack(start, path) {
-    // 判断返回条件，如果长度，可以先遍历，后续再写这个边界，不然上来容易懵逼
-    // 如果path的长度正好是4段，因为ip地址就是4段，且start的位置在末尾，说明是一个组合
+    // 判断返回条件，（可以先遍历，后续再写这个边界，不然上来容易懵逼）
+    // 如果path的长度正好是4段，因为ip地址就是4段，且start的位置在末尾，说明遍历完所有的了，同时有效
     if (path.length === 4 && start === s.length) {
       res.push(path.join('.'))
       return
@@ -3721,7 +3732,9 @@ var restoreIpAddresses = function (s) {
       return
     }
 
+    // 每次最多截取3个字符
     for (let len = 1; len <= 3; len++) {
+      // start记录遍历的位置
       if (start + len > s.length) {
         // 如果长度，比总的字符串还长，直接结束
         break
@@ -3742,6 +3755,9 @@ var restoreIpAddresses = function (s) {
   }
 }
 restoreIpAddresses('25525511135') // ['255.255.11.135', '255.255.111.35']
+// [2, 5, 5, 2]   不满足
+// [2, 5, 5, 25]  不满足
+// [2, 5, 5, 255] 不满足 就这样一直不停向下回溯
 ```
 
 ### n 皇后
@@ -3752,12 +3768,12 @@ n  皇后问题 研究的是如何将 n  个皇后放置在 n×n 的棋盘上�
 
 给你一个整数 n ，返回所有不同的  n  皇后问题 的解决方案。
 
-每一种解法包含一个不同的  n 皇后问题 的棋子放置方案，该方案中 'Q' 和 '.' 分别代表了皇后和空位。
+每一种解法包含一个不同的 n 皇后问题 的棋子放置方案，该方案中 'Q' 和 '.' 分别代表了皇后和空位。
 
 ```js
 var solveNQueens = function (n) {
   // 要求：1、不能在同一行或同一列；2、不能在对角线上
-  // 1、定义一个数组，下标为行号，值为皇后所在的列号，如果值不重复，即满足要求1
+  // 1、定义一个数组，下标为行号，值为皇后所在的列号，如果值不重复，也就是没有皇后在同一列，即满足要求1
   // 2、数组值相减、下标相减，如果绝对值不相等，则满足要求2
 
   // 定义结果数组
@@ -3768,7 +3784,7 @@ var solveNQueens = function (n) {
   function backTrack(arr, curRow) {
     let len = arr.length
 
-    // 如果当前行号curRow === len，说明回溯完成
+    // 如果当前行号curRow === len，说明回溯完成，也就是皇后的数量与行数相同
     // 只需将数组里的数据，转化为结果格式的数组即可
     if (len === curRow) {
       res.push(
@@ -3789,6 +3805,8 @@ var solveNQueens = function (n) {
       for (let j = 0; j < curRow; j++) {
         // 如果循环结束，falg变为false了，说明该行不能再放皇后了
         // i表示某一行待插入皇后的列，arr[j]表示已经存在的皇后列，
+        // abs === 0 其实就相当于，多个皇后在同一列了。
+        // (abs > 0 ? abs : -abs) === curRow - j 就相当于，相邻的皇后在同一个对角线上了。
         // curRow就是待插入的行，j就是已经插入的皇后的行
         let abs = i - arr[j]
         if (abs === 0 || (abs > 0 ? abs : -abs) === curRow - j) {
@@ -3805,7 +3823,7 @@ var solveNQueens = function (n) {
       }
     }
   }
-  // 从第0行开始执行回溯
+  // 从第0行开始执行回溯，参数一是每一行的情况
   backTrack(Array(n), 0)
 
   // 返回结果
@@ -3825,6 +3843,50 @@ var solveNQueens = function (n) {
 8. 回溯结束后，返回结果数组 res。
 
 该函数使用了 slice()方法来复制数组，避免对原数组的修改。同时，使用了字符串的 repeat()方法来生成结果格式的字符串。
+
+```js
+function solveNQueens(n) {
+  const result = []
+  const board = Array.from({ length: n }, () => Array(n).fill('.'))
+
+  function backtrack(row) {
+    if (row === n) {
+      result.push(board.map((row) => row.join('')))
+      return
+    }
+
+    for (let col = 0; col < n; col++) {
+      if (isValid(row, col)) {
+        board[row][col] = 'Q'
+        backtrack(row + 1)
+        board[row][col] = '.'
+      }
+    }
+  }
+
+  function isValid(row, col) {
+    for (let i = 0; i < row; i++) {
+      if (board[i][col] === 'Q') {
+        return false
+      }
+      const leftDiagonal = col - (row - i)
+      if (leftDiagonal >= 0 && board[i][leftDiagonal] === 'Q') {
+        return false
+      }
+      const rightDiagonal = col + (row - i)
+      if (rightDiagonal < n && board[i][rightDiagonal] === 'Q') {
+        return false
+      }
+    }
+    return true
+  }
+
+  backtrack(0)
+  return result
+}
+```
+
+该算法使用回溯的思想，在棋盘上逐行放置皇后，并检查当前位置是否合法。如果当前行放置皇后后导致无法放置下一行的皇后，就回溯到上一行重新尝试其他位置。当所有行都放置好了皇后，就将当前的棋盘状态加入结果集中。时间复杂度为 O(n^n)。
 
 ## 常见算法
 
