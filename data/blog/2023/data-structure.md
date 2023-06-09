@@ -12,6 +12,10 @@ canonicalUrl: https://dume.vercel.app/blog/2023/clean-architecture
 
 ## 前言
 
+1. 确定用哪种方法解
+2. 搭建解法架构
+3. 填充内容
+
 ## 算法归类
 
 ### 双指针法与滑动窗口算法
@@ -25,7 +29,7 @@ canonicalUrl: https://dume.vercel.app/blog/2023/clean-architecture
 
 总的来说，双指针法和滑动窗口算法都是比较常用的算法，具体选择哪种算法取决于问题的具体要求。
 
-## 第一部分：数组
+## 数组
 
 - 二分查找：在有序数组中查找指定元素，时间复杂度 O(logn)。
 - 双指针法：用两个指针从数组的两端开始向中间移动，解决一些数组相关的问题，如求和、查找等。
@@ -291,6 +295,7 @@ function mergeSortedArrays(arr1, arr2) {
     }
   }
 
+  // 前面处理交集，下面处理的就是剩下的，要么arr1，要么arr2
   while (i < arr1.length) {
     mergedArr.push(arr1[i])
     i++
@@ -314,6 +319,8 @@ function mergeSortedArrays(arr1, arr2) {
 3. 最后，它返回合并后的有序数组。
 
 ### 实现一个数组的全排列
+
+给定一个不含重复数字的数组 nums ，返回其 所有可能的全排列 。你可以 按任意顺序 返回答案。
 
 #### 方式一
 
@@ -342,6 +349,10 @@ function permute(arr) {
     console.log('djch permutation', JSON.stringify(permutation))
 
     for (let j = 0; j <= permutation.length; j++) {
+      // 当 permutation = [3] 时
+      // 当 j = 0 时，permutation.slice(0, j) 其实就就是空，然后first就是 2, permutation.slice(0)就是3 -> [2, 3]
+      // 当 j = 1 时，permutation.slice(0, 1)就是3，permutation.slice(1)就是空，所以为 [3, 2]
+      // 下面的作用很巧妙，将first插入到permutation的各个位置。
       const newPermutation = [...permutation.slice(0, j), first, ...permutation.slice(j)]
       result.push(newPermutation)
       console.log(
@@ -375,79 +386,99 @@ console.log(result)
 
 该算法的时间复杂度为 O(n\*n!)，其中 n 为数组 arr 的长度。
 
-首先，在函数的第一行，如果数组只有一个元素，直接返回该元素，时间复杂度为 O(1)。
-
-然后，获取第一个元素和剩余的元素的时间复杂度为 O(1)。
-
-接着，递归获取剩余元素的全排列的时间复杂度为 O((n-1) \* (n-1)!)，因为每次递归都会减少一个元素，所以递归的次数是 n-1，每次递归都要进行全排列，因此时间复杂度为(n-1)!。
-
-最后，将第一个元素插入到每个排列的位置的时间复杂度为 O(n!)，因为每个排列的长度为 n-1，所以需要将第一个元素插入到 n-1 个位置，共有(n-1)!个排列。
+1. 首先，在函数的第一行，如果数组只有一个元素，直接返回该元素，时间复杂度为 O(1)。
+2. 然后，获取第一个元素和剩余的元素的时间复杂度为 O(1)。
+3. 接着，递归获取剩余元素的全排列的时间复杂度为 O((n-1) \* (n-1)!)，因为每次递归都会减少一个元素，所以递归的次数是 n-1，每次递归都要进行全排列，因此时间复杂度为(n-1)!。
+4. 最后，将第一个元素插入到每个排列的位置的时间复杂度为 O(n!)，因为每个排列的长度为 n-1，所以需要将第一个元素插入到 n-1 个位置，共有(n-1)!个排列。
 
 因此，总的时间复杂度为 O(n\*n!)。
 
 #### 方式二
 
 ```js
-function permute(input) {
-  var permArr = [],
-    usedChars = []
+var permute = function (nums) {
+  // 存储全排列的结果
+  let res = []
 
-  function permuteHelper(input) {
-    for (var i = 0; i < input.length; i++) {
-      var ch = input.splice(i, 1)[0]
-      usedChars.push(ch)
+  // 初期的路径为空
+  dfs([])
 
-      if (input.length == 0) {
-        permArr.push(usedChars.slice())
-      }
-      console.log(
-        'djch ',
-        i,
-        JSON.stringify(input),
-        ch,
-        JSON.stringify(usedChars),
-        JSON.stringify(permArr)
-      )
-      // djch  0 [2,3] 1 [1]     []
-      // djch  0 [3]   2 [1,2]   []
-      // djch  0 []    3 [1,2,3] [[1,2,3]]
-      permuteHelper(input)
-      input.splice(i, 0, ch)
-      usedChars.pop()
-      console.log(
-        'djch _',
-        i,
-        JSON.stringify(input),
-        ch,
-        JSON.stringify(usedChars),
-        JSON.stringify(permArr)
-      )
-      // djch _ 0 [3]   3 [1,2] [[1,2,3]]
-      // djch _ 0 [2,3] 2 [1]   [[1,2,3]]
+  function dfs(path) {
+    // 如果路径长度和数组长度相等，说明一轮排列完成了
+    if (path.length === nums.length) {
+      res.push([...path])
     }
-    return permArr
-  }
 
-  return permuteHelper(input)
+    // 遍历剩余的选择，将不重复的选择添加进path里
+    for (let num of nums) {
+      // 重复选择了，就继续循环
+      // 这里做判断了，也就不用start标识了。
+      if (path.includes(num)) continue
+
+      // 如果没用过，则加到路径中
+      path.push(num)
+      // dfs，一条路走到头
+      dfs(path)
+      // 一条路径包含所有的值，递归结束，然后后退
+      path.pop()
+    }
+  }
+  return res
 }
 
 // 示例用法
 console.log(permute([1, 2, 3]))
 ```
 
-1. 首先，函数遍历输入字符串的每个字符，并将其从输入字符串中删除。
-2. 然后，将该字符添加到 usedChars 数组中，并检查输入字符串的长度是否为 0。
-3. 如果是，将 usedChars 数组的副本添加到 permArr 数组中。
-4. 然后，继续递归调用 permuteHelper 函数，直到所有排列都被生成。
-5. 在返回到上一层递归时，将该字符重新添加到输入字符串中，并将其从 usedChars 数组中删除。
+### 全排列 2
 
-最后，函数返回 permuteHelper 函数的结果，即所有排列的数组。
+给定一个可包含重复数字的序列 nums ，按任意顺序 返回所有不重复的全排列。
 
-该函数的原理是通过递归调用自身来生成所有可能的排列。在每次递归调用中，函数从输入数组中取出一个元素，并将其添加到已使用的字符数组中。当输入数组为空时，表示已经生成了一个排列，将其添加到结果数组中。然后，函数将当前元素重新插入到输入数组中，并从已使用的字符数组中删除它，以便生成下一个排列。最终，函数返回包含所有排列的结果数组。
+- 注意：这里有重复的
+- 需要记录每个位置上的数字，是否使用过
 
-这个算法的时间复杂度为 O(n!),其中 n 是输入数组 input 的长度。这是因为该算法使用递归来生成所有可能的排列，每次递归都会将数组 input 中的一个元素与已经生成的排列组合，因此总共需要进行 n 次递归。在每次递归中，需要遍历 input 数组中的所有元素，因此总共需要进行 n!次遍历。因此，该算法的时间复杂度为 O(n!)。
+```
+输入：nums = [1,1,2]
+输出：[[1,1,2], [1,2,1], [2,1,1]]
+```
 
-该算法的空间复杂度为 O(n^2)，其中 n 是输入数组的长度。这是因为该算法使用了两个辅助数组：permArr 和 usedChars，每个数组的长度最大为 n。此外，递归调用 permuteHelper 函数时，会创建 n 个新的函数调用栈，每个函数调用栈的空间复杂度为 O(n)。因此，总空间复杂度为 O(n^2 + n\*n) = O(n^2)。
+```js
+var permuteUnique = function (nums) {
+  // 定义结果数组
+  const result = []
+  // 初始化一个数据，用来标记哪些使用过了
+  const used = Array(nums.length).fill(false)
+  // 排序，将相同的数字都挨着
+  nums.sort((a, b) => a - b)
+  // 执行回溯函数
+  backtrack([])
+
+  // 定义回溯函数
+  function backtrack(path) {
+    // 先判断是否满足条件
+    if (path.length === nums.length) {
+      result.push([...path])
+      return
+    }
+    // 遍历数组
+    for (let i = 0; i < nums.length; i++) {
+      // 如果使用过，则不用再遍历
+      if (used[i]) continue
+      // 如果前后重复了呢？上面需要先排序
+      // 这里判断，如果多个相邻的都重复，那就需要一直往后走
+      // 这里需要判断是前一个，!used[i - 1] 为ture，说明前一个为false，肯定之前某个位置已经处理过了
+      if (i > 0 && nums[i] === nums[i - 1] && !used[i - 1]) continue
+
+      used[i] = true
+      path.push(nums[i])
+      backtrack(path)
+      path.pop()
+      used[i] = false
+    }
+  }
+  return result
+}
+```
 
 ### 数组支持负索引
 
@@ -614,6 +645,75 @@ var findMedianSortedArrays = function (nums1, nums2) {
 - 时间复杂度为 O(m+n)，其中 m 和 n 分别为 nums1 和 nums2 的长度，因为需要遍历两个数组并将它们合并成一个有序数组。
 - 空间复杂度为 O(m+n)，因为需要创建一个新数组来存储合并后的有序数组。
 
+### 寻找数组中第二大的数
+
+#### 方式一
+
+```js
+const findSecondLargestBad = (arr) => {
+  const depuliationArr = [...new Set(arr)].sort()
+  console.log('djch depuliationArr', depuliationArr)
+  return depuliationArr[depuliationArr.length - 2]
+}
+```
+
+- 时间复杂度：O(nlogn)，因为在数组去重时使用了 Set，Set 内部使用哈希表实现，时间复杂度为 O(n)，而数组排序使用了快速排序，时间复杂度为 O(nlogn)，所以总的时间复杂度为 O(nlogn)。
+- 空间复杂度：O(n)，因为在去重时使用了 Set，需要将所有不同的元素存储在一个新的数组中，所以空间复杂度为 O(n)。
+
+#### 方式二
+
+```js
+const findSecondLargest = (arr) => {
+  // 定义一个最大，一个次大
+  let max = arr[0]
+  let secondMax = -Infinity
+
+  // 遍历数组
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] > max) {
+      secondMax = max // 既然有数据比max大，那之前的max就是次大
+      max = arr[i]
+    } else if (arr[i] < max && arr[i] > secondMax) {
+      // 想象一下，将条件分成x轴上的三段，
+      secondMax = arr[i] // 其实相当于只记录 次大的数据
+    }
+  }
+
+  return secondMax
+}
+
+// 这个算法的时间复杂度为 O(n)，空间复杂度O(1)
+console.log(findSecondLargest([1, 1, 2, 3, 4, 4]))
+console.log(findSecondLargestBad([1, 1, 2, 3, 4, 4]))
+```
+
+### 快速排序
+
+```js
+const quickSort = (arr) => {
+  if (arr.length <= 1) return arr
+
+  const pivot = arr[0]
+  const left = []
+  const right = []
+
+  // 从索引1开始遍历
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] < pivot) {
+      left.push(arr[i])
+    } else {
+      right.push(arr[i])
+    }
+  }
+
+  return [...quickSort(left), pivot, ...quickSort(right)]
+}
+
+const unsortedArr = [3, 1, 6, 2, 4, 5]
+const sortedArr = quickSort(unsortedArr)
+console.log(sortedArr) // [1, 2, 3, 4, 5, 6]
+```
+
 ### 和为 K 的子数组
 
 给你一个整数数组 nums 和一个整数 k ，请你统计并返回 该数组中和为 k 的连续子数组的个数 。
@@ -690,6 +790,7 @@ function prefixSum(arr) {
   preSum[0] = arr[0]
   // 后续的都是累加
   for (let i = 1; i < n; i++) {
+    // preSum[1] 就是前1项的和，也就是 索引0和1的和。
     preSum[i] = preSum[i - 1] + arr[i]
   }
   return preSum
@@ -772,6 +873,7 @@ twoSum([2, 7, 11, 15], 9) // [1, 2]
 ```
 
 - 利用双指针，查找和为 target 的序列。
+- 已经排序好了，从最左和最右，往内部挤压，这里只会返回一对，如果多对则需要修改
 
 ### 三数之和
 
@@ -794,12 +896,13 @@ nums[0] + nums[3] + nums[4] = (-1) + 2 + (-1) = 0 。
 
 ```js
 function threeSum(nums) {
-  nums.sort((a, b) => a - b) // 先排序
+  nums.sort((a, b) => a - b) // 先排序，排序不能直接sort，因为涉及到Unicode的排序
 
   const res = []
   for (let i = 0; i < nums.length - 2; i++) {
     if (i > 0 && nums[i] === nums[i - 1]) continue // 避免重复
 
+    // 外层循环是第一个数，第二个和第三个，则需要循环
     let left = i + 1
     let right = nums.length - 1 // 双指针
     while (left < right) {
@@ -825,52 +928,11 @@ threeSum([-1, 0, 1, 2, -1, -4]) // [[-1,-1,2],[-1,0,1]]
 
 这是一个求三数之和为 0 的函数，采用了双指针的方法。
 
-1. 首先将数组排序，然后从左到右遍历数组，以当前元素作为三数之和的第一个数，用双指针 left 和 right 分别指向当前元素的下一个元素和数组末尾元素。
+1. 首先将数组排序，然后从左到右遍历数组，**以当前元素作为三数之和的第一个数，用双指针 left 和 right 分别指向当前元素的下一个元素和数组末尾元素。**
 2. 在双指针的循环中，计算三数之和，如果等于 0，则将三个数加入结果数组中，并将 left 和 right 分别向中间移动一位，同时跳过重复的数（因为已经排序，所以相同的数一定在一起）。
 3. 如果三数之和小于 0，则将 left 向右移动一位，因为数组已经排序，所以将 left 右移可以让三数之和变大。
 4. 如果三数之和大于 0，则将 right 向左移动一位，可以让三数之和变小。
 5. 1 最终返回结果数组。
-
-```js
-var threeSum = function (nums) {
-  let arr = []
-  // 排序，然后固定一个，然后两侧指针，排序不能直接sort，因为涉及到Unicode的排序
-  nums = nums.sort((a, b) => a - b)
-  const len = nums.length
-  if (nums == null || len < 3) return arr
-
-  for (let i = 0; i < len; i++) {
-    if (nums[i] > 0) break
-
-    let left = i + 1
-    let right = len - 1
-    if (i > 0 && nums[i] == nums[i - 1]) continue // 去重，不要看原数组，要看排好序的数组
-
-    while (left < right) {
-      let a = nums[i]
-      let b = nums[left]
-      let c = nums[right]
-
-      let sum = a + b + c
-      if (!sum) {
-        arr.push([a, b, c])
-        while (left < right && nums[left] === nums[left + 1]) left++ // 去重
-        while (left < right && nums[right] === nums[right - 1]) right-- // 去重
-        // 此时都需要走，不然会重复
-        left++
-        right--
-      } else if (sum < 0) {
-        // 和小，说明需要增大
-        left++
-      } else if (sum > 0) {
-        // 因为排好序了，此时降低大值就是小值
-        right--
-      }
-    }
-  }
-  return arr
-}
-```
 
 ### 四数之和
 
@@ -916,6 +978,8 @@ function fourSum(nums, target) {
 ```
 
 - 四数之和的原理，类似三数之和，只是以当前元素和下一个元素作为前两个
+- 相比三数之和，四数之和是两层 for 循环
+- 而两数之和，不需要 for 循环就搞定了，左右指针
 
 ### 删除有序数组中的重复项
 
@@ -933,23 +997,9 @@ var removeDuplicates = function (nums) {
   }
   return nums.length
 }
-
-// 下面的这个在leetcode上不通过。。。但没毛病啊
-var removeDuplicates = function (nums) {
-  let i = 0
-  while (i < nums.length - 1) {
-    // 修改循环条件
-    if (nums[i] === nums[i + 1]) {
-      nums.splice(i + 1, 1)
-    } else {
-      i++ // 不相同则继续往后遍历
-    }
-  }
-  return nums
-}
 ```
 
-## 第二部分：递归
+## 递归
 
 简单来说，函数的递归调用就是自己调用自己，即一个函数在调用其他函数的过程中，又出现了对自身的调用，这种函数称为递归函数。
 
@@ -1034,10 +1084,10 @@ const fib1 = (num) => {
   // 最后的结果肯定是：target = fib1(num - 1) + fib1(num) 也就是 倒数第二位的值 + 倒数第一位的值
   //                target = fib1(num - 1) + (fib1(num - 1) + fib1(num - 2))
 
-  // 倒数第二位
+  // 定义数组，且初始化的值为 倒数第二位
   let arr = fib1(num - 1)
 
-  // 加入最后一位的值
+  // 加入最后一位的值，是前两者的和
   arr.push(arr[arr.length - 1] + arr[arr.length - 2])
   return arr
 }
@@ -1117,7 +1167,7 @@ console.log(fibonacciSum(10)) // 输出：143
 
 ![递归过程](/static/images/recoursion-process.png)
 
-## 第三部分：动态规划
+## 动态规划
 
 动态规划是一种算法设计技术，它是解决一类最优化问题的有效方法。它的基本思想是将原问题分解成若干个子问题，通过求解子问题的最优解，得到原问题的最优解。
 
@@ -1132,6 +1182,106 @@ console.log(fibonacciSum(10)) // 输出：143
 
 动态规划的应用广泛，比如最长公共子序列、背包问题、最短路径问题等都可以使用动态规划来求解。
 
+1. 首先，动态规划问题的一般形式就是求最值。比如说让你求最长递增子序列呀，最小编辑距离呀等等。
+2. 既然是要求最值，核心问题是什么呢？**求解动态规划的核心问题是穷举**。因为要求最值，肯定要把所有可行的答案穷举出来，然后在其中找最值呗。
+3. 虽然动态规划的核心思想就是穷举求最值，但是问题可以千变万化，穷举所有可行解其实并不是一件容易的事，需要你熟练掌握递归思维，只有列出正确的「状态转移方程」，才能正确地穷举。
+4. 而且，你需要判断算法问题是否具备「最优子结构」，是否能够通过子问题的最值得到原问题的最值。
+5. 另外，动态规划问题存在「重叠子问题」，如果暴力穷举的话效率会很低，所以需要你使用「备忘录」或者「DP table」来优化穷举过程，避免不必要的计算。
+6. 因此：**重叠子问题、最优子结构、状态转移方程**就是动态规划三要素
+
+如何列出状态转移方程：
+
+明确 base case -> 明确「状态」-> 明确「选择」 -> 定义 dp 数组/函数的含义。
+
+```js
+var fib = function (N) {
+  if (N === 1 || N === 2) return 1
+  return fib(N - 1) + fib(N - 2)
+}
+```
+
+上面的算法之所以低效，就是存在大量的 重复计算 ，也就是 重叠子问题，那如何用备忘录去解决它呢？
+
+- 时间复杂度：用子问题个数乘以解决一个子问题需要的时间
+  - 这里递归其实是一个二叉树，子问题的个数也就是节点的个数：2^n，第一层 1 个，第二层 2 个，第三层 4 个，第四层 8 个，也就是 2^3
+  - 解决一个子问题的时间是：O(1)
+  - 总的时间复杂度：2^n
+
+```js
+var fib = function (N) {
+  // 备忘录全初始化为 0
+  let memo = new Array(N + 1).fill(0)
+  // 进行带备忘录的递归
+  return dp(memo, N)
+}
+
+// 带着备忘录进行递归
+var dp = function (memo, n) {
+  // base case
+  if (n == 0 || n == 1) return n
+  // 已经计算过，不用再计算了
+  if (memo[n] !== 0) return memo[n]
+
+  // 将计算过的数据都放在缓存里
+  memo[n] = dp(memo, n - 1) + dp(memo, n - 2)
+  return memo[n]
+}
+```
+
+- 时间复杂度：用子问题个数乘以解决一个子问题需要的时间
+  - 由于没有重复计算，子问题个数为 O(n)
+  - 每个子问题的耗时，没有什么循环，因此 O(1)
+  - 总的时间复杂度就是：O(n)
+
+观察递归算法，其实有以下结论:
+
+- 上面的斐波那契数列计算是「自顶向下」进行「递归」求解，而这里直接求目标值
+- 而动态规划，则是「自底向上」进行「递推」求解，其实就是先求 最开始的值
+
+有了上一步「备忘录」的启发，我们可以把这个「备忘录」独立出来成为一张表，通常叫做 DP table，在这张表上完成「自底向上」的推算岂不美哉！
+
+```js
+var fib = function (N) {
+  if (N === 0) return 0
+  // 定义表
+  let dp = new Array(N + 1).fill(0)
+
+  // base case 初始状态
+  dp[0] = 0
+  dp[1] = 1
+
+  // 状态转移方程
+  for (let i = 2; i <= N; i++) {
+    dp[i] = dp[i - 1] + dp[i - 2]
+  }
+
+  return dp[N]
+}
+```
+
+上面的 dp 表，空间复杂度是 O(n)，其实还可以再优化成 O(1)，因为观察它`dp[i] = dp[i - 1] + dp[i - 2]` 发现其实
+只需要存储两个数就可以。如下
+
+```js
+var fib = function (N) {
+  let a = 0
+  let b = 1
+  let sum = 0
+
+  // 状态转移方程
+  for (let i = 2; i <= N; i++) {
+    // 累加和
+    sum += b
+    // a,b不停的向后移动
+    let temp = a + b
+    a = b
+    b = temp
+  }
+
+  return sum
+}
+```
+
 ### 如何高效的给出 动态规划类问题的解法
 
 1. 理解问题的本质：动态规划算法是**解决最优化问题的一种方法**，通常需要对问题进行抽象和建模。因此，理解问题的本质和特点是非常重要的，只有深入理解问题，才能够有效地设计和实现动态规划算法。
@@ -1142,6 +1292,128 @@ console.log(fibonacciSum(10)) // 输出：143
 
 - 剪枝：在动态规划过程中，某些状态的计算可能会被重复执行，造成时间复杂度的增加。剪枝就是通过某些方法，避免不必要的重复计算，从而提高算法的效率。
 - 贪心：贪心算法是一种基于贪心策略的算法，它在每一步都选择当前状态下的最优解，从而得到全局最优解。在动态规划中，贪心算法可以用来优化状态转移方程，减少状态的数量和计算量。
+
+### 零钱兑换
+
+给你 k 种面值的硬币，面值分别为 `c1, c2 ... ck`，每种硬币的数量无限，再给一个总金额 amount，问你最少需要几枚硬币凑出这个金额，如果不可能凑出，算法返回 -1 。
+
+比如说 k = 3，面值分别为 1，2，5，总金额 amount = 11。那么最少需要 3 枚硬币凑出，即 11 = 5 + 5 + 1。
+
+**你认为计算机应该如何解决这个问题？显然，就是把所有可能的凑硬币方法都穷举出来，然后找找看最少需要多少枚硬币。**
+
+**1、暴力递归**
+
+首先，这个问题是动态规划问题，因为它具有「最优子结构」的。要符合「最优子结构」，子问题间必须互相独立。
+
+说白了，各个子问题不相互影响，比如要想考出很高的分，只需要每个学科的分都很高就足够了，每个学科都是相互独立的。
+
+回到凑零钱问题，为什么说它符合最优子结构呢？假设你有面值为 1, 2, 5 的硬币，你想求 amount = 11 时的最少硬币数（原问题），**如果你知道凑出 amount = 10, 9, 6 的最少硬币数（子问题），你只需要把子问题的答案加一（再选一枚面值为 1, 2, 5 的硬币），求个最小值，就是原问题的答案**。因为硬币的数量是没有限制的，所以子问题之间没有相互制，是互相独立的。
+
+**2、如何列出目标转移方程**
+
+1. 确定 base case，这个很简单，显然目标金额 amount 为 0 时算法返回 0，因为不需要任何硬币就已经凑出目标金额了。
+2. 确定「状态」，也就是原问题和子问题中会变化的变量。由于硬币数量无限，硬币的面额也是题目给定的，只有目标金额会不断地向 base case 靠近，所以唯一的「状态」就是目标金额 amount。
+3. 确定「选择」，也就是导致「状态」产生变化的行为。目标金额为什么变化呢，因为你在选择硬币，你每选择一枚硬币，就相当于减少了目标金额。所以说所有硬币的面值，就是你的「选择」。
+4. 明确 dp 函数/数组的定义。我们这里讲的是自顶向下的解法，所以会有一个递归的 dp 函数，
+   1. 一般来说函数的参数就是状态转移中会变化的量，也就是上面说到的「状态」；
+   2. 函数的返回值就是题目要求我们计算的量。就本题来说，状态只有一个，即「目标金额」，题目要求我们计算凑出目标金额所需的最少硬币数量。
+
+所以我们可以这样定义 dp 函数：dp(n) 表示，输入一个目标金额 n，返回凑出目标金额 n 所需的最少硬币数量。
+
+```js
+// 具有最优子结构，然后想办法穷举所有，同时利用备忘录
+var coinChange = function (coins, amount) {
+  // 定义dp数组，索引表示金额，数组中的值，表示对应硬币的数量
+  // 总金额是amount，但是总金额也是由 各个子金额叠加过来的
+  // 先假设每个面值都需要很多个硬币组成
+  let dp = Array(amount + 1).fill(Infinity) // 注意是 amount + 1，因为索引0开始
+  // 初始化base case，当面值是0时，肯定不需要任何硬币
+  dp[0] = 0
+
+  // 列出状态转移方程，穷举出所有金额的可能性
+  // for (let i = 1; i <= amount; i++) {
+  //   // i其实就是对应的金额，当金额为i时，最小需要多少个硬币
+  //   for (let coin of coins) {
+  //     if (i >= coin) {
+  //       // 当前面额是coin，在不使用coin时，方案数量为 dp[i]
+  //       // 如果选择使用coin，那只能是 dp[i-coin] + 1，1就是coin，很明确
+  //       // 而dp[i-coin]，就是总金额i - coin
+  //       dp[i] = Math.min(dp[i], dp[i - coin] + 1)
+  //     }
+  //   }
+  // }
+  // 上面的for循环还可以如下，更加高效，谁在内层和外层，效果是一样的。
+  for (let coin of coins) {
+    for (let i = coin; i <= amount; i++) {
+      // 当不使用coin时，就是dp[i]
+      // 当使用coin时，dp[i-coin] + 1，1就是coin本身
+      // i 是总金额，若使用coin，则必存在 dp[i-coin]最优，在加上1个coin硬币，就出最优结果了
+      dp[i] = Math.min(dp[i], dp[i - coin] + 1)
+    }
+  }
+  // 其实就是穷举，列出所有可能，然后找出最优
+  // console.log(dp);
+  return dp[amount] === Infinity ? -1 : dp[amount]
+}
+```
+
+### 零钱兑换 2
+
+给你一个整数数组 coins 表示不同面额的硬币，另给一个整数 amount 表示总金额。
+
+请你计算并返回可以凑成总金额的硬币组合数。如果任何硬币组合都无法凑出总金额，返回 0 。
+
+假设每一种面额的硬币有无限个。
+
+题目数据保证结果符合 32 位带符号整数。
+
+```
+输入：amount = 5, coins = [1, 2, 5]
+输出：4
+解释：有四种方式可以凑成总金额：
+5=5
+5=2+2+1
+5=2+1+1+1
+5=1+1+1+1+1
+```
+
+- 相比凑零钱 1，这里需要记录每个组合
+
+```js
+var change = (amount, coins) => {
+  // 索引是金额，值是可以组成该金额的方案数量
+  const dp = Array(amount + 1).fill(0)
+  // 初始化
+  dp[0] = 1 // 金额为0，肯定只有一种方案
+
+  // 穷举
+  // 外层循环枚举每一种硬币，内层循环则枚举使用当前硬币 coin 时，能够组成的所有金额 i。
+  for (const coin of coins) {
+    // 然后只使用一个coin，可以组成多少状态呢？也就是内层循环
+    // 如果就这一个coin，那组成的金额肯定 >= coin，也就是i从coin开始
+    for (let i = coin; i <= amount; i++) {
+      // 对于面额为 coin的硬币，当 coin<= i <=amount时，如果存在一种硬币组合的金额之和等于i-coin
+      // 则在该硬币组合中增加一个面额为coin的硬币，即可得到一种金额之和为i的硬币组合。
+      dp[i] = dp[i] + dp[i - coin]
+    }
+  }
+
+  return dp[amount]
+}
+```
+
+对于每个 i，我们需要考虑两种情况：
+
+- 不使用当前的硬币 coin。此时，组成金额 i 的方案数应当与组成金额 i 时不使用当前硬币 coin 的方案数相同，即 dp[i] = dp[i]。
+- 使用当前的硬币 coin。此时，我们需要考虑使用当前硬币 coin 之前的组合方案。
+  - 这些方案中，金额之和为 i - coin 的方案可以通过在这些方案中增加一个面额为 coin 的硬币得到。因此，使用当前硬币 coin 可以得到的组合方案数应当等于金额为 i - coin 的方案数，即 dp[i - coin]。
+
+因此，我们可以将这两种情况的方案数相加，得到组成金额 i 的所有方案数：dp[i] = dp[i] + dp[i - coin]。
+
+总结零钱兑换：
+
+- 多层循环，不要一下子看多层，先选定一个外层数字，然后执行一遍内层循环
+- 多层循环，无所谓谁在外层，还是在内层，但内外层有时候会导致一些不一样的代码逻辑，但本质是一样的
 
 ### 接雨水
 
@@ -1261,7 +1533,7 @@ function maxArea(arr) {
     // 更新最大值
     max = Math.max(max, tempArea)
 
-    // 移动指针，移动小的
+    // 移动指针，移动小的，目的是找出大的
     arr[leftIdx] < arr[rightIdx] ? leftIdx++ : rightIdx--
   }
   return max
@@ -1270,7 +1542,25 @@ maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
 // 其实就是 height[8]  height[1] => (8 - 1) * Math.min(7, 8) => 49
 ```
 
-## 第三部分：字符串
+### 最长递增子序列
+
+给你一个整数数组 nums ，找到其中最长严格递增子序列的长度。
+
+子序列是由数组派生而来的序列，删除（或不删除）数组中的元素而不改变其余元素的顺序。例如，`[3,6,2,7] 是数组 [0,3,1,6,2,2,7]`的子序列。
+
+```
+输入：nums = [10,9,2,5,3,7,101,18]
+输出：4
+解释：最长递增子序列是 [2, 3, 7, 101]，因此长度为 4 。
+```
+
+- 通俗讲就是：不改变原有数组元素的顺序，同时是升序的子序列
+
+```js
+
+```
+
+## 字符串
 
 - 双指针算法：使用两个指针分别指向字符串的不同位置，通过移动指针来解决问题，例如判断回文字符串、最长回文子串等问题。
 - 动态规划算法：通过拆分问题为子问题，然后通过递推求解的方式得到最终的解，例如最长公共子序列、编辑距离等问题。
@@ -1279,6 +1569,9 @@ maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
 - Trie 树算法：通过构建一个树形结构来存储字符串集合，可以快速地查找、插入、删除字符串，例如前缀匹配、字符串排序等问题。
 - 线段树算法：通过将字符串转换为数值表示，可以使用线段树来维护区间信息，例如区间最大值、区间和等问题。
 - 后缀数组算法：通过将字符串的所有后缀排序，可以快速地求解多种字符串问题，例如最长重复子串、最长公共前缀等问题。
+
+- substring 和 slice 的使用方法相同，但是 substring 不支持负数参数，而 slice 可以。substring 如何开始大于结束，则自动交换二者位置。slice 则直接返回空
+- substr 和 slice 的截取方式相同，但是 substr 的第二个参数是截取的长度，而 slice 的第二个参数是截取的结束位置。
 
 ### 最长回文子串
 
@@ -1295,14 +1588,17 @@ maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
 ```js
 function longestPalindrome(s) {
   let longest = ''
+  // 遍历字符串，从每个索引位置向两侧发散
   for (let i = 0; i < s.length; i++) {
     // 以当前字符为中心的奇数长度的回文子串
-    let l = i,
-      r = i
+    let l = i
+    let r = i
+    // 左侧>=0，右侧需 < s.length
     while (l >= 0 && r < s.length && s[l] === s[r]) {
       l--
       r++
     }
+    // while循环完以后，判断是否为最长。
     // 最后会执行一次，l--,r++，而slice又是[)，因此可以直接如下
     let palindrome = s.slice(l + 1, r)
     // 如果比最长的还长，则更新最长的
@@ -1310,6 +1606,7 @@ function longestPalindrome(s) {
       longest = palindrome
     }
 
+    // 想象一下4个字符时。
     // 以当前字符和下一个字符为中心的偶数长度的回文子串
     // 奇数或偶数，不一定哪个的值是最大值，因此需要考虑奇偶
     ;(l = i), (r = i + 1)
@@ -1392,6 +1689,8 @@ console.log(longestPalindrome('cbbd')) // "bb"
 
 注意：子序列，不要求顺序
 
+- 这里子序列的定义是，不改变剩余字符顺序的情况下
+
 ```
 输入：s = "bbbab"
 输出：4
@@ -1426,7 +1725,9 @@ var longestPalindromeSubseq = function (s) {
   // 想象一个方格纸贴在墙上，然后你看着方格纸，顶部向右是j轴，左侧向下是i轴。
   // 因此dp[0][len-1]就是右上角位置的元素。
   // 穷举，现在的情况是左下角的位置其实都是无效数据，可以不遍历
+  // 左上角到右下角的对角线，下方都是无效数据，因为字符串截取肯定是i < j
   for (let i = len - 1; i >= 0; i--) {
+    // i 和 j 的大小关系是啥？
     for (let j = i + 1; j < len; j++) {
       if (s[i] === s[j]) {
         dp[i][j] = dp[i + 1][j - 1] + 2
@@ -1441,9 +1742,11 @@ var longestPalindromeSubseq = function (s) {
 
 ### 最长回文串
 
-给定一个包含大写字母和小写字母的字符串  s ，返回   通过这些字母构造成的 最长的回文串  。
+给定一个包含大写字母和小写字母的字符串  s ，返回通过这些字母构造成的 最长的回文串  。
 
 在构造过程中，请注意 区分大小写 。比如  "Aa"  不能当做一个回文字符串。
+
+- 不要求顺序，自由组装
 
 ```
 输入:s = "abccccdd"
@@ -1463,6 +1766,7 @@ var longestPalindrome = function (s) {
   let tempSet = new Set()
   let num = 0
   s.split('').forEach((code) => {
+    // 想象下，其实就是不停的往里放，然后又向外取，来计数
     if (tempSet.has(code)) {
       tempSet.delete(code)
       // 删除后，相当于打出去两张，此时num需要加2
@@ -1502,6 +1806,7 @@ var repeatedSubstringPattern1 = function (s) {
 
 var repeatedSubstringPattern2 = function (s) {
   // abab abab => 'bababa'
+  // 拼接两个，然后前后各去掉一个。
   let s1 = (s + s).slice(1, -1)
   // bababa  abab
   return s1.indexOf(s) !== -1
@@ -1580,7 +1885,70 @@ console.log(isPalindrome('hello')) // false
 
 这个算法的时间复杂度是 O(n)，其中 n 是字符串 s 的长度，因为左指针和右指针都只会移动 n 次。空间复杂度是 O(k)，其中 k 是目标字符串的长度，因为 map 中最多存储 k 个字符
 
+- 其实就是先移动有指针，找到所有覆盖目标字符串的右边界
+- 然后再开始移动左指针
+
 ```js
+var getMaxLenStr = (str) => {
+  // 直接循环
+  // let map = {}
+  let max = -1
+  let res = []
+  for (const char of str) {
+    if (res.includes(char)) {
+      // 如果包含，则肯定是最左侧
+      // 其实不一定，比如 ab -> abb，就不是最左侧的，因此不能使用数组
+      // 不使用数组，可以使用set，天生的防止重复
+      max = Math.max(res.length, max)
+      res.shift()
+    }
+
+    res.push(char)
+  }
+  return Math.max(res.length, max)
+}
+
+var getMaxLenStr = (str) => {
+  // 直接循环
+  // let map = {}
+  let max = -1
+  let set = new Set()
+  for (const char of str) {
+    if (set.has(char)) {
+      // 如果包含，则直接删除
+      max = Math.max(set.size, max)
+      // 这里删除的是当前的，不符合预期，应该将之前的删除
+      set.delete(char)
+    }
+
+    set.add(char)
+  }
+  return Math.max(set.size, max)
+}
+
+function getLongestStr(str) {
+  let left = 0
+  let right = 0
+  let maxLen = -1
+  let res = []
+
+  // 右指针走到边界，才结束
+  while (right < str.length) {
+    // 如果没有包含，则一直压入，并更新最大的长度
+    if (!res.includes(str[right])) {
+      res.push(str[right])
+      // 更新最大值，每次都需要更新，是不是有点浪费？
+      maxLen = Math.max(maxLen, res.length)
+      right++
+    } else {
+      // 如果包含，此时计算最大值，是不是可以省一些计算量
+      // maxLen = Math.max(maxLen, res.length)
+      // 不，走到这里时，其实
+      res.splice(0, 1)
+    }
+  }
+}
+
 function minWindow(s, target) {
   let map = {}
   // 统计目标字符串各个字母的次数
@@ -1618,15 +1986,16 @@ function minWindow(s, target) {
       // 第一层while主要是遍历right指针，遍历完，肯定包含
       // 这里再缩小左侧指针，从而缩小区间
       let char = s[left]
+      // 是0，其实就表示，这个字符属于目标字符，然后再统计其次数
       if (map[char] === 0) {
         counter++
       }
-      //
+      // 当counter等于0时，其实 map里的数据，要么是0，要么是-1
       map[char] = (map[char] || 0) + 1
       left++
     }
   }
-
+  // 当两层循环都结束后，就可以得到最小的 minLen 和 minLeftStart
   return minLen === Infinity ? '' : s.substr(minStart, minLen)
 }
 
@@ -1705,6 +2074,7 @@ function longestSubstring(s) {
       right++
     } else {
       // 如果包含的话，肯定是最左侧的先开始包含
+      // 注意，这里是滑动窗口，右侧遇到包含的字符时，左侧开始移动，一直移动到 right 又可以移动的情况
       set.delete(s[left])
       left++
     }
@@ -1718,7 +2088,8 @@ function longestSubstring(s) {
 - 时间复杂度为 O(n)，其中 n 为字符串的长度。因为每个字符最多被访问两次（一次添加到 set 中，一次从 set 中删除），所以时间复杂度为线性的。
 - 因为只需要求长度，只需要用 set 记录就可
 - 遍历字符串，利用滑动窗口，如果没有则一直压入，并更新最长的记录，同时右侧指针向右移动
-- 如果包含，肯定是左侧先包含，left++
+- 如果包含，肯定是左侧先包含，同时要删除最左侧的，因为右侧还要继续往下走，left++
+- 利用双指针法，可以截取一个区域
 
 上面方法，没办法直接返回最终结果，因为是迭代器对象
 
@@ -1735,7 +2106,8 @@ function longestSubstring(s) {
       maxLen = Math.max(maxLen, res.length)
       right++
     } else {
-      res.splice(0, 1)
+      // 注意，这里是滑动窗口，右侧遇到包含的字符时，左侧开始移动，一直移动到 right 又可以移动的情况
+      res.splice(0, 1)q
       left++
     }
   }
@@ -1849,7 +2221,8 @@ function bigNumAdd(a, b) {
 
 ### 去除相邻的字符串
 
-类似消消乐，凡是相邻挨着的字符串，全部干掉
+- 类似消消乐，凡是相邻挨着的字符串，全部干掉
+- 可以用一个堆栈来承载处理完的字符串
 
 ```js
 function removeAdjacentDuplicates(str) {
@@ -1909,16 +2282,17 @@ console.log(isValid('[({})]')) // true
 console.log(isValid('[({)}]')) // false字符串的replace方法是用于将字符串中的某个子串替换为另一个子串。当入参是正则表达式时，可以使用正则表达式来匹配要替换的子串。
 ```
 
-## 第三部分：二叉树
+## 二叉树
 
-二叉树的特点:
+- 完全二叉树：除了最后一层节点不满外，其它层节点都是满的，且最后一层的节点都集中在左边。
+- 满二叉树：每个节点都有 0 个或 2 个子节点。
+- 二叉查找树：左子树上所有节点的值均小于根节点的值，右子树上所有节点的值均大于根节点的值。
+- 平衡二叉树：左子树和右子树的高度差不超过 1。
+- 红黑树：一种自平衡二叉查找树，具有如下特点：节点是红色或黑色；根节点与叶子节点都是黑色；如果一个节点是红色，那么它的子节点都是黑色；从任意节点到其每个叶子节点的路径都包含相同数目的黑色节点。
+- B 树：一种多路搜索树，具有如下特点：每个节点最多有 m 个子节点；除根节点和叶子节点外，其他节点至少有[m/2]个子节点；所有叶子节点都在同一层。
+- 线索二叉树：在二叉树中，将节点的空指针指向该节点在中序遍历中的前驱或后继节点，称为线索二叉树。
 
-- 左侧节点小于根节点
-- 根节点小于右节点
-
-### 增删改查
-
-二叉树是一种常用的数据结构，它由节点组成，每个节点最多有两个子节点，左子节点比父节点小，右子节点比父节点大。以下是使用 JavaScript 实现二叉树的插入、搜索、删除和排序算法的示例：
+总之，不同的二叉树形态有着不同的特点，适用于不同的场景和问题。
 
 ```js
 class Node {
@@ -1937,20 +2311,25 @@ class BinaryTree {
 
   // 插入节点，则需要找到对应的位置
   insert(value) {
+    // 每次插入节点，都需要实例化一个节点
     const node = new Node(value)
 
+    // 如果没有根节点，则直接赋值root
     if (!this.root) {
       this.root = node
     } else {
+      // 否则，需要遍历二叉树
       let current = this.root
 
       while (current) {
         // 小值在左侧
         if (value < current.value) {
+          // 到达左边界，则找到插入的位置了
           if (!current.left) {
             current.left = node
             break
           }
+          // 否则一直找最左侧
           current = current.left
         } else if (value > current.value) {
           if (!current.right) {
@@ -2068,8 +2447,1591 @@ console.log(tree.search(7)) // Node { value: 7, left: Node {...}, right: Node {.
 console.log(tree.search(15)) // null
 ```
 
-## 第三部分：数组
+### 二叉树遍历方法
 
-## 第三部分：数组
+1. 前序遍历：先访问根节点，再遍历左子树，最后遍历右子树 -> 根左右
+2. 中序遍历：先遍历左子树，再访问根节点，最后遍历右子树 -> 做根右
+3. 后序遍历：先遍历左子树，再遍历右子树，最后访问根节点 -> 左右根
+4. 层序遍历：从根节点开始，按照从上到下、从左到右的顺序逐层遍历整棵树。
 
-## 第三部分：数组
+```js
+// 1、先序遍历
+const recursionPreOrderTraversal = (root) => {
+  if (!root) {
+    return
+  }
+  // 💥 🔥 先序，肯定第一个输出的是根，因此先打印
+  arr1.push(root.value)
+  // 递归遍历所有左树
+  recursionPreOrderTraversal(root.left)
+  // 递归遍历所有右树
+  recursionPreOrderTraversal(root.right)
+}
+
+// 中序递归：遍历所有左树 -> 根 ->  遍历所有右树
+// 预期：
+const recursionInOrderTraversal = (root) => {
+  if (!root) {
+    return
+  }
+  // 递归遍历所有左树，将左侧树都遍历完
+  recursionInOrderTraversal(root.left)
+  arr2.push(root.value)
+  // 递归遍历所有右树
+  recursionInOrderTraversal(root.right)
+}
+
+// 后序递归：遍历所有左树 -> 遍历所有右树 -> 根
+const recursionPostOrderTraversal = (root) => {
+  if (!root) {
+    return
+  }
+  // 递归遍历所有左树
+  recursionPostOrderTraversal(root.left)
+  // 递归遍历所有右树
+  recursionPostOrderTraversal(root.right)
+  arr3.push(root.value)
+}
+```
+
+```js
+// 迭代方法
+// 使用迭代的话，就需要用到循环，而循环就需要模拟一个数组堆栈，那什么可以呢？
+// 递归是不断求自己，而迭代则需要模拟遍历堆栈
+// 答案是：将待处理的节点，存放到堆栈里，利用数组的自身改变性，循环处理
+const iterationPreOrderTraversal = (root) => {
+  // 如果没有节点，则返回空
+  if (!root) return []
+
+  const results = []
+  const stack = [root] // 将节点放入堆栈，先序遍历，先处理根节点
+
+  while (stack.length) {
+    // 若堆栈里有节点，则一直处理
+    const node = stack.pop() // 取出节点
+    results.push(node.value) // 先序遍历，则需要立马就存放值
+    node.right && stack.push(node.right) // 前面使用pop，从后面取值，所以最后压入的先处理，而先序需要先处理左侧树
+    node.left && stack.push(node.left)
+  }
+  return results
+  // 💥 🔥 先序，肯定第一个输出的是根，因此先打印
+}
+console.log('迭代先序结果：', iterationPreOrderTraversal(root)) // [1,2,4,5,3]
+
+// 因此关键的关键，就是如何构建这个堆栈，💥 🔥 想象一下遍历的最终结果，然后想法按这个顺序把他们从二叉树上拿出来，并放到堆栈里💥 🔥
+// 数据结构如下
+//          1
+//         / \
+//        2   3
+//       / \
+//      4   5
+const iterationInOrderTraversal = (root) => {
+  if (!root) return []
+
+  const stacks = [] // 左根右 -> 放到堆栈里，就应该是 🔥右根左🔥，因为每次是pop从堆栈取，因此需要先将所有左树全放进去
+  const results = []
+  let current = root
+
+  while (current || stacks.length) {
+    // 当从最底部走上来，此时current为左下角节点的右子树，很明显没有，然后跳过while开始处理 节点 2
+    while (current) {
+      // 参考数据结构图，当第一次 root的1进来，直接放进去了。。。其实 1 也可以看做是左子节点，想象下2、3 又何尝不是 1 ？
+      // 第一次，所以可以直接压入
+      stacks.push(current)
+      // 然后后续压入的都是左侧节点
+      current = current.left
+    }
+
+    // 左侧节点压完后，就需要从堆栈里取出，然后遍历
+    current = stacks.pop()
+    // 第一次时，此时 current 已经在最左下方了，没有子树了，也就是 左根右，没有左了，拿出根的value，然后继续处理右子节点，因为不知道有没有右子节点
+    results.push(current.value) // 🔥 节点里的值，是根据 TreeNode 类确定的，value、val、、什么都行
+
+    // 上面的current，其实就可以理解为根，然后处理右子节点，因为堆栈里没有右子节点的信息，所以需要通过代码走逻辑
+    current = current.right
+  }
+  return results
+}
+console.log('迭代中序结果：', iterationInOrderTraversal(root)) // 结果：[4, 2, 5, 1, 3]
+
+// 该算法的原理是：利用栈实现二叉树的深度优先遍历，通过lastVisitedNode记录上一个访问的节点，判断当前节点是否可以被访问，从而实现后序遍历。
+// 具体来说，当一个节点的左右子节点都被访问过时，该节点才能被访问。
+// 因此，我们需要在遍历过程中记录上一个访问的节点，以便判断当前节点的右子节点是否已经被访问过。
+// 如果右子节点已经被访问过，说明该节点可以被访问了。
+
+const iterationPostOrderTraversal = (root) => {
+  const results = []
+  const stacks = []
+  let lastVisited = null
+  let current = root
+
+  while (current || stacks.length) {
+    while (current) {
+      stacks.push(current)
+      current = current.left
+    }
+
+    // 🔥 注意，这里引用堆栈里最后的一个值，第一次时，就是左下角的值
+    current = stacks[stacks.length - 1]
+    // 需要判断这个节点，是否有右节点(有的话，需要继续入栈)，或者被访问过
+    //          1
+    //         / \
+    //        2   3
+    //       / \
+    //          5
+    if (!current.right || current.right === lastVisited) {
+      // 当没有左右节点，或者被访问过了，才可以将value放入到结果里
+      results.push(current.value)
+      // 计入处理完了当前节点，比如5，则可以丢弃5了
+      stacks.pop() // 不需要接收了
+      // 📌标记下，比如5已经访问过了
+      lastVisited = current
+      // current 重置，开始下一次stacks.length循环
+      current = null
+    } else {
+      // 参考上面的数据结构，当current为2时，需要将right再入栈，只有左右都入栈了，才可以输出 2 的value
+      current = current.right
+    }
+  }
+
+  return results
+}
+console.log('迭代后序结果：', iterationPostOrderTraversal(root)) // 结果：[4, 5, 2, 3, 1]
+```
+
+### 二叉树最小深度
+
+```js
+class TreeNode {
+  // 二叉树，有三个值
+  constructor(val, left, right) {
+    this.val = val
+    this.left = left
+    this.right = right
+  }
+}
+```
+
+#### 递归方法
+
+```js
+function minDepth(root) {
+  // 两个临界值：没有节点或者没有子节点
+  if (!root) {
+    return 0
+  }
+  if (!root.left && !root.right) {
+    return 1
+  }
+
+  // 递归获取左侧或右侧子树的高度
+  let min = Number.MAX_SAFE_INTEGER
+  if (root.left) {
+    min = Math.min(minDepth(root.left), min)
+  }
+  if (root.right) {
+    min = Math.min(minDepth(root.right), min)
+  }
+  return min + 1
+}
+```
+
+#### BFS 广度优先
+
+我们可以使用广度优先搜索算法（BFS）来解决这个问题。BFS 从根节点开始搜索，一层一层地遍历树，直到找到**最短路径**。
+
+举个例子，假设有如下二叉树：
+
+```
+      1
+     / \
+    2   3
+   / \   \
+  4   5   6
+```
+
+按照 BFS 遍历的顺序，先访问根节点 1，再按照从左到右的顺序访问 2 和 3 节点，然后访问 4、5 和 6 节点，最终得到遍历的结果为：1 -> 2 -> 3 -> 4 -> 5 -> 6。
+
+我们可以通过队列来实现 BFS。首先将根节点入队，然后从队列中取出一个节点，将其左右子节点入队。如果当前节点没有左右子节点，则说明它是叶子节点，返回它的深度即可。
+
+```js
+function minDepth(root) {
+  // 如果根节点为空，深度为0
+  if (!root) return 0
+
+  // 队列中存储节点和它的深度，
+  // 首先压入的是头部节点，然后是左侧和右侧节点，这个遍历方式前序遍历
+  const queue = [{ node: root, depth: 1 }]
+
+  while (queue.length) {
+    // 取出队列中的第一个节点
+    const { node, depth } = queue.shift()
+
+    if (!node.left && !node.right) {
+      // 如果当前节点是叶子节点，返回它的深度
+      return depth
+    }
+
+    if (node.left) {
+      // 如果当前节点有左子节点，将其入队
+      queue.push({ node: node.left, depth: depth + 1 })
+    }
+
+    if (node.right) {
+      // 如果当前节点有右子节点，将其入队
+      queue.push({ node: node.right, depth: depth + 1 })
+    }
+  }
+}
+
+const tree = new TreeNode(
+  1,
+  new TreeNode(2, new TreeNode(2.5), new TreeNode(4)),
+  new TreeNode(3, null, new TreeNode(5))
+)
+console.log(minDepth(tree)) // 输出: 2
+
+// 二叉树的结构如下：
+//   1
+//  / \
+// 2   3
+//  \   \
+//   4   5
+```
+
+#### 深度优先遍历
+
+- 深度优先遍历是一条路走到底，再返回来走其他路，
+- 而广度优先遍历是一层一层遍历，先遍历与起点相邻的节点，再遍历它们的相邻节点。
+
+```js
+function minDepth(root) {
+  if (!root) {
+    return 0
+  }
+  let min = Infinity
+  const stack = [[root, 1]]
+  while (stack.length) {
+    // 使用了栈来存储节点，每次弹出栈顶元素进行处理
+    // 栈顶元素，是最后压入的。。。对比广度优先，则处理栈底，也就是 stack.shift()
+    const [node, depth] = stack.pop()
+    if (!node.left && !node.right) {
+      min = Math.min(min, depth)
+    }
+    if (node.left) {
+      stack.push([node.left, depth + 1])
+    }
+    if (node.right) {
+      stack.push([node.right, depth + 1])
+    }
+  }
+  return min
+}
+```
+
+### 打开转盘锁
+
+你有一个带有四个圆形拨轮的转盘锁。每个拨轮都有 10 个数字： '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' 。每个拨轮可以自由旋转：例如把 '9' 变为  '0'，'0' 变为 '9' 。每次旋转都只能旋转一个拨轮的一位数字。
+
+锁的初始数字为 '0000' ，一个代表四个拨轮的数字的字符串。
+
+列表 deadends 包含了一组死亡数字，一旦拨轮的数字和列表里的任何一个元素相同，这个锁将会被永久锁定，无法再被旋转。
+
+字符串 target 代表可以解锁的数字，你需要给出解锁需要的最小旋转次数，如果无论如何不能解锁，返回 -1 。
+
+- 其实就是每次拨动一个转盘，所有转盘上的数字不能与 deadends 里的相同
+
+```
+输入：deadends = ["0201","0101","0102","1212","2002"], target = "0202"
+输出：6
+解释：
+可能的移动序列为 "0000" -> "1000" -> "1100" -> "1200" -> "1201" -> "1202" -> "0202"。
+注意 "0000" -> "0001" -> "0002" -> "0102" -> "0202" 这样的序列是不能解锁的，
+因为当拨动到 "0102" 时这个锁就会被锁定。
+```
+
+```js
+function openLock(deadends, target) {
+  // 将死锁状态存入一个 Set 中，
+  const deadSet = new Set(deadends)
+
+  // 将初始状态 "0000" 存入队列中，并将其标记为已访问
+  const visited = new Set()
+  const queue = ['0000']
+  visited.add('0000')
+  let step = 0
+
+  while (queue.length) {
+    const len = queue.length
+    for (let i = 0; i < len; i++) {
+      const curr = queue.shift()
+      // 判断是否为死亡状态
+      if (deadSet.has(curr)) {
+        continue
+      }
+      if (curr === target) {
+        return step
+      }
+      // 如果没有碰到死亡状态，则对每个转盘上的数字进行计算
+      for (let j = 0; j < 4; j++) {
+        const up = plusOne(curr, j)
+        if (!visited.has(up)) {
+          queue.push(up)
+          visited.add(up)
+        }
+        const down = minusOne(curr, j)
+        if (!visited.has(down)) {
+          queue.push(down)
+          visited.add(down)
+        }
+      }
+    }
+    step++
+  }
+  return -1
+}
+
+// 加一
+function plusOne(str, index) {
+  const arr = str.split('')
+  if (arr[index] === '9') {
+    arr[index] = '0'
+  } else {
+    arr[index] = String(Number(arr[index]) + 1)
+  }
+  return arr.join('')
+}
+
+function minusOne(str, index) {
+  const arr = str.split('')
+  if (arr[index] === '0') {
+    arr[index] = '9'
+  } else {
+    arr[index] = String(Number(arr[index]) - 1)
+  }
+  return arr.join('')
+}
+```
+
+这个算法是用来解决开锁问题的。给定一个初始锁的状态 "0000" 和一个目标状态 target，以及一些不能被旋转的死锁状态，求从初始状态到达目标状态的最小步数。
+
+算法的实现是基于 BFS（广度优先搜索）的。
+
+1. 首先将死锁状态存入一个 Set 中，将初始状态 "0000" 存入队列中，并将其标记为已访问。
+2. 然后进入一个 while 循环，每次从队列中取出一个状态进行处理。
+3. 如果当前状态是死锁状态，则跳过。
+4. 如果当前状态是目标状态，则返回当前步数。
+5. 否则，对当前状态的每个数字进行加一或减一的操作，生成新的状态，并将其加入队列中。
+6. 如果新状态没有被访问过，则将其标记为已访问。
+
+其中，plusOne 和 minusOne 函数用来对状态进行加一和减一的操作。如果当前数字是 9 或 0，则需要进行特殊处理。
+
+### 相同的树
+
+- 深度优先遍历是一种递归算法，可以更容易地实现。
+- 其次，深度优先遍历是一种自上而下的遍历方式，可以更快地发现两棵树不相同的情况，从而提前结束遍历。
+- 而广度优先遍历是一种自下而上的遍历方式，需要遍历完整棵树才能得出结论，效率较低。
+
+因此，在检验两棵树是否相同的问题中，深度优先遍历更为适合。
+
+```js
+var isSameTree = function (p, q) {
+  // 深度优先：是自上而下遍历，处理两棵树是否相同时，效率高
+  // 而广度优先，则是从下而上，需要遍历整个树才行，这里效率低，但广度优先适合用在最短路径上
+  // 先处理边界条件
+  if (!p && !q) return true // 都为空，相同
+  if (!p || !q) return false // 一个为空，不相同
+  if (p.val !== q.val) return false // 值不相同，不相同
+
+  // 注意，这里栈的元素结构是 [p, q]，因为要同时处理这两个
+  const stacks = [[p, q]]
+  while (stacks.length) {
+    // 深度优先，则先pop最后的一个
+    const [node1, node2] = stacks.pop()
+    // 类似上面的判断
+    if (!node1 && !node2) continue // 都为空，继续遍历
+    if (!node1 || !node2) return false // 一个为空，不相同
+    if (node1.val !== node2.val) return false // 值不相同，不相同
+
+    // 继续压入其他的节点
+    stacks.push([node1.left, node2.left]) // 左子树入栈
+    stacks.push([node1.right, node2.right]) // 右子树入栈
+  }
+  // 最后 会执行到 !node1 && !node2 这里，因此最后需要返回true
+  return true
+}
+```
+
+#### 递归方法
+
+```js
+var isSameTree = function (p, q) {
+  // 1、两个节点都没有，肯定相同
+  // 2、两个节点，一个有，一个没有，不相同
+  // 3、两个节点，值不同，也不同
+  // 4、递归
+  if (!p && !q) {
+    return true
+  } else if (!p || !q) {
+    return false
+  } else if (p.val !== q.val) {
+    return false
+  } else {
+    return isSameTree(p.left, q.left) && isSameTree(p.right, q.right)
+  }
+}
+```
+
+### 岛屿的最大面积
+
+给你一个大小为 m x n 的二进制矩阵 grid 。
+
+岛屿   是由一些相邻的  1 (代表土地) 构成的组合，这里的「相邻」要求两个 1 必须在 水平或者竖直的四个方向上 相邻。你可以假设  grid 的四个边缘都被 0（代表水）包围着。
+
+岛屿的面积是岛上值为 1 的单元格的数目。
+
+计算并返回 grid 中最大的岛屿面积。如果没有岛屿，则返回面积为 0 。
+
+- 其实就是方格纸上，每个格子要么 1，要么 0
+- 1 就是岛屿，0 就是海水，相当于统计方格纸上，连着的 1 最多有多少，需要上下左右挨着的。
+
+- 这个算法选用深度优先是因为要遍历整个岛屿，深度优先搜索可以很自然地模拟这个过程。
+- 首先找到一个陆地点，然后从这个点开始，尽可能向四周扩展，**直到无法继续扩展，然后回溯到上一个点，继续向另一个方向扩展**。这个过程可以用递归来实现，就是深度优先搜索。
+- 同时，深度优先搜索还可以很方便地记录岛屿的面积，因为在搜索过程中，每次访问到一个陆地点，就可以将面积加 1。
+
+```js
+function maxAreaOfIsland(grid) {
+  let maxArea = 0
+  // 先拿到方格纸的长和宽，其实就是二维数组
+  const m = grid.length // 这个就是宽度
+  const n = grid[0].length // 这个就是深度
+
+  //  首先找到一个陆地点，然后从这个点开始，尽可能向四周扩展，**直到无法继续扩展，然后回溯到上一个点，继续向另一个方向扩展**。这个过程可以用递归来实现，就是深度优先搜索。
+  const dfs = (i, j) => {
+    // 将边界条件直接返回0
+    if (i < 0 || i >= m || j < 0 || j >= n || grid[i][j] === 0) {
+      return 0
+    }
+    // i,j表示当前搜索的位置，这里设置为0，表示搜索过
+    // 这里相当于把原来gird的1都为了0，因为已经统计过了
+    grid[i][j] = 0
+    let area = 1 // 同时当前位置的面积就是1
+    // 然后开始搜索这个上下左右四个方向
+    area += dfs(i - 1, j)
+    area += dfs(i + 1, j)
+    area += dfs(i, j - 1)
+    area += dfs(i, j + 1)
+    // 最后返回area
+    return area
+  }
+
+  // 主函数，从棋盘的左上角开始遍历
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      // 如果单个方格是1，则是岛屿，需要继续查找，看是否还有其他挨着的岛屿
+      if (grid[i][j] === 1) {
+        maxArea = Math.max(maxArea, dfs(i, j))
+      }
+    }
+  }
+  return maxArea
+}
+```
+
+这段代码是用来求解给定二维数组中最大岛屿面积的函数。岛屿是由相邻的 1 组成的区域，相邻指上下左右相邻。函数中的核心是深度优先搜索（DFS）算法。
+
+1. 首先定义一个变量 maxArea 来记录最大岛屿面积，然后获取二维数组的行数 m 和列数 n。
+2. 接着定义一个名为 dfs 的递归函数，用来搜索岛屿面积。
+   1. 该函数传入两个参数 i 和 j，表示当前搜索的位置，如果越界或者当前位置为 0，则返回 0，
+   2. 否则将当前位置标记为 0，表示已经搜索过，
+   3. 然后定义一个变量 area 来记录当前岛屿的面积，初始值为 1，因为当前位置已经是 1 了。
+   4. 然后向上下左右四个方向递归搜索，并将搜索到的岛屿面积加到 area 中，最后返回 area。
+3. 接下来，通过两个循环遍历整个二维数组，如果当前位置为 1，则调用 dfs 函数来搜索该岛屿的面积，并将结果与 maxArea 取最大值，最后返回 maxArea 即可。
+
+总之，这段代码的思路就是通过 DFS 算法来搜索岛屿面积，然后遍历整个二维数组，找到最大的岛屿面积。
+
+```js
+function maxAreaOfIsland(grid) {
+  let maxArea = 0
+  // 需要棋盘的宽高
+  let m = grid.length
+  let n = grid[0].length
+
+  // 主函数，双层循环遍历整个棋盘
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      // 如果当前格子为1，则需要递归处理
+      if (grid[i][j]) {
+        maxArea = Math.max(maxArea, dfs(i, j))
+      }
+    }
+  }
+  return maxArea
+
+  // 定义辅助函数，主要逻辑就是递归的向上下左右方向遍历
+  // 既然是递归，那肯定就需要边界条件
+  function dfs(i, j) {
+    if (i < 0 || i >= m || j < 0 || j >= n || !grid[i][j]) {
+      // 这些条件下，面积都为0
+      return 0
+    }
+
+    // 重置当前格子，相当于已经遍历过了，后续就不用再遍历了
+    grid[i][j] = 0
+    let area = 1 // 虽然 grid[i][j] 改为0了，但这里记录了
+    // 开始向四个方向，遍历
+    area += dfs(i, j - 1) // 上
+    area += dfs(i, j + 1) // 下
+    area += dfs(i - 1, j) // 左
+    area += dfs(i + 1, j) // 右
+    return area
+  }
+}
+```
+
+### 二叉树的最近公共祖先
+
+1. 判断二叉树根节点是否为 null，或者是否等于 p 节点或 q 节点，如果是，直接返回根节点。
+2. 分别递归左子树和右子树，查找 p 和 q 节点的位置。
+3. 如果 p 和 q 节点分别在左右子树中找到了，那么当前节点即为最近公共祖先，返回当前节点。
+4. 如果只在左子树中找到了 p 或 q 节点，那么返回左子树中找到的节点。
+5. 如果只在右子树中找到了 p 或 q 节点，那么返回右子树中找到的节点。
+6. 最终返回的节点即为 p 和 q 节点的最近公共祖先。
+
+```js
+function lowestCommonAncestor(root, p, q) {
+  if (root === null || root === p || root === q) {
+    return root
+  }
+  const left = lowestCommonAncestor(root.left, p, q)
+  const right = lowestCommonAncestor(root.right, p, q)
+
+  if (left !== null && right !== null) {
+    return root
+  } else if (left !== null) {
+    return left
+  } else {
+    return right
+  }
+}
+```
+
+## 链表
+
+链表是由一系列节点组成的数据结构，每个节点包含两个部分：数据部分和指针部分。数据部分存储节点的值，指针部分存储下一个节点的地址。
+
+链表的结构如下：
+
+```js
+function LinkedList() {
+  this.head = null
+  this.length = 0
+
+  function Node(data) {
+    this.data = data
+    this.next = null
+  }
+
+  this.add = function (data) {
+    var node = new Node(data)
+    // 如果head为null，则是第一个节点
+    if (this.head == null) {
+      this.head = node
+    } else {
+      // 拿到当前链表的头结点
+      var current = this.head
+      while (current.next !== null) {
+        // 循环找到尾节点
+        current = current.next
+      }
+      // 将新节点，挂载在尾节点上
+      current.next = node
+    }
+    // 更新长度
+    this.length++
+  }
+
+  this.remove = function (data) {
+    if (this.head == null) {
+      return null
+    }
+
+    // 移除节点时，是根据data来的
+    if (this.head.data === data) {
+      // 直接改变下一个节点的指向
+      this.head = this.head.next
+      this.length--
+      return data
+    }
+
+    // 如果删除的数据不是当前节点，则需要找到
+    var current = this.head
+    while (current.next !== null) {
+      // 如果找到，改变指向
+      if (current.next.data === data) {
+        current.next = current.next.next
+        this.length--
+        return data
+      }
+      // 循环找
+      current = current.next
+    }
+
+    return null
+  }
+
+  // 查找节点
+  this.search = function (data) {
+    var current = this.head
+    while (current !== null) {
+      if (current.data === data) {
+        return current
+      }
+      current = current.next
+    }
+    return null
+  }
+}
+```
+
+### 环形链表
+
+提示词：想象在同一个跑道上，同时有两个人在跑步，一快一慢，二者肯定会相遇
+
+```js
+const circleLink = (head) => {
+  // ❌ 注意下面的赋值语句❗️❗️❗️ 首先fast = head 是赋值表达式，然后fast的值为head，然后再赋值给slow，但是fast变成全局变量了。。。在浏览器里fast会泄露到全局
+  // 在该项目中，会直接报错：caught ReferenceError: fast is not defined
+  // let slow = fast = head
+  let fast = head
+  let slow = head
+
+  while (fast && fast.next) {
+    if (fast === slow) {
+      return true
+    }
+    fast = fast.next.next
+    slow = slow.next
+  }
+  // 遍历完，都没相遇，则肯定不是环形
+  return false
+}
+```
+
+### 相交链表
+
+提示词：想象两条交汇的路 A 和 B，但 A 和 B 从哪里来是未知的
+
+思路：
+
+1. 因为 A 和 B 的长度不一，所以二者需要先走 Math.abs(A - B) 长度
+2. 然后再挨个判断是否一致
+
+```js
+const intersectLink = (head1, head2) => {
+  let len1 = 0
+  let curt1 = head1
+  let len2 = 0
+  let curt1 = head2
+  // 遍历二者的长度
+  while (curt1 && curt1.next) {
+    curt1 = curt1.next
+    len1++
+  }
+
+  while (curt2 && curt2.next) {
+    curt2 = curt2.next
+    len2++
+  }
+  // 提高效率，如果遍历完，这里还不相等，那肯定就不想交了
+  if (curt2 !== curt1) return null
+
+  curt1 = head1
+  curt2 = head2
+  // 下面❌错误，二者不能同时走，应该是长的走
+  // 二者同时走 Math.abs(len1 - len2)，用什么计量呢？
+  // let counter = Math.abs(len1 - len2)
+  // while(counter) {
+  //   curt1 = curt1.next
+  //   curt2 = curt2.next
+  //   counter--
+  // }
+  if (len1 > len2) {
+    for (let i = 0; i < len1 - len2; i++) {
+      curt1 = curt1.next
+    }
+  } else {
+    // 注意 len2 - len1 与上方不同
+    for (let j = 0; j < len2 - len1; j++) {
+      curt2 = curt2.next
+    }
+  }
+
+  // 等到二者站在同一起跑线时，挨个对比，如果不相等，则继续向下
+  while (curt1 !== curt2) {
+    curt1 = curt1.next
+    curt2 = curt2.next
+  }
+  // 最后，只需返回节点就行，如果二者相交，curt1肯定不是null
+  return curt1
+}
+```
+
+```js
+const intersectLink = (headA, headB) => {
+  let len1 = 0,
+    len2 = 0
+  let tail1 = headA,
+    tail2 = headB
+
+  while (tail1 && tail1.next) {
+    tail1 = tail1.next
+    len1++
+  }
+  while (tail2 && tail2.next) {
+    tail2 = tail2.next
+    len2++
+  }
+
+  if (tail1 !== tail2) {
+    return null
+  }
+
+  // 步骤二：战线拉的长的，赶赶进度
+  let cur1 = headA,
+    cur2 = headB
+  if (len1 > len2) {
+    for (let i = 0; i < len1 - len2; i++) {
+      cur1 = cur1.next
+    }
+  } else {
+    for (let i = 0; i < len2 - len1; i++) {
+      cur2 = cur2.next
+    }
+  }
+
+  // 步骤三：赶完进度后，挨个对比，如果不一样，再继续往后走
+  while (cur1 !== cur2) {
+    cur1 = cur1.next
+    cur2 = cur2.next
+  }
+
+  // 若相同，则直接返回，二者都可以；如果cur1最后是null那就是不相交
+  return cur1
+}
+```
+
+### 反转链表
+
+反转链表的方法有很多种，最常用的是迭代法和递归法。这里我们采用迭代法来实现。
+
+```
+输入: 1->2->3->4->5->NULL
+输出: 5->4->3->2->1->NULL
+```
+
+提示词：
+
+```js
+const reverseList = (head) => {
+  let cur = head
+  let newNext = null // 定义中间变量，作为中转
+
+  while (cur) {
+    // 暂存当前节点的指向，其实是下一个节点
+    let oldNext = cur.next
+
+    // 改变当前节点指向，指向反向的新节点
+    cur.next = newNext
+
+    // 继续向下走，cur已经修改完毕，后续作为新的节点，即newNext
+    newNext = cur
+    // 将之前缓存的节点，作为当前的节点
+    cur = oldNext
+  }
+  // 根据循环，当while(5)，进入最后一轮循环，结束后cur为null
+  // 因此应该返回nexNext
+  return nexNext
+}
+```
+
+### 合并 K 个升序链表
+
+给你一个链表数组，每个链表都已经按升序排列。
+
+请你将所有链表合并到一个升序链表中，返回合并后的链表。
+
+```
+输入：lists = [[1,4,5],[1,3,4],[2,6]]
+输出：[1,1,2,3,4,4,5,6]
+解释：链表数组如下：
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+将它们合并到一个有序链表中得到。
+1->1->2->3->4->4->5->6
+```
+
+```js
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+
+/**
+ * @param {ListNode[]} lists
+ * @return {ListNode}
+ */
+var mergeKLists = function (lists) {
+  // 前提条件，如果长度为0或者为1，特殊处理
+  const len = lists.length
+  if (!len) return null
+  if (len === 1) return lists[0]
+
+  // 因为lists的长度不确定，但每次也只能同时操作两个
+  const mergeTwoLists = (l1, l2) => {
+    if (!l1) return l2
+    if (!l2) return l1
+
+    // 这是链表，虽然题目描述里，模拟的数组接口，不要真的按数组方式处理
+    // 链表结构，l1.val就是头结点的值
+    if (l1.val < l2.val) {
+      // 谁小，谁在前面
+      l1.next = mergeTwoLists(l1.next, l2)
+      // 执行完，还需要返回，外界还需要
+      return l1
+    } else {
+      l2.next = mergeTwoLists(l1, l2.next)
+      return l2
+    }
+  }
+
+  // 假定第一项就是基准
+  let merged = lists[0]
+
+  for (let i = 1; i < lists.length; i++) {
+    merged = mergeTwoLists(merged, lists[i])
+  }
+
+  return merged
+}
+```
+
+### 回文链表
+
+#### 方式一
+
+1. 使用快慢指针找到链表的中点，将链表分为两部分。
+2. 将后半部分链表反转。
+3. 比较前半部分链表和后半部分链表的值是否相等，如果有一个不相等则返回 false，否则返回 true。
+
+```js
+function isPalindrome(head) {
+  if (!head || !head.next) {
+    return true
+  }
+
+  let slow = head
+  let fast = head
+
+  // 快慢指针走到中间位置
+  while (fast.next && fast.next.next) {
+    slow = slow.next
+    fast = fast.next.next
+  }
+
+  let pre = null
+  let cur = slow.next
+  slow.next = null
+
+  // 反转后半部分
+  while (cur) {
+    let next = cur.next
+    cur.next = pre
+    pre = cur
+    cur = next
+  }
+
+  // 对比头部和尾部
+  while (head && pre) {
+    if (head.val !== pre.val) {
+      return false
+    }
+    head = head.next
+    pre = pre.next
+  }
+
+  return true
+}
+```
+
+#### 方式二
+
+```js
+var isPalindrome = function (head) {
+  let res = ''
+  while (head) {
+    res += head.val
+    head = head.next
+  }
+  for (let i = 0, j = res.length - 1; i < j; i++, j--) {
+    if (res[i] !== res[j]) {
+      return false
+    }
+  }
+  return true
+}
+```
+
+### K 个一组翻转链表
+
+给你链表的头节点 head ，每  k  个节点一组进行翻转，请你返回修改后的链表。
+
+k 是一个正整数，它的值小于或等于链表的长度。如果节点总数不是  k  的整数倍，那么请将最后剩余的节点保持原有顺序。
+
+你不能只是单纯的改变节点内部的值，而是需要实际进行节点交换。
+
+```
+输入：head = [1,2,3,4,5], k = 2
+输出：[2,1,4,3,5]
+
+输入：head = [1,2,3,4,5], k = 3
+输出：[3,2,1,4,5]
+```
+
+1. 先定义一个函数 reverse，用来反转一个链表。
+2. 定义一个函数 reverseKGroup，用来实现每 k 个节点反转一次的功能。
+3. 首先，我们需要统计链表的长度，以便确定要反转几次。
+4. 然后，我们从头节点开始遍历链表，每遍历 k 个节点，就将这 k 个节点反转一次。
+5. 反转 k 个节点的方法是先将它们全部取出来，然后调用 reverse 函数进行反转，最后将它们重新连接起来。
+6. 如果剩下的节点不足 k 个，就不进行反转，直接将它们连接到已经反转好的部分的末尾。
+7. 最后，返回反转后的链表头节点。
+
+```js
+// 反转链表的方法
+function reverse(head) {
+  let prev = null
+  let curr = head
+  while (curr) {
+    let next = curr.next
+    curr.next = prev
+    prev = curr
+    curr = next
+  }
+  return prev
+}
+
+// 反转k
+function reverseKGroup(head, k) {
+  let len = 0
+  let curr = head
+  // 得到链表的长度
+  while (curr) {
+    len++
+    curr = curr.next
+  }
+
+  // 实例化节点，并将新节点指向head
+  let dummy = new ListNode()
+  dummy.next = head
+  let prev = dummy
+
+  // 7 / 2 => 3 反转3次
+  for (let i = 0; i < Math.floor(len / k); i++) {
+    // 从头开始遍历
+    let start = prev.next
+    for (let j = 1; j < k; j++) {
+      // 暂存
+      let next = start.next
+      // 重写
+      start.next = next.next
+      // 覆盖
+      next.next = prev.next
+      // 继续
+      prev.next = next
+    }
+    prev = start
+  }
+  return dummy.next
+}
+```
+
+- 时间复杂度：O(n)，其中 n 是链表的长度。遍历链表一次的时间复杂度是 O(n)，反转每个长度为 k 的子链表的时间复杂度是 O(k)，因此总时间复杂度是 O(n)。
+- 空间复杂度：O(1)。我们只需要常数的空间存储若干变量。
+
+## Promise 相关
+
+### promiseLimit
+
+```js
+const promiseLimit = (ps, limit) => {
+  // 异步编程，肯定需要promise
+  return new Promise((resolve, reject) => {
+    let running = 0
+    let idx = 0
+    let results = []
+
+    // runTask 辅助函数：执行具体的异步任务
+    const runTask = (task) => {
+      running++
+      console.log('运行中的数量：', running)
+      // task本身是promise，所以直接then
+      task()
+        .then((res) => {
+          // 到这里一个任务就结束了
+          running--
+          results.push(res)
+          // 然后开启新的任务
+          walk()
+        })
+        .catch((err) => reject(err))
+    }
+
+    // 主函数，执行入口
+    const walk = () => {
+      // 正在运行的数量小于limit，则持续压入
+      while (running < limit && idx < ps.length) {
+        runTask(ps[idx])
+        idx++
+      }
+      // while循环结束后，如果running为0，说明已经全部结束
+      if (!running) resolve(results)
+    }
+    walk()
+  })
+}
+
+const tasks = [
+  () => new Promise((resolve) => setTimeout(() => resolve(1), 1000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(2), 2000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(3), 3000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(4), 4000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(5), 5000)),
+  () => new Promise((resolve) => setTimeout(() => resolve(6), 6000)),
+]
+
+promiseLimit(tasks, 2)
+  .then((results) => {
+    console.log(results)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
+```
+
+### promiseAll
+
+```js
+const promiseAllV1 = (ps) => {
+  return new Promise((resolve, reject) => {
+    let count = 0
+    let results = []
+    const len = ps.length
+
+    // 遍历执行ps
+    for (let i = 0; i < len; i++) {
+      ps[i]
+        .then((val) => {
+          // 更新次数，压入值
+          count++
+          // results.push(val) // 需要保证顺序
+          results[i] = val
+
+          // 判断次数
+          if (count === len) {
+            resolve(results)
+          }
+        })
+        .catch((err) => reject(err))
+    }
+  })
+}
+
+const tasksV1 = [Promise.resolve(1), Promise.resolve(3)]
+
+// 以下几种操作方式都不对
+// console.log('promiseAllV1结果：', promiseAllV1(tasksV1))     // ❌ promiseAllV1是一个promise，需要.then调用才能拿到结果
+// const resV1 = promiseAllV1(tasksV1).then(res => res)        // ❌ 这个res并不会返回，因此resV1拿到的只是一个新的Promise
+// console.log('promiseAllV1结果：', resV1)                     // ❌ 打印：Promise {<pending>}
+promiseAllV1(tasksV1).then((res) => console.log('promiseAllV1结果：', res)) // ✅ [1, 3]
+```
+
+## 回溯相关
+
+```
+result = []
+def backtrack(路径, 选择列表):
+    if 满足结束条件:
+        result.add(路径)
+        return
+
+    for 选择 in 选择列表:
+        做选择
+        backtrack(路径, 选择列表)
+        撤销选择
+```
+
+其核心就是 for 循环里面的递归，在递归调用之前「做选择」，在递归调用之后「撤销选择」，特别简单。
+
+### 子集
+
+给你一个整数数组 nums ，数组中的元素 互不相同 。返回该数组所有可能的子集（幂集）。
+
+解集 不能 包含重复的子集。你可以按 任意顺序 返回解集。
+
+```
+输入：nums = [1,2,3]
+输出：[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]
+
+输入：nums = [0]
+输出：[[],[0]]
+```
+
+- 子集，要求顺序
+
+```js
+// 思想参考方案二或三
+function subsets(nums) {
+  // 利用回溯
+  const res = []
+  // 从第一个元素开始，每次选择一个元素，放入集合中，然后递归处理剩余的元素
+  backtrack(0, [])
+  return res
+
+  function backtrack(start, path) {
+    // 每次进来都把结果放进去
+    res.push([...path]) // 将 path 加入结果集 res 中
+
+    for (let i = start; i < nums.length; i++) {
+      path.push(nums[i]) // 将 nums[i] 加入 path 中
+      backtrack(i + 1, path) // 递归求解子问题
+      path.pop() // 将 nums[i] 从 path 中删除，回溯到上一层
+    }
+  }
+}
+```
+
+#### 方式二
+
+1. 原序列的每个位置在答案序列中的状态有被选中和不被选中两种，用 t 存放，n 是数组长度
+2. 在进入 dfs(cur, n)之前[0, cur-1]的位置的状态是确定的，而[cur, n-1]内位置的状态是不确定的
+3. dfs(cur, n) 需要确定 cur 位置的状态，然后求解子问题 dfs(cur+1, n)
+4. 对于 cur 位置，我们需要考虑 a[cur] 取或者不取，如果取，我们需要把 a[cur] 放到一个临时目录里，再执行 dfs(cur+1, n)，执行结束后对 t 进行回溯
+5. 如果不取，则直接执行 dfs(cur+1, n)
+6. 在整个递归调用的过程中，cur 是从小到大递增的，当 cur 增加到 n 的时候，记录答案并终止。
+7. 时间复杂度为：O^2
+
+```js
+var subsets = function (nums) {
+  const t = []
+  const ans = []
+
+  const dfs = (cur) => {
+    // 这个cur除了 cur + 1 改变外，每次递归都保留之前的堆栈现场，从而达到变化
+    if (cur === nums.length) {
+      ans.push(t.slice())
+      return
+    }
+    // 如果使用nums[cur]，则放在临时目录里
+    // 同时再求解子问题，dfs(cur + 1)
+    // 等所有子问题解决完后，回溯
+    t.push(nums[cur])
+    dfs(cur + 1)
+    t.pop()
+
+    // 如果不使用 nums[cur] ，则直接求解子问题
+    dfs(cur + 1)
+  }
+  dfs(0)
+  return ans
+}
+subsets([1, 2, 3])
+```
+
+#### 方式二：迭代法实现子集枚举
+
+1. 记原序列中元素的总数为 n，原序列中的每个数字 ai 的状态可能有两种，即「在子集中」和「不在子集中」。
+2. 我们用 1 表示「在子集中」，0 表示不在子集中，那么每一个子集可以对应一个长度为 n 的 1/0 序列
+3. 第 i 位表示 ai 是否在子集中，例如：n = 3，a = [5,2,9]，如下示例发现 1/0 序列对应的二进制数正好从 0 到 2^n - 1
+
+```
+000 -> []        -> 0
+001 -> [9]       -> 1
+010 -> [2]       -> 2
+011 -> [2, 9]    -> 3
+100 -> [5]       -> 4
+101 -> [5, 9]    -> 5
+110 -> [5, 2]    -> 6
+111 -> [5, 2, 9] -> 7
+```
+
+如果写个逻辑，将 二进制各种可能与集合按位与计算
+
+```js
+function subsets(nums) {
+  const ans = []
+  const n = nums.length
+
+  // 1 << n，表示 1 向左移动 n 位，空出的位置补0，也就是 1左移3位，就是8
+  // mask就是上面示例的二进制数的十进制表示
+  for (let mask = 0; mask < 1 << n; ++mask) {
+    const t = []
+
+    // 遍历每个位置的数字
+    for (let i = 0; i < n; i++) {
+      // 根据上面的序列示例知道，针对每一个mask，只需映射到数组里对应的索引即可
+      // 如何做呢，只需将对应索引左移 i 位，也变成对应的 二进制，且当前位置为ture
+      // 在与mask按位与操作，如果为true，就存放当前的值
+      if (mask & (1 << i)) {
+        t.push(nums[i])
+      }
+    }
+    ans.push(t)
+  }
+  return ans
+}
+```
+
+### 括号生成
+
+数字 n 代表生成括号的对数，请你设计一个函数，用于能够生成所有可能的并且 有效的 括号组合。
+
+```
+输入：n = 3
+输出：["((()))","(()())","(())()","()(())","()()()"]
+
+输入：n = 1
+输出：["()"]
+```
+
+- 想象下，你如何构造这些有效字符串，肯定先写一个左括号，然后判断
+- 暴力递归：生成所有可能的字符串，然后判断是否有效，缺点是很多冗余且无效的计算
+- 回溯法如下：只有在满足条件下，才会拼接，更加高效
+
+```js
+/**
+ * @param {number} n
+ * @return {string[]}
+ */
+var generateParenthesis = function (n) {
+  // backtrack函数来生成所有可能的组合。初始时，当前字符串为空字符串，开括号数和闭括号数均为0，最大括号对数为n。
+  // 当当前字符串的长度，是最大括号对数的两倍时，可能的组合产生
+
+  // 回溯架构：先写结果、调用回溯、返回
+  const res = []
+  // 参数2是当前字符串，参数3左括号的数量
+  // 参数4是右括号的数量，参数5是括号的最大对数
+  backtrack(res, '', 0, 0, n)
+  return res
+
+  function backtrack(res, cur, open, close, max) {
+    // 当当前字符串的长度 是 max 的两倍时
+    if (cur.length === max * 2) {
+      res.push(cur)
+      // 并返回，说明这一轮的递归结束了
+      return
+    }
+    // 如果左右括号的数量，不够，需要往里面添加对应的符号
+    if (open < max) {
+      backtrack(res, cur + '(', open + 1, close, max)
+    }
+    // 📢 注意，这里是close < open，不是 < max
+    // 因为括号是成对出现的，先构造左侧括号，再构造右侧括号。
+    // if (close < max) {
+    if (close < open) {
+      backtrack(res, cur + ')', open, close + 1, max)
+    }
+  }
+}
+
+generateParenthesis(3) // ['((()))', '(()())', '(())()', '()(())', '()()()']
+
+// res: '((()))' cur：((()) -> ((() -> ((( -> (()
+```
+
+```js
+function test() {
+  function testDiGui(i) {
+    if (i === 3) return
+    testDiGui(i + 1)
+    console.log('djch', i)
+  }
+  testDiGui(0)
+}
+test()
+// 调用堆栈情况，也就是说当i 小于 3时，log一直不会执行
+// 等到 i === 3 时，递归递推过程结束，开始回推，也就是执行log，然后因为i被函数作为闭包变量，一直封存
+// 等到回推过程，继续执行下面的逻辑，同时i的值也变成以前的了
+// djch 2
+// djch 1
+// djch 0
+```
+
+### 复原 IP 地址
+
+有效 IP 地址 正好由四个整数（每个整数位于 0 到 255 之间组成，且不能含有前导 0），整数之间用 '.' 分隔。
+
+例如：`"0.1.2.201" 和 "192.168.1.1"` 是 有效 IP 地址，但是 `"0.011.255.245"、"192.168.1.312" 和 "192.168@1.1"` 是 无效 IP 地址。
+
+给定一个只包含数字的字符串 s ，用以表示一个 IP 地址，返回所有可能的有效 IP 地址，这些地址可以通过在 s 中插入  '.' 来形成。你 不能   重新排序或删除 s 中的任何数字。你可以按 任何 顺序返回答案。
+
+```
+输入：s = "25525511135"
+输出：["255.255.11.135","255.255.111.35"]
+
+输入：s = "0000"
+输出：["0.0.0.0"]
+
+输入：s = "101023"
+输出：["1.0.10.23","1.0.102.3","10.1.0.23","10.10.2.3","101.0.2.3"]
+```
+
+- 不管三七二十一，先写框架
+
+```js
+/**
+ * @param {string} s
+ * @return {string[]}
+ */
+var restoreIpAddresses = function (s) {
+  const res = []
+  // 这个回溯公式是啥呢。。。？记住回溯就是穷举，而且挨个穷举，但有个好处就是，不是无脑穷举，而是有效才继续存储
+  // 从字符串的第一个位置，开始截取，使用dfs，不断地向下截取
+  // 参数1是截取的开始位置，参数2是最终的结果
+  backtrack(0, [])
+  return res
+
+  function backtrack(start, path) {
+    // 判断返回条件，（可以先遍历，后续再写这个边界，不然上来容易懵逼）
+    // 如果path的长度正好是4段，因为ip地址就是4段，且start的位置在末尾，说明遍历完所有的了，同时有效
+    if (path.length === 4 && start === s.length) {
+      res.push(path.join('.'))
+      return
+    }
+    // 如果走完了全程或者找到了4段，但是没有同时满足，则无效
+    if (path.length === 4 || start === s.length) {
+      return
+    }
+
+    // 每次最多截取3个字符
+    for (let len = 1; len <= 3; len++) {
+      // start记录遍历的位置
+      if (start + len > s.length) {
+        // 如果长度，比总的字符串还长，直接结束
+        break
+      }
+
+      const str = s.substring(start, start + len)
+      if ((str.length > 1 && str.startsWith('0')) || (len === 3 && +str > 255)) {
+        // 这是前面和后面的边界值，触发后需要下一轮循环。不用再继续往path里添加了
+        continue
+      }
+
+      // path里不同位数的字符串
+      path.push(str)
+      // 下一个位置，就是 start + len
+      backtrack(start + len, path)
+      path.pop()
+    }
+  }
+}
+restoreIpAddresses('25525511135') // ['255.255.11.135', '255.255.111.35']
+// [2, 5, 5, 2]   不满足
+// [2, 5, 5, 25]  不满足
+// [2, 5, 5, 255] 不满足 就这样一直不停向下回溯
+```
+
+### n 皇后
+
+按照国际象棋的规则，皇后可以攻击与之处在同一行或同一列或同一斜线上的棋子。
+
+n  皇后问题 研究的是如何将 n  个皇后放置在 n×n 的棋盘上，并且使皇后彼此之间不能相互攻击。
+
+给你一个整数 n ，返回所有不同的  n  皇后问题 的解决方案。
+
+每一种解法包含一个不同的 n 皇后问题 的棋子放置方案，该方案中 'Q' 和 '.' 分别代表了皇后和空位。
+
+```js
+var solveNQueens = function (n) {
+  // 要求：1、不能在同一行或同一列；2、不能在对角线上
+  // 1、定义一个数组，下标为行号，值为皇后所在的列号，如果值不重复，也就是没有皇后在同一列，即满足要求1
+  // 2、数组值相减、下标相减，如果绝对值不相等，则满足要求2
+
+  // 定义结果数组
+  let res = []
+
+  // 定义回溯函数
+  // 参数1是当前已经存放皇后的数组arr，curRow是当前行号
+  function backTrack(arr, curRow) {
+    let len = arr.length
+
+    // 如果当前行号curRow === len，说明回溯完成，也就是皇后的数量与行数相同
+    // 只需将数组里的数据，转化为结果格式的数组即可
+    if (len === curRow) {
+      res.push(
+        arr.map((v) => {
+          return `${'.'.repeat(v)}Q${'.'.repeat(n - v - 1)}`
+        })
+      )
+    }
+
+    // 如果没有回溯完成，则需要遍历当前行的每一列存放皇后
+    for (let i = 0; i < len; i++) {
+      // 假设arr[i] = i 可以存放皇后
+      arr[curRow] = i
+      let flag = true
+
+      // 既然假设的位置已经存放皇后，则后续来的皇后需要与之对比
+      // 只需对比前curRow行
+      for (let j = 0; j < curRow; j++) {
+        // 如果循环结束，falg变为false了，说明该行不能再放皇后了
+        // i表示某一行待插入皇后的列，arr[j]表示已经存在的皇后列，
+        // abs === 0 其实就相当于，多个皇后在同一列了。
+        // (abs > 0 ? abs : -abs) === curRow - j 就相当于，相邻的皇后在同一个对角线上了。
+        // curRow就是待插入的行，j就是已经插入的皇后的行
+        let abs = i - arr[j]
+        if (abs === 0 || (abs > 0 ? abs : -abs) === curRow - j) {
+          flag = false
+          // 整行都不行，直接退出循环
+          break
+        }
+      }
+
+      // 循环结束后，flag没变，说明 arr[i] = i假设成立，则开始遍历下一层
+      if (flag) {
+        console.log('arr', arr)
+        backTrack(arr.slice(), curRow + 1)
+      }
+    }
+  }
+  // 从第0行开始执行回溯，参数一是每一行的情况
+  backTrack(Array(n), 0)
+
+  // 返回结果
+  return res
+}
+```
+
+这段代码实现了求解 n 皇后问题的功能。n 皇后问题是指在 n×n 的棋盘上，放置 n 个皇后，使得皇后彼此之间不能相互攻击（即不能在同一行、同一列或同一斜线上）。该函数使用回溯算法实现。具体实现如下：
+
+1. 定义一个结果数组 res，用于存放满足条件的解；
+2. 定义一个回溯函数 backTrack，该函数接收两个参数，一个是当前已经存放皇后的数组 arr，另一个是当前行号 curRow；
+3. 如果 curRow 等于数组长度 n，说明回溯完成，将 arr 转化为结果格式的数组，存入 res 中；
+4. 遍历当前行的每一列，假设该位置可以存放皇后，将该位置的列号存入 arr[curRow]中；
+5. 对于已经存放皇后的每一行，判断该位置是否满足条件，即不能在同一列，也不能在同一斜线上；
+6. 如果所有已经存放皇后的行都满足条件，则开始遍历下一层，即调用 backTrack 函数，传入一个新的 arr 数组和 curRow+1；
+7. 如果该位置不满足条件，则直接进入下一次循环，遍历下一个位置；
+8. 回溯结束后，返回结果数组 res。
+
+该函数使用了 slice()方法来复制数组，避免对原数组的修改。同时，使用了字符串的 repeat()方法来生成结果格式的字符串。
+
+```js
+function solveNQueens(n) {
+  const result = []
+  const board = Array.from({ length: n }, () => Array(n).fill('.'))
+
+  function backtrack(row) {
+    if (row === n) {
+      result.push(board.map((row) => row.join('')))
+      return
+    }
+
+    for (let col = 0; col < n; col++) {
+      if (isValid(row, col)) {
+        board[row][col] = 'Q'
+        backtrack(row + 1)
+        board[row][col] = '.'
+      }
+    }
+  }
+
+  function isValid(row, col) {
+    for (let i = 0; i < row; i++) {
+      if (board[i][col] === 'Q') {
+        return false
+      }
+      const leftDiagonal = col - (row - i)
+      if (leftDiagonal >= 0 && board[i][leftDiagonal] === 'Q') {
+        return false
+      }
+      const rightDiagonal = col + (row - i)
+      if (rightDiagonal < n && board[i][rightDiagonal] === 'Q') {
+        return false
+      }
+    }
+    return true
+  }
+
+  backtrack(0)
+  return result
+}
+```
+
+该算法使用回溯的思想，在棋盘上逐行放置皇后，并检查当前位置是否合法。如果当前行放置皇后后导致无法放置下一行的皇后，就回溯到上一行重新尝试其他位置。当所有行都放置好了皇后，就将当前的棋盘状态加入结果集中。时间复杂度为 O(n^n)。
+
+## 常见算法
+
+### LRU（Least Recently Used）
+
+```js
+const lruCache = (size) => {
+  const map = new Map()
+  const maxSize = size
+
+  return {
+    get(key) {
+      if (map.has(key)) {
+        const val = map.get(key)
+        // 删除再添加，从而达到更新效果
+        map.delete(key)
+        map.set(key, val)
+        // 最后返回val
+        return val
+      }
+      return -1
+    },
+
+    //
+    put(key, val) {
+      // 如果有，直接删除
+      if (map.has(key)) {
+        map.delete(key)
+      }
+
+      // 重新赋值
+      map.set(key, val)
+
+      // 设置完数据，需要检查大小
+      if (map.size > maxSize) {
+        // 找到最开始的那个干掉
+        const firstKey = map.keys().next().value
+        map.delete(firstKey)
+      }
+    }, // 注意是对象，需要逗号分割
+
+    keys() {
+      return map.keys()
+    },
+  }
+}
+
+const cache = lruCache(2)
+
+cache.put('a', 1)
+cache.put('b', 2)
+cache.put('c', 3) // 操作完这个 a 将会消失
+console.log(cache.get('a')) // 输出 -1
+
+// 💥 注意观察下面返回的可迭代对象，.next()，第一次迭代，就是第一个了
+console.log(cache.keys()) // 输出可迭代对象 MapIterator {'b', 'c'}
+// 0 : "b"
+// 1 : "c"
+
+// 💥 上面是拿key，如果想拿到value，可以用 cache.values()
+// 其实还可以 cache.values() 得到全是value的迭代器。因此可根据情况使用
+```
