@@ -814,6 +814,22 @@ function myNew(constructor, ...args) {
 
 ### Object.defineProperty
 
+```js
+// 当想劫持 对station的读写，比如 state.station = xxx，则可以如下劫持
+
+var myStation = state.station
+
+Object.defineProperty(state, 'station', {
+  get() {
+    return myStation
+  },
+  set(val) {
+    debugger
+    myStation = val
+  },
+})
+```
+
 ### Proxy
 
 ```js
