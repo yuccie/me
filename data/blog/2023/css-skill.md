@@ -22,3 +22,53 @@ canonicalUrl: https://dume.vercel.app/blog/2023/css-skills
   -webkit-text-fill-color: transparent;
 }
 ```
+
+### 动画骨架屏
+
+```css
+@keyframes moveLight {
+  0% {
+    /* 水平100%的位置，垂直50%的位置 */
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+.skeleton {
+  width: 120px;
+  height: 35px;
+  background: linear-gradient(
+    100deg,
+    hsla(0, 0%, 74.5%, 0.2) 25%,
+    hsla(0, 0%, 50.6%, 0.24) 37%,
+    hsla(0, 0%, 74.5%, 0.2) 63%
+  );
+  background-size: 400% 100%;
+  animation: moveLight ease 1.5s infinite;
+}
+```
+
+```css
+@keyframes skeleton-loading {
+  0% {
+    transform: translate(-37.5%);
+  }
+
+  to {
+    transform: translate(37.5%);
+  }
+}
+
+.skeleton {
+  /* inset: 0 -150%; */
+  background: linear-gradient(
+    90deg,
+    rgba(190, 190, 190, 0.2) 25%,
+    rgba(129, 129, 129, 0.24) 37%,
+    rgba(190, 190, 190, 0.2) 63%
+  );
+  animation: skeleton-loading 1.4s ease infinite;
+}
+```
