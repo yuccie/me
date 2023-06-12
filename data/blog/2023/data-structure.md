@@ -279,6 +279,10 @@ textEncoder.encode('𠮷a').length // 5
 
 ### 合并两个有序数组
 
+1. 两个指针，从左到右分别移动
+2. 两个指针都必须小于对应数组的长度
+3. 移动一遍之后，肯定剩下长的那个，然后再处理
+
 ```js
 function mergeSortedArrays(arr1, arr2) {
   let mergedArr = []
@@ -350,7 +354,7 @@ function permute(arr) {
 
     for (let j = 0; j <= permutation.length; j++) {
       // 当 permutation = [3] 时
-      // 当 j = 0 时，permutation.slice(0, j) 其实就就是空，然后first就是 2, permutation.slice(0)就是3 -> [2, 3]
+      // 当 j = 0 时，permutation.slice(0, j) 其实就是空，然后first就是 2, permutation.slice(0)就是3 -> [2, 3]
       // 当 j = 1 时，permutation.slice(0, 1)就是3，permutation.slice(1)就是空，所以为 [3, 2]
       // 下面的作用很巧妙，将first插入到permutation的各个位置。
       const newPermutation = [...permutation.slice(0, j), first, ...permutation.slice(j)]
@@ -394,6 +398,9 @@ console.log(result)
 因此，总的时间复杂度为 O(n\*n!)。
 
 #### 方式二
+
+1. 深度优先遍历，
+2. 定义深度优先遍历函数
 
 ```js
 var permute = function (nums) {
@@ -518,6 +525,9 @@ console.log(list[-1]) // 输出 3
 尽管 [1,3,5,7] 也是升序的子序列, 但它不是连续的，因为 5 和 7 在原数组里被 4 隔开。
 ```
 
+- 定义个最大值变量，然后再定一个当前子序列长度的变量
+- 满足条件时，则一直累加，否则判断二者大小
+
 ```js
 function findLengthOfLCIS(nums) {
   // 没有长度，直接返回0
@@ -562,6 +572,9 @@ function findLengthOfLCIS(nums) {
 输出：4
 解释：最长数字连续序列是 [1, 2, 3, 4]。它的长度为 4。
 ```
+
+- 遍历数组，先找到每个序列的开始值
+- 然后 while 循环看能找到多少
 
 ```js
 function longestConsecutive(nums) {
@@ -636,6 +649,7 @@ var findMedianSortedArrays = function (nums1, nums2) {
     j++
   }
   const minddle = Math.floor(res.length / 2)
+  // const isEven = res.length & 1 === 0 // 和1进行与操作，偶数比为0
   const isEven = res.length % 2 === 0
   const final = isEven ? (res[minddle - 1] + res[minddle]) / 2 : res[minddle]
   return final
@@ -685,6 +699,46 @@ const findSecondLargest = (arr) => {
 // 这个算法的时间复杂度为 O(n)，空间复杂度O(1)
 console.log(findSecondLargest([1, 1, 2, 3, 4, 4]))
 console.log(findSecondLargestBad([1, 1, 2, 3, 4, 4]))
+```
+
+### 寻找数组中第三大的数
+
+```js
+function findThirdLargestNumber(arr) {
+  if (arr.length < 3) {
+    return '数组长度不足3'
+  }
+
+  // Number.POSITIVE_INFINITY 正无穷
+  // Number.NEGATIVE_INFINITY 负无穷大
+  let first = Number.NEGATIVE_INFINITY
+  let second = Number.NEGATIVE_INFINITY
+  let third = Number.NEGATIVE_INFINITY
+
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] > first) {
+      third = second
+      second = first
+      first = arr[i]
+    } else if (arr[i] > second && arr[i] < first) {
+      third = second
+      second = arr[i]
+    } else if (arr[i] > third && arr[i] < second) {
+      third = arr[i]
+    }
+  }
+
+  if (third === Number.NEGATIVE_INFINITY) {
+    return '数组中没有第三大的数'
+  }
+
+  return third
+}
+
+// 示例用法
+const numbers = [1, 3, 5, 2, 9, 8, 7]
+const thirdLargest = findThirdLargestNumber(numbers)
+console.log(thirdLargest) // 输出: 7
 ```
 
 ### 快速排序
@@ -742,7 +796,7 @@ var subarraySum = function (nums, k) {
 
     // 如果有 sum - k 则说明，两个位置之间的子数组的和为k，累加即可
     // 这个地方必须是 sum - k，其实可以想象下 两数之和 A + B = C ,那这里的 C 就是sum，然后A或B就是K
-    // 如何 C - B 存在，则说明存在一个和为k的子数组，直接累加即可
+    // 如果 C - B 存在，则说明存在一个和为k的子数组，直接累加即可
     if (map.has(sum - k)) {
       count += map.get(sum - k)
       // console.log('djch count', count)
@@ -846,6 +900,10 @@ function twoSum(nums, target) {
 输出：[1,3]
 解释：2 与 4 之和等于目标数 6 。因此 index1 = 1, index2 = 3 。返回 [1, 3] 。
 ```
+
+- 利用双指针，分别指向最左侧和最右侧，
+- 然后相加，并与 target 做对比
+- 因为已经是递增排序的了，所以如果小于，则 left++
 
 ```js
 function twoSum(numbers, target) {
@@ -980,6 +1038,7 @@ function fourSum(nums, target) {
 - 四数之和的原理，类似三数之和，只是以当前元素和下一个元素作为前两个
 - 相比三数之和，四数之和是两层 for 循环
 - 而两数之和，不需要 for 循环就搞定了，左右指针
+- 其实就相当于：三数之和为一个 for 循环加一个两数之和，四数之和则相当于两个 for 循环加一个两数之和
 
 ### 删除有序数组中的重复项
 
@@ -1006,7 +1065,7 @@ var removeDuplicates = function (nums) {
 - 直接调用：f() -> f()
 - 间接调用：f() -> f1() -> f()
 
-其实递归的思想，是分而治之，而且每次的输入值的范围都会变小，知道设置的条件满足即退出
+其实递归的思想，是分而治之，而且每次的输入值的范围都会变小（**其实也就是自顶向下的思想**），知道设置的条件满足即退出，
 
 **示例一：从给定的数字倒数到最小的数字，每次减 1。**
 
@@ -1017,7 +1076,7 @@ function countDown(num) {
   }
   // console.log(num)
 
-  // 输入值：每次都减少
+  // 输入值：每次都减少，顶部是num，下一个则是 num - 1，自顶向下
   return countDown(num - 1)
 }
 ```
@@ -1502,6 +1561,53 @@ function canJump(nums) {
 - 否则更新能够跳到的最远距离。当能够跳到最后一个位置时，返回 true。
 - 最后，如果循环结束后仍未返回 false，则说明能够跳到最后一个位置，返回 true。
 
+### 青蛙跳台阶问题
+
+```js
+function numWays(n) {
+  if (n <= 0) {
+    return 1
+  }
+
+  let dp = Array(n + 1).fill(0)
+  dp[0] = 1
+  dp[1] = 1
+  // 控制数值范围：通过取模运算，可以将一个较大的数值限制在一个较小的范围内。例如，取模 1000000007 可以将结果限制在 0 到 1000000006 之间。
+  // 防止整数溢出：当进行大数运算时，结果可能会超出计算机表示的整数范围。取模运算可以防止这种溢出情况的发生，并确保结果仍在可表示的范围内。
+  // 常用于计数和累加操作：当需要对计数或累加的结果进行取模时，可以避免结果过大而导致溢出问题。这在动态规划、组合数学、排列组合等领域中经常用到。
+  // 在一些算法中，取模运算可以产生周期性的结果，利用这个特性可以优化计算，减少重复计算或存储的开销。
+  // 总之，取模运算可以帮助我们控制数值范围、避免整数溢出，并在某些情况下提供算法的优化。在特定的问题中，使用适当的模数进行取模运算是很常见的操作。
+  for (let i = 2; i <= n; i++) {
+    dp[i] = (dp[i - 1] % 1000000007) + (dp[i - 2] % 1000000007)
+  }
+  return dp[n] % 1000000007
+}
+
+// 解释为何：dp[i] = dp[i - 1] + dp[i - 2]
+// 假设我们有一个 4 级的台阶。我们可以使用以下符号来表示每一级台阶的跳法数量：
+
+// dp[0]: 第 0 级台阶的跳法数量
+// dp[1]: 第 1 级台阶的跳法数量
+// dp[2]: 第 2 级台阶的跳法数量
+// dp[3]: 第 3 级台阶的跳法数量
+// dp[4]: 第 4 级台阶的跳法数量
+// 现在，让我们一步步计算每一级台阶的跳法数量：
+
+// 初始情况下，我们已知 dp[0] = 1（跳上 0 级台阶只有一种跳法）和 dp[1] = 1（跳上 1 级台阶只有一种跳法）。
+// 现在我们计算 dp[2]，也就是跳上第 2 级台阶的跳法数量。我们可以有两种方式到达第 2 级台阶：
+// 从第 1 级台阶跳一级到达第 2 级台阶。
+// 从第 0 级台阶跳两级到达第 2 级台阶。
+// 因此，dp[2] = dp[1] + dp[0] = 1 + 1 = 2。
+// 接下来，我们计算 dp[3]，也就是跳上第 3 级台阶的跳法数量。同样，我们可以有两种方式到达第 3 级台阶：
+// 从第 2 级台阶跳一级到达第 3 级台阶。
+// 从第 1 级台阶跳两级到达第 3 级台阶。
+// 因此，dp[3] = dp[2] + dp[1] = 2 + 1 = 3。
+// 最后，我们计算 dp[4]，也就是跳上第 4 级台阶的跳法数量。同样，我们可以有两种方式到达第 4 级台阶：
+// 从第 3 级台阶跳一级到达第 4 级台阶。
+// 从第 2 级台阶跳两级到达第 4 级台阶。
+// 因此，dp[4] = dp[3] + dp[2] = 3 + 2 = 5。
+```
+
 ### 盛最多水的容器
 
 给定一个长度为 n 的整数数组  height 。有  n  条垂线，第 i 条线的两个端点是  `(i, 0) 和 (i, height[i])` 。
@@ -1889,66 +1995,6 @@ console.log(isPalindrome('hello')) // false
 - 然后再开始移动左指针
 
 ```js
-var getMaxLenStr = (str) => {
-  // 直接循环
-  // let map = {}
-  let max = -1
-  let res = []
-  for (const char of str) {
-    if (res.includes(char)) {
-      // 如果包含，则肯定是最左侧
-      // 其实不一定，比如 ab -> abb，就不是最左侧的，因此不能使用数组
-      // 不使用数组，可以使用set，天生的防止重复
-      max = Math.max(res.length, max)
-      res.shift()
-    }
-
-    res.push(char)
-  }
-  return Math.max(res.length, max)
-}
-
-var getMaxLenStr = (str) => {
-  // 直接循环
-  // let map = {}
-  let max = -1
-  let set = new Set()
-  for (const char of str) {
-    if (set.has(char)) {
-      // 如果包含，则直接删除
-      max = Math.max(set.size, max)
-      // 这里删除的是当前的，不符合预期，应该将之前的删除
-      set.delete(char)
-    }
-
-    set.add(char)
-  }
-  return Math.max(set.size, max)
-}
-
-function getLongestStr(str) {
-  let left = 0
-  let right = 0
-  let maxLen = -1
-  let res = []
-
-  // 右指针走到边界，才结束
-  while (right < str.length) {
-    // 如果没有包含，则一直压入，并更新最大的长度
-    if (!res.includes(str[right])) {
-      res.push(str[right])
-      // 更新最大值，每次都需要更新，是不是有点浪费？
-      maxLen = Math.max(maxLen, res.length)
-      right++
-    } else {
-      // 如果包含，此时计算最大值，是不是可以省一些计算量
-      // maxLen = Math.max(maxLen, res.length)
-      // 不，走到这里时，其实
-      res.splice(0, 1)
-    }
-  }
-}
-
 function minWindow(s, target) {
   let map = {}
   // 统计目标字符串各个字母的次数
@@ -2058,6 +2104,35 @@ console.log(minWindow('ADOBECODEBANC', 'ABC')) // "BANC"
 ```
 
 ```js
+var lengthOfLongestSubstring = function (s) {
+  // 利用两个指针模拟一个滑动窗口
+  let left = 0
+  let right = 0
+  let len = s.length
+
+  let res = ''
+  let maxLen = 0
+
+  while (left <= right && right < len) {
+    // 判断是否重复，不重复拼接
+    if (res.indexOf(s[right]) === -1) {
+      res += s[right]
+      right++
+      // 更新最大值
+      maxLen = Math.max(res.length, maxLen)
+    } else {
+      // 如果重复了，则移动左指针，并重新得到新的子串
+      // pww -> ww -> wk
+      // 这里不能使用 ++left，因为left会累加，其实如果重复，每次都是从第二项开始截取即可
+      // res = res.slice(++left, right + 1)  left没啥用
+      res = res.slice(1, right + 1)
+    }
+  }
+  return maxLen
+}
+```
+
+```js
 function longestSubstring(s) {
   let left = 0
   let right = 0
@@ -2107,7 +2182,7 @@ function longestSubstring(s) {
       right++
     } else {
       // 注意，这里是滑动窗口，右侧遇到包含的字符时，左侧开始移动，一直移动到 right 又可以移动的情况
-      res.splice(0, 1)q
+      res.splice(0, 1)
       left++
     }
   }
@@ -2703,6 +2778,7 @@ console.log(minDepth(tree)) // 输出: 2
 
 - 深度优先遍历是一条路走到底，再返回来走其他路，
 - 而广度优先遍历是一层一层遍历，先遍历与起点相邻的节点，再遍历它们的相邻节点。
+- 在 DFS 算法中，使用栈来存储待处理的节点，在 BFS 算法中，使用队列来存储待处理的节点
 
 ```js
 function minDepth(root) {
@@ -2711,9 +2787,12 @@ function minDepth(root) {
   }
   let min = Infinity
   const stack = [[root, 1]]
+
   while (stack.length) {
     // 使用了栈来存储节点，每次弹出栈顶元素进行处理
     // 栈顶元素，是最后压入的。。。对比广度优先，则处理栈底，也就是 stack.shift()
+    // 仔细想想，深度优先时，stack.pop()都是获取的最后的叶子节点，
+    // 而广度优先，则使用队列，先排队则先用，对比这里就是每次需要遍历一层才可以。而深度则需要遍历
     const [node, depth] = stack.pop()
     if (!node.left && !node.right) {
       min = Math.min(min, depth)
@@ -2841,7 +2920,7 @@ var isSameTree = function (p, q) {
   // 先处理边界条件
   if (!p && !q) return true // 都为空，相同
   if (!p || !q) return false // 一个为空，不相同
-  if (p.val !== q.val) return false // 值不相同，不相同
+  if (p.val !== q.val) return false // 值不相同
 
   // 注意，这里栈的元素结构是 [p, q]，因为要同时处理这两个
   const stacks = [[p, q]]
@@ -2882,6 +2961,11 @@ var isSameTree = function (p, q) {
 }
 ```
 
+对于深度优先算法，可以采用递归和迭代实现
+
+- 递归
+- 迭代
+
 ### 岛屿的最大面积
 
 给你一个大小为 m x n 的二进制矩阵 grid 。
@@ -2917,10 +3001,10 @@ function maxAreaOfIsland(grid) {
     grid[i][j] = 0
     let area = 1 // 同时当前位置的面积就是1
     // 然后开始搜索这个上下左右四个方向
-    area += dfs(i - 1, j)
-    area += dfs(i + 1, j)
-    area += dfs(i, j - 1)
-    area += dfs(i, j + 1)
+    area += dfs(i - 1, j) // 左
+    area += dfs(i + 1, j) // 右
+    area += dfs(i, j - 1) // 上
+    area += dfs(i, j + 1) // 下
     // 最后返回area
     return area
   }
@@ -3464,6 +3548,32 @@ function reverseKGroup(head, k) {
 - 时间复杂度：O(n)，其中 n 是链表的长度。遍历链表一次的时间复杂度是 O(n)，反转每个长度为 k 的子链表的时间复杂度是 O(k)，因此总时间复杂度是 O(n)。
 - 空间复杂度：O(1)。我们只需要常数的空间存储若干变量。
 
+### 链表中第 K 个节点
+
+```js
+var kthToLast = function (head, k) {
+  // 设置两个指针，一个指针先走k步，然后两个指针再一块走
+  // 刚开始的那个指针走到头时，慢指针指向的就是倒数第k个指针
+
+  let fast = head
+  let slow = head
+  let counter = 0
+  while (counter < k) {
+    fast = fast.next
+    counter++
+  }
+
+  // 二者在同时走，循环的条件是 fast存在
+  while (fast) {
+    fast = fast.next
+    slow = slow.next
+  }
+
+  // 返回节点的值，也就是val，看定义
+  return slow.val
+}
+```
+
 ## Promise 相关
 
 ### promiseLimit
@@ -3973,6 +4083,51 @@ function solveNQueens(n) {
 ```
 
 该算法使用回溯的思想，在棋盘上逐行放置皇后，并检查当前位置是否合法。如果当前行放置皇后后导致无法放置下一行的皇后，就回溯到上一行重新尝试其他位置。当所有行都放置好了皇后，就将当前的棋盘状态加入结果集中。时间复杂度为 O(n^n)。
+
+## 深度优先
+
+深度优先遍历（Depth-First Traversal）是一种用于遍历或搜索树或图的算法。在深度优先遍历中，从起始节点开始，沿着一条路径尽可能深入，直到无法继续为止，然后回溯到前一个节点，继续探索其他路径，直到遍历完所有节点。
+
+在 JavaScript 中，**深度优先遍历可以通过递归或使用栈来实现**。
+
+### 递归实现深度优先遍历：
+
+在递归实现中，我们从根节点开始，先访问当前节点，然后递归地遍历它的所有子节点。
+
+```javascript
+function depthFirstTraversal(node) {
+  console.log(node) // 访问当前节点
+
+  if (node.children) {
+    for (let child of node.children) {
+      depthFirstTraversal(child) // 递归遍历子节点
+    }
+  }
+}
+```
+
+### 栈实现深度优先遍历：
+
+使用栈来实现深度优先遍历可以避免使用递归的方式，它模拟了递归调用的行为。具体实现是，将根节点入栈，然后进入循环，弹出栈顶节点并访问它，将其子节点按照逆序（或者按照特定顺序）入栈，重复此过程直到栈为空。
+
+```javascript
+function depthFirstTraversal(root) {
+  const stack = [root]
+
+  while (stack.length > 0) {
+    const node = stack.pop()
+    console.log(node) // 访问当前节点
+
+    if (node.children) {
+      for (let i = node.children.length - 1; i >= 0; i--) {
+        stack.push(node.children[i]) // 子节点入栈
+      }
+    }
+  }
+}
+```
+
+深度优先遍历在许多场景中非常有用，如寻找路径、拓扑排序、解决迷宫问题等。通过深度优先遍历，我们可以探索整个图或树的结构，从而实现各种问题的求解和分析。
 
 ## 常见算法
 
