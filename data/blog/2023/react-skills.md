@@ -10,6 +10,117 @@ bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/2023/react-skills
 ---
 
+## JSX
+
+### JSX 是如何转换为 页面的
+
+```html
+<div>
+  < img src="avatar.png" className="profile" />
+  <Hello />
+</div>
+```
+
+转换为：
+
+在转化过程中，babel 在编译时会判断 JSX 中组件的首字母：
+
+- 当首字母为小写时，其被认定为原生 DOM 标签，createElement 的第一个变量被编译为字符串
+- 当首字母为大写时，其被认定为自定义组件，createElement 的第一个变量被编译为对象
+
+```js
+React.createElement(
+  'div',
+  null,
+  React.createElement('img', {
+    src: 'avatar.png',
+    className: 'profile',
+  }),
+  React.createElement(Hello, null)
+)
+```
+
+`React.createElement` 会根据传入的标签类型 type，标签属性 props 及若干子元素 children 等等，生成对应的**虚拟 dom 对象**
+
+**虚拟 DOM 会通过 ReactDOM.render 进行渲染成真实 DOM**，当首次调用时，容器节点里的所有 DOM 元素都会被替换，后续的调用则会使用 React 的 diff 算法进行高效的更新
+
+```js
+function render(vnode, container) {
+  console.log('vnode', vnode) // 虚拟DOM对象
+  // vnode _> node
+  const node = createNode(vnode, container)
+  container.appendChild(node)
+}
+
+// 创建真实DOM节点
+function createNode(vnode, parentNode) {
+  let node = null
+  const { type, props } = vnode
+  if (type === TEXT) {
+    node = document.createTextNode('')
+  } else if (typeof type === 'string') {
+    node = document.createElement(type)
+  } else if (typeof type === 'function') {
+    node = type.isReactComponent
+      ? updateClassComponent(vnode, parentNode)
+      : updateFunctionComponent(vnode, parentNode)
+  } else {
+    node = document.createDocumentFragment()
+  }
+  reconcileChildren(props.children, node)
+  updateNode(node, props)
+  return node
+}
+
+// 遍历下子vnode，然后把子vnode->真实DOM节点，再插入父node中
+function reconcileChildren(children, node) {
+  for (let i = 0; i < children.length; i++) {
+    let child = children[i]
+    if (Array.isArray(child)) {
+      for (let j = 0; j < child.length; j++) {
+        render(child[j], node)
+      }
+    } else {
+      render(child, node)
+    }
+  }
+}
+function updateNode(node, nextVal) {
+  Object.keys(nextVal)
+    .filter((k) => k !== 'children')
+    .forEach((k) => {
+      if (k.slice(0, 2) === 'on') {
+        let eventName = k.slice(2).toLocaleLowerCase()
+        node.addEventListener(eventName, nextVal[k])
+      } else {
+        node[k] = nextVal[k]
+      }
+    })
+}
+
+// 返回真实dom节点
+// 执行函数
+function updateFunctionComponent(vnode, parentNode) {
+  const { type, props } = vnode
+  let vvnode = type(props)
+  const node = createNode(vvnode, parentNode)
+  return node
+}
+
+// 返回真实dom节点
+// 先实例化，再执行render函数
+function updateClassComponent(vnode, parentNode) {
+  const { type, props } = vnode
+  let cmp = new type(props)
+  const vvnode = cmp.render()
+  const node = createNode(vvnode, parentNode)
+  return node
+}
+export default {
+  render,
+}
+```
+
 ## hooks
 
 ### 为什么产生 hooks
@@ -135,3 +246,114 @@ function ChildComponent() {
 ```
 
 因此，整体的感觉是，react 的 useContext 相当于 vue 中 provide 和 injected
+
+## 路由
+
+- 改变 url 且浏览器不向服务器发送请求
+- 在不刷新页面的前提下动态改变浏览器地址栏中的 URL 地址
+
+```js
+import React from 'react'
+import {
+  BrowserRouter as Router,
+  // HashRouter as Router
+  Switch,
+  Route,
+} from 'react-router-dom'
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Backend from './pages/Backend'
+import Admin from './pages/Admin'
+
+function App() {
+  return (
+    <Router>
+      <Route path="/login" component={Login} />
+      <Route path="/backend" component={Backend} />
+      <Route path="/admin" component={Admin} />
+      <Route path="/" component={Home} />
+    </Router>
+  )
+}
+
+export default App
+```
+
+### hashRouter
+
+改变 hash 值并不会导致浏览器向服务器发送请求，浏览器不发出请求，也就不会刷新页面
+
+hash 值改变，触发全局 window 对象上的 hashchange 事件。所以 hash 模式路由就是利用 hashchange 事件监听 URL 的变化，从而进行 DOM 操作来模拟页面跳转
+
+HashRouter 包裹了整应用，
+
+通过 window.addEventListener('hashChange',callback)监听 hash 值的变化，并传递给其嵌套的组件
+
+然后通过 context 将 location 数据往后代组件传递，如下：
+
+```js
+import React, { Component } from 'react'
+import { Provider } from './context'
+// 该组件下Api提供给子组件使用
+class HashRouter extends Component {
+  constructor() {
+    super()
+    this.state = {
+      location: {
+        pathname: window.location.hash.slice(1) || '/',
+      },
+    }
+  }
+  // url路径变化 改变location
+  componentDidMount() {
+    window.location.hash = window.location.hash || '/'
+    window.addEventListener('hashchange', () => {
+      this.setState(
+        {
+          location: {
+            ...this.state.location,
+            pathname: window.location.hash.slice(1) || '/',
+          },
+        },
+        () => console.log(this.state.location)
+      )
+    })
+  }
+  render() {
+    let value = {
+      location: this.state.location,
+    }
+    return <Provider value={value}>{this.props.children}</Provider>
+  }
+}
+
+export default HashRouter
+```
+
+那底层的 Route 是如何消费的呢？如下，其实就是获取到 provider 里的数据，然后匹配当前组件路由进行返回
+
+```jsx
+import React, { Component } from 'react'
+import { Consumer } from './context'
+const { pathToRegexp } = require('path-to-regexp')
+class Route extends Component {
+  render() {
+    return (
+      <Consumer>
+        {(state) => {
+          console.log(state)
+          let { path, component: Component } = this.props
+          let pathname = state.location.pathname
+          let reg = pathToRegexp(path, [], { end: false })
+          // 判断当前path是否包含pathname
+          if (pathname.match(reg)) {
+            return <Component></Component>
+          }
+          return null
+        }}
+      </Consumer>
+    )
+  }
+}
+export default Route
+```
