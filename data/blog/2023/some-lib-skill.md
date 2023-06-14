@@ -2,7 +2,7 @@
 title: '一些优秀的库'
 date: Tue Jun 13 2023 09:50:59 GMT+0800 (中国标准时间)
 lastmod: '2023-05-26'
-tags: ['axios', '']
+tags: ['axios']
 draft: false
 summary: '这短短的一生，我们总要做一些有意义的事情。。。'
 layout: PostSimple

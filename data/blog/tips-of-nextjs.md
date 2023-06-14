@@ -14,6 +14,10 @@ canonicalUrl: https://dume.vercel.app/blog/tips-of-nextjs
 
 在使用 nextjs 的过程中，总会遇到一些问题，下面是一些总结，如果恰好屏幕前的你也遇到了，可以参考。
 
+### Conflicting paths returned from getStaticPaths, paths must be unique per page.
+
+- 一种 case 是，添加的标签有空字符串，导致判断失败
+
 ### eslint
 
 - Irregular whitespace not allowed 这种错误，一般是复制其他地方的代码到编辑器，比如 devtools 里，导致失败，检查相关的即可

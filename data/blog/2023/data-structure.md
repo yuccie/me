@@ -7,7 +7,7 @@ draft: false
 summary: '软件架构的规则是相同的！！！'
 layout: PostSimple
 bibliography: references-data.bib
-canonicalUrl: https://dume.vercel.app/blog/2023/clean-architecture
+canonicalUrl: https://dume.vercel.app/blog/2023/data-structure
 ---
 
 ## 前言
@@ -2302,6 +2302,7 @@ function bigNumAdd(a, b) {
       x = +a[i]
       i--
     }
+    // 每次取一个，不需要加while循环，while循环就一下子执行到底了
     if (j >= 0) {
       y = +b[j]
       j--
@@ -2661,12 +2662,13 @@ const iterationInOrderTraversal = (root) => {
       current = current.left
     }
 
-    // 左侧节点压完后，就需要从堆栈里取出，然后遍历
+    // 当无法再添加左节点时，从栈中弹出一个节点，并将其赋值给current，表示开始处理右子节点。
     current = stacks.pop()
     // 第一次时，此时 current 已经在最左下方了，没有子树了，也就是 左根右，没有左了，拿出根的value，然后继续处理右子节点，因为不知道有没有右子节点
     results.push(current.value) // 🔥 节点里的值，是根据 TreeNode 类确定的，value、val、、什么都行
 
     // 上面的current，其实就可以理解为根，然后处理右子节点，因为堆栈里没有右子节点的信息，所以需要通过代码走逻辑
+    // 将current指向当前节点的右子节点，下一轮循环将在右子树中继续进行左侧节点的遍历。
     current = current.right
   }
   return results
@@ -3751,20 +3753,25 @@ def backtrack(路径, 选择列表):
 ```js
 // 思想参考方案二或三
 function subsets(nums) {
-  // 利用回溯
-  const res = []
-  // 从第一个元素开始，每次选择一个元素，放入集合中，然后递归处理剩余的元素
+  let res = []
+  // 调用回溯函数，传入起始索引和空的路径数组，开始生成子集。
   backtrack(0, [])
   return res
 
+  // 参数一是遍历的起始位置
+  // 参数二是所有之前遍历的结果
   function backtrack(start, path) {
-    // 每次进来都把结果放进去
-    res.push([...path]) // 将 path 加入结果集 res 中
+    // 直接压入结果数组
+    res.push([...path])
 
+    // 从起始索引开始遍历数组的剩余部分。
     for (let i = start; i < nums.length; i++) {
-      path.push(nums[i]) // 将 nums[i] 加入 path 中
-      backtrack(i + 1, path) // 递归求解子问题
-      path.pop() // 将 nums[i] 从 path 中删除，回溯到上一层
+      // 将当前遍历到的元素nums[i]加入路径数组path中，表示选择了这个元素。
+      path.push(nums[i])
+      // 递归调用回溯函数，传入更新后的起始索引i + 1和当前的路径数组path，继续生成子集。
+      backtrack(i + 1, path)
+      // 在递归回溯之后，将刚才选择的元素从路径数组中删除，进行回溯操作，尝试选择其他的元素。
+      path.pop()
     }
   }
 }
