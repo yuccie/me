@@ -7,7 +7,7 @@ draft: false
 summary: '软件架构的规则是相同的！！！'
 layout: PostSimple
 bibliography: references-data.bib
-canonicalUrl: https://dume.vercel.app/blog/2023/clean-architecture
+canonicalUrl: https://dume.vercel.app/blog/2023/unicode
 ---
 
 ## 编码格式

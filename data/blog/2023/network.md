@@ -7,7 +7,7 @@ draft: false
 summary: '这短短的一生，我们总要做一些有意义的事情。。。'
 layout: PostSimple
 bibliography: references-data.bib
-canonicalUrl: https://dume.vercel.app/blog/2023/
+canonicalUrl: https://dume.vercel.app/blog/2023/network
 ---
 
 ## DDOS（Distributed Denial of Service）
