@@ -85,6 +85,41 @@ keep-alive 的原理是通过在组件的钩子函数中添加逻辑，对缓存
 
 ue.js 中的 nextTick 方法是在下一个 DOM 更新周期之后执行回调函数的一种方法。在 Vue.js 中，每次数据变化都会重新渲染 DOM，但是这个过程不是同步的，而是异步的。也就是说，当数据变化时，Vue.js 并不会立即更新 DOM，而是将这个更新操作放到一个队列中，等待下一个 DOM 更新周期再执行。
 
+手动实现一个 nextTick
+
+```js
+// 异步执行回调函数
+function nextTick(callback) {
+  // 将回调函数推入回调函数队列
+  callbacks.push(callback)
+  // 如果当前不处于执行回调函数的状态，则异步执行回调函数
+  if (!pending) {
+    pending = true
+    // 通过 Promise.resolve().then() 进行异步调用
+    Promise.resolve().then(flushCallbacks)
+  }
+}
+
+// 用于存储回调函数的队列
+let callbacks = []
+// 标识是否正在执行回调函数
+let pending = false
+
+// 执行回调函数
+function flushCallbacks() {
+  // 拷贝一份回调函数队列
+  const copies = callbacks.slice(0)
+  // 清空原始的回调函数队列
+  callbacks.length = 0
+  // 依次执行回调函数
+  for (let i = 0; i < copies.length; i++) {
+    copies[i]()
+  }
+  // 标记为正在执行回调函数
+  pending = false
+}
+```
+
 ### 指令
 
 ### 过滤器
