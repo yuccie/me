@@ -208,6 +208,26 @@ CORS 跨域配置有两种方式：服务器端配置和客户端配置。
 
 **注意：\*\***Access-Control-Allow-Origin 的域名后面不能添加斜杠（/）\*\*，因为它是指定允许跨域请求的源，而不是指定具体的路径。如果添加斜杠，就会限制只能从该域名下的某个路径发起跨域请求，而不是整个域名都可以跨域访问。
 
+#### script 标签请求资源
+
+- script 标签去请求资源的时候，request 是没有 origin 头的。
+- script 标签请求跨域资源的时候，内部运行如果报错的话，window.onerror 捕获的时候，内部的 error.message 只能看到 Script error.看不到完整的错误内容。这个应该是浏览器的安全策略。
+
+```js
+window.addEventListener('error', function (msg, url, lineno, colno, error) {
+  console.log('error catch:', msg.message)
+  return false
+})
+```
+
+#### script 标签 crossorigin 属性
+
+- 设置 crossorigin 属性后，script 标签去请求资源的时候，request 会带上 origin 头，然后会要求服务器进行 cors 校验，跨域的时候如果 response header 没有 ‘Access-Control-Allow-Origin’ 是不会拿到资源的。cors 验证通过后，拿到的 script 运行内部报错的话，，window.onerror 捕获的时候，内部的 error.message 可以看到完整的错误信息。
+- crossorigin 的属性值分为 anonymous 和 use-credentials。
+  - 如果设置了 crossorigin 属性，但是属性值不正确的话，默认是 anonymous。
+  - anonymous 代表同域会带上 cookie，跨域则不带上 cookie，相当于 fecth 请求的 credentials: 'same-origin'。
+  - use-credentials 跨域也会带上 cookie，相当于 fetch 请求的 credentials: 'include'，这种情况下跨域的 response header 需要设置'Access-Control-Allow-Credentials' = true，否则 cors 失败。
+
 ### jsonp
 
 jsonp 是一种跨域解决方法，它利用了浏览器允许跨域请求资源的特性。

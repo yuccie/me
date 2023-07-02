@@ -21,6 +21,22 @@ canonicalUrl: https://dume.vercel.app/blog/2023/vue-skills
 
 总的来说，Vue 更加易学易用，适合小型项目和团队，而 React 更加灵活和可扩展，适合大型项目和团队。
 
+## new Vue 都发生了什么
+
+1. new Vue(opts) 首先会接收传入的 opts 数据
+2. 开始执行初始化的操作，初始化生命周期、组件事件，初始化渲染方法等，同时先定义 各种方法，`$set，$get，$forceUpdate`等等
+3. 然后执行 beforeCrate 钩子，再初始化 data，然后执行 crated
+4. 最后是 `$mount`，
+   1. `$mount` 又分很多步，首先根据选项模版或者 html 生成渲染函数，这个过程还会转成 AST，同时做依赖搜集以及各种静态分析等等
+   2. 然后开始执行渲染组件函数，函数内部会再次判断是否有渲染函数，根据需要提示当前是 runtime-only 版本与否，或者没找到对应的模版或渲染函数
+   3. 满足条件后，执行 beforeMount 钩子，然后定义 updateComponent 方法
+      1. 该方法的主要目的是利用渲染函数生成虚拟 dom，再通过 patch（就是\_update 方法），生成真正的 dom
+   4. 然后开始执行 `new Watcher(vm, updateComponent, xxx) `
+      1. 实例化 watcher 之后，当数据发生变化时，会再次触发 updateComponent
+      2. 而第一次时，直接就根据数据生成了最终的 dom，同时将虚拟 dom 保存在内存中，下次数据发生变更时，会再次生成虚拟 dom 并比对
+      3. 只生成变化的部分。
+5. 最后执行 mounted 生命周期钩子
+
 ## vue2 vs vue3
 
 - 性能提升：Vue3 的虚拟 DOM 重写了渲染和补丁算法，在渲染和更新组件时，比 Vue2 更快。
