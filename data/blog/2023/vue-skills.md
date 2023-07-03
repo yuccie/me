@@ -37,6 +37,12 @@ canonicalUrl: https://dume.vercel.app/blog/2023/vue-skills
       3. 只生成变化的部分。
 5. 最后执行 mounted 生命周期钩子
 
+在 mountComponent 方法中会创建一个更新函数 updateComponent，并将其作为参数传递给 new Watcher。在创建 Watcher 实例的过程中，**会先执行一次更新函数，即 updateComponent**，这样就会触发首次的 render 过程。
+
+在首次执行更新函数时，会调用 render 方法生成虚拟 DOM，并进行后续的 diff 算法处理，最终将虚拟 DOM 转化为真实 DOM 并渲染到页面中。
+
+因此，可以说在 Vue 的第一次挂载过程中，render 生成虚拟 DOM 是在 mountComponent 方法中通过调用更新函数的方式触发的。
+
 ## vue2 vs vue3
 
 - 性能提升：Vue3 的虚拟 DOM 重写了渲染和补丁算法，在渲染和更新组件时，比 Vue2 更快。
@@ -1180,3 +1186,75 @@ console.log(observableValue.get()) // Value changed to 10, 10
 observableValue.set(20) // Value changed to 20
 console.log(observableValue.get()) // Value changed to 20, 20
 ```
+
+## slot 的实现原理
+
+slot 本质上是返回 VNode 的函数，一般情况下，Vue 中的组件要渲染到页面上需要经过 `template -> render function -> VNode -> DOM` 过程，
+
+具体实现原理如下：
+
+1. 父组件的编译器会生成相应的渲染函数，其中包含对插槽的处理逻辑。
+2. 父组件在渲染过程中，会通过虚拟 DOM 树的遍历，找到带有 slot 标记的位置。
+3. 当父组件遇到一个插槽位置时，它会检查插槽是否有具名标识，如果有，则会匹配对应的子组件或子元素，并将其渲染到插槽位置。
+4. 如果父组件遇到一个没有具名标识的默认插槽位置，它会将未匹配到具名插槽的子组件或子元素作为默认内容渲染到插槽位置。
+
+```js
+// 节流，每隔一段时间执行一次
+function throttle(fn, durtion) {
+  let timerId
+  let lastExecTime = 0
+  // 返回一个函数，函数入参
+  return function (...args) {
+    // 每次进来都需要清空定时器
+    clearTimeout(timerId)
+    let currntTime = Date.now()
+
+    // 如果当前时间减去上一次的时间大于delay时间，则立即执行函数
+    // 后续的再次点击，则进入到这里
+    if (currntTime - lastExecTime >= durtion) {
+      fn.apply(this, args)
+      lastExecTime = currntTime
+    } else {
+      // 时间不够，则只能延时
+      timerId = setTimeout(() => {
+        fn.apply(this, args)
+        lastExecTime = currntTime
+      }, delay)
+    }
+  }
+}
+
+// 用js实现一个防抖
+function debounce(fn, delay) {
+  // 返回一个函数,
+  let timerId
+  return function (...args) {
+    clearTimeout(timerId)
+
+    timerId = setTimeout(() => {
+      fn.apply(this, args)
+    }, delay)
+  }
+}
+```
+
+## vue 框架初始化时 newProxy(vm) 的目的
+
+在 Vue 初始化时，执行 initProxy(vm) 的主要目的是创建一个代理对象，用于拦截对 Vue 实例的访问和操作。
+
+具体来说，initProxy(vm) 的实现是在开发环境下使用的，在生产环境中会被忽略。它利用 Proxy 对象来创建一个代理，将访问和操作转发到 Vue 实例的对应属性上。
+
+通过代理，我们可以实现以下功能：
+
+- 在开发环境下，当我们访问或修改 Vue 实例的属性时，可以发出警告，提醒我们遵循 Vue 的响应式规则。例如，直接对 vm.data 进行修改会触发警告，推荐使用 vm.$data 来操作响应式数据。
+- 可以在模板编译过程中，通过访问代理对象来收集模板中使用的属性，以建立属性与视图之间的关联。这样 Vue 就能够追踪属性的变化，并在属性发生改变时更新对应的视图。
+
+总而言之，initProxy(vm) 的主要目的是创建一个代理对象，用于拦截对 Vue 实例的访问和操作，以提供警告和建立属性与视图之间的关联。这些功能有助于 Vue 实现响应式数据和自动更新视图的特性。
+
+在生产环境中，由于 initProxy(vm) 的实现被忽略，不再使用代理对象进行依赖收集。相反，Vue 在生产环境中采用了另一种更轻量级的依赖搜集方式，即通过静态分析模板来收集依赖关系。
+
+在编译过程中，Vue 的模板编译器会静态分析模板，并识别出模板中使用的属性。通过分析模板中的指令、插值表达式、计算属性等，Vue 可以确定哪些属性在模板中被使用了。这样，Vue 就能够在编译阶段建立起属性与视图之间的关联。
+
+一旦属性与视图之间建立了关联，Vue 就能够跟踪这些属性的依赖关系，并在属性发生变化时更新相应的视图。这种静态分析的方式避免了运行时的代理拦截和依赖收集的开销，提高了性能。
+
+因此，在生产环境中，Vue 不需要使用 initProxy(vm) 进行依赖搜集。而是通过编译阶段的静态分析来确定模板中使用的属性，从而建立起属性与视图之间的关联，实现依赖的搜集和更新。
