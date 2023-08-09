@@ -12,7 +12,138 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 - 每日一题：https://github.com/yuccie/30-seconds-of-code
 
+## 202308
+
+### 20230809 小程序分包
+
+在构建小程序分包项目时，构建会输出一个或多个分包。每个使用分包小程序必定含有一个主包。
+
+- 所谓的主包，即放置默认启动页面/TabBar 页面，以及一些所有分包都需用到公共资源/JS 脚本；其实也就是 app.json 里 pages 下的文件以及其内部引用的文件。
+- 而分包则是根据开发者的配置进行划分。
+
+在小程序启动时，默认会下载主包并启动主包内页面，当用户进入分包内某个页面时，客户端会把对应分包下载下来，下载完成后再进行展示。
+
+**打包原则**
+
+- 声明 subpackages 后，将按 subpackages 配置路径进行打包，subpackages 配置路径外的目录将被打包到主包中
+- 主包也可以有自己的 pages，即最外层的 pages 字段。
+- subpackage 的根目录不能是另外一个 subpackage 内的子目录
+- tabBar 页面必须在主包内
+
+**引用原则**
+
+- packageA 无法 require packageB JS 文件，但可以 require 主包、packageA 内的 JS 文件；使用 分包异步化 时不受此条限制
+- packageA 无法 import packageB 的 template，但可以 require 主包、packageA 内的 template
+- packageA 无法使用 packageB 的资源，但可以使用主包、packageA 内的资源
+
+总结起来，微信小程序的分包之间默认是不能直接引用资源的，但可以使用全局注册和引用机制来间接引用主包或根包中注册的资源。
+
+### 20230809 Eslint
+
+ESLint 是一款开放源代码的 JavaScript lint 工具，用于识别和报告在 JavaScript 代码中发现的模式，让你可以修正代码并遵循你的代码约定。**ESLint 使用一个解析器将你的代码转换成一个抽象语法树 (AST)，然后在该树上运行一系列规则，以标识和报告潜在问题。**
+
+如果你想查看 ESLint 解析器（例如，espree 或 babel-eslint）解析后的代码，你可能想要查看生成的 AST。有几个工具可以帮助你做到这一点，包括：
+
+- [AST Explorer](https://astexplorer.net/): 这是一个在线工具，你可以在其中粘贴你的代码，然后选择你的解析器（例如，ESLint、Babel-ESLint 或 @typescript-eslint/parser），以查看生成的 AST。
+- 使用 @babel/parser：你可以安装并使用 @babel/parser 在你的代码中生成 AST。下面是一个示例代码：
+
+```js
+const parser = require('@babel/parser')
+const fs = require('fs')
+
+const code = fs.readFileSync('your-file.js', 'utf-8')
+const ast = parser.parse(code, { sourceType: 'module', plugins: ['jsx'] })
+
+console.log(JSON.stringify(ast, null, 2)) // Pretty print the AST
+```
+
+```js
+// 下一行注释
+// eslint-disable-next-line
+console.log('这行代码将被 ESLint 忽略')
+console.log('这行代码不会被 ESLint 忽略')
+
+// 多行注释
+
+/* eslint-disable */
+console.log('This line will be ignored by ESLint')
+console.log('So will this line')
+/* eslint-enable */
+console.log('This line will be checked by ESLint again')
+
+// 整个文件注释
+/* eslint-disable-next-line */
+console.log('This line will be ignored by ESLint')
+console.log('So will this line')
+```
+
+综上：
+
+- eslint 会首先使用 parser 解析器，将源码解析成对应的 AST，解析器有很多种，不同的解析器支持的功能不同
+- 如果源码中有注释内容，也会一并解析成对应的 ast，然后 eslint 再根据对应的规则去匹配
+- 如果 parser 阶段就报错了，通常使用注释是无法解决的，因为注释生效阶段是 parser 之后。
+- ESLint 的解析器和规则引擎是其核心组件，用于解析 JavaScript 代码并应用规则进行静态代码分析。
+
 ## 202307
+
+### 20230728 接雨水 & 去除相邻重复的字符
+
+#### 接雨水
+
+想象有一排高低不同的柱子，如果柱子之间有矮的柱子，则可以存水。那一共可以接多少雨水？
+
+```js
+function trap(heights) {
+  let left = 0
+  let right = heights.length - 1
+  let maxLeft = 0
+  let maxRight = 0
+  let results = 0
+
+  while (left < right) {
+    // 如果左侧的比右侧的小，则先统计小值，从小到大
+    if (heights[left] < heights[right]) {
+      if (heights[left] > maxLeft) {
+        maxLeft = heights[left]
+      } else {
+        // 想象这一排柱子的两头分别有堵墙
+        results += maxLeft - heights[left]
+      }
+      left++
+    } else {
+      if (heights[right] > maxRight) {
+        maxRight = heights[right]
+      } else {
+        results += maxRight - heights[right]
+      }
+      right--
+    }
+  }
+  return results
+}
+const heights = [2, 1, 2]
+console.log(trap(heights)) // 1
+```
+
+#### 去除相邻重复的字符
+
+1. 遍历字符串，如果当前一个与前一个相同，则删除当前、
+
+```js
+// abbbbad
+function delRepeat(strs) {
+  const stacks = []
+  for (let i = 0; i < strs.length; i++) {
+    if (stacks.length && stacks[stacks.length - 1] === strs[i]) {
+      stacks.pop()
+    } else {
+      stacks.push(strs[i])
+    }
+  }
+  return stacks.join('')
+}
+delRepeat('abbbbad') // d
+```
 
 ### 20230725
 

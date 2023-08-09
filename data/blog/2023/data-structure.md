@@ -2358,7 +2358,8 @@ function removeAdjacentDuplicates(str) {
   return stack.join('')
 }
 
-console.log(removeAdjacentDuplicates('abbbad')) // 输出 "d"
+console.log(removeAdjacentDuplicates('abbbbad')) // 输出 "d"
+console.log(removeAdjacentDuplicates('abbbad')) // 输出  "adad"
 ```
 
 ### 判断字符串中的有效括号
