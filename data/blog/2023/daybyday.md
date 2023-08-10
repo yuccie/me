@@ -14,6 +14,87 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
+### 20230810 ref() vs reative()
+
+> reactive() 只适用于对象 (包括数组和内置类型，如 Map 和 Set)。而另一个 API ref() 则可以接受任何值类型。ref 会返回一个包裹对象，并在 .value 属性下暴露内部值。
+
+为什么要使用 ref，因为在标准的 JavaScript 中，检测普通变量的访问或修改是行不通的。然而，我们可以通过 getter 和 setter 方法来拦截对象属性的 get 和 set 操作。
+
+该 .value 属性给予了 Vue 一个机会来检测 ref 何时被访问或修改。在其内部，Vue 在它的 getter 中执行追踪，在它的 setter 中执行触发。从概念上讲，你可以将 ref 看作是一个像这样的对象：
+
+```js
+// 伪代码，不是真正的实现
+const myRef = {
+  _value: 0,
+  get value() {
+    track()
+    return this._value
+  },
+  set value(newValue) {
+    this._value = newValue
+    trigger()
+  },
+}
+```
+
+另一个 ref 的好处是，与普通变量不同，你可以将 ref 传递给函数，同时保留对最新值和响应式连接的访问。当将复杂的逻辑重构为可重用的代码时，这将非常有用。
+
+当将普通变量传递给函数时，函数内部无法直接访问和修改普通变量的最新值。普通变量的传递是按值传递的，函数内部对传递的变量进行修改不会影响原始变量的值。
+
+如果你将数据包装为 ref 对象，并将 ref 对象传递给函数，函数内部就可以直接访问 ref 对象的 .value 属性来获取最新的值。这样，无论何时调用函数，它都可以自动获取到最新的值，并且对值的修改也会保持响应式连接。
+
+- 在 js 里使用 ref 定义的变量，必须使用 .value 属性，在模版里不需要使用 .value
+- 一般原始类型的数据使用 ref，复杂数据类型使用 reactive 函数。
+
+### 20230810 拦截器
+
+当你使用 Object.defineProperty 对某个属性进行拦截时，会覆盖 Vue 框架对该属性的 Object.defineProperty 拦截，从而可能导致一些问题，包括 Vue 的 watch 失效。
+
+```js
+const isObject = (data) => Object.prototype.toString.call(data).slice(8, -1) === 'Object'
+
+function reactive(obj) {
+  if (typeof obj !== 'object' && obj != null) {
+    return obj
+  }
+  // Proxy相当于在对象外层加拦截
+  const observed = new Proxy(obj, {
+    get(target, key, receiver) {
+      const res = Reflect.get(target, key, receiver)
+      console.log(`获取${key}:${res}`)
+      return isObject(res) ? reactive(res) : res
+    },
+    set(target, key, value, receiver) {
+      const res = Reflect.set(target, key, value, receiver)
+      console.log(`设置${key}:${value}`)
+      return res
+    },
+    deleteProperty(target, key) {
+      const res = Reflect.deleteProperty(target, key)
+      console.log(`删除${key}:${res}`)
+      return res
+    },
+  })
+  return observed
+}
+
+const state = reactive({
+  foo: 'foo',
+  bar: { a: 1 },
+})
+
+// 1.获取
+state.foo // ok
+// 2.设置已存在属性
+state.foo = 'fooooooo' // ok
+// 3.设置不存在属性
+state.dong = 'dong' // ok
+// 4.删除属性
+delete state.dong // ok
+```
+
+- 需要返回整个对象
+
 ### 20230809 小程序分包
 
 在构建小程序分包项目时，构建会输出一个或多个分包。每个使用分包小程序必定含有一个主包。
