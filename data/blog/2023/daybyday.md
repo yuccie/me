@@ -14,6 +14,120 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
+### 20230811 深浅拷贝
+
+```js
+// 版本一：
+// Object.prototype.toString 方法不能调用再call
+// const isObject = val => Object.prototype.toString().call(val).slice(8, -1) === 'Object'
+
+const isObject = (val) => Object.prototype.toString.call(val).slice(8, -1) === 'Object'
+
+const deepClone = (target) => {
+  const res = Object.create(null)
+
+  Object.keys(target).forEach((key) => {
+    if (isObject(target[key])) {
+      res[key] = deepClone(target[key])
+    } else {
+      res[key] = target[key]
+    }
+  })
+
+  return res
+}
+
+const originalObj = {
+  name: 'John',
+  age: 30,
+  address: {
+    city: 'New York',
+    country: 'USA',
+  },
+}
+const result1 = deepClone(originalObj)
+// {
+//     "name": "John",
+//     "age": 30,
+//     "address": {
+//         "city": "New York",
+//         "country": "USA"
+//     }
+// }
+
+// 如果是数组和其他数据类型呢？
+const originalObj1 = {
+  name: 'John',
+  age: 30,
+  address: {
+    city: 'New York',
+    country: 'USA',
+  },
+  arr: [1, 2],
+  fn: () => console.log('fn'),
+  date: new Date(),
+  symbol: Symbol(), // 不是构造函数，不能用 new
+}
+
+const res1 = deepClone(originalObj1) // 在浏览器里其实可以看到并使用对应的date，fn，symbol等，但复制出来后就没有了
+// 虽然可以看到 fn，date，symbol，但他们并不是深拷贝，而是浅拷贝
+// res1.fn === originalObj1.fn // true
+// 右键复制对象时，对象中的函数和 Date 格式的数据无法直接复制是因为浏览器在执行对象的字符串化操作（将对象转换为字符串以便复制）时，会默认忽略函数和 Date 对象。这是为了避免复制对象时出现不必要的复杂性和安全性问题。
+// {
+//     "name": "John",
+//     "age": 30,
+//     "address": {
+//         "city": "New York",
+//         "country": "USA"
+//     },
+//     "arr": [
+//         1,
+//         2
+//     ],
+//     "date": "2023-08-11T00:56:53.525Z"
+// }
+```
+
+上面的深拷贝无法兼容数组和其他数据类型
+
+```js
+function cloneDeep(target) {
+  const wMap = new WeakMap()
+
+  const isType = val => Object.prototype.toString.call(val).slice(8, -1)
+
+  const _deep = data => {
+    // 对于时间格式的，可以重新生成一个新的时间对象
+    if (data instanceof Date) {
+      return new Date(data.getTime());
+    }
+
+    // 非数组和对象，直接返回要克隆的对象
+    !['Array', 'Object'].includes(isType(data)) return data
+
+    // 如果对象已经使用过了，则直接返回
+    if (wMap.has(data)) return wMap.get(data);
+
+    // 判断是数组还是对象
+    const res = isType(data) === 'Array' ? [] : Object.create(null)
+
+    // 将目标对象存起来
+    wMap.set(data, res)
+
+    Object.keys(data).forEach(key => {
+      if (res[key]) return
+      res[key] = _deep(data[key])
+    })
+    return res
+  }
+
+  return _deep(target)
+}
+```
+
+- 深拷贝其实一般针对的是 Object，Array，像 fn，symbol 等指针本身就一份，所以即使深拷贝也是相同的，但 Date 可以再次生成一个新的时间对象，从而实现深拷贝。
+- [深拷贝的 playground](https://playcode.io/lodash)
+
 ### 20230810 ref() vs reative()
 
 > reactive() 只适用于对象 (包括数组和内置类型，如 Map 和 Set)。而另一个 API ref() 则可以接受任何值类型。ref 会返回一个包裹对象，并在 .value 属性下暴露内部值。
@@ -37,7 +151,7 @@ const myRef = {
 }
 ```
 
-另一个 ref 的好处是，与普通变量不同，你可以将 ref 传递给函数，同时保留对最新值和响应式连接的访问。当将复杂的逻辑重构为可重用的代码时，这将非常有用。
+另一个 ref 的好处是，与普通变量不同，你可以将 ref 对象 传递给函数，同时保留对最新值和响应式连接的访问。当将复杂的逻辑重构为可重用的代码时，这将非常有用。
 
 当将普通变量传递给函数时，函数内部无法直接访问和修改普通变量的最新值。普通变量的传递是按值传递的，函数内部对传递的变量进行修改不会影响原始变量的值。
 
@@ -54,7 +168,7 @@ const myRef = {
 const isObject = (data) => Object.prototype.toString.call(data).slice(8, -1) === 'Object'
 
 function reactive(obj) {
-  if (typeof obj !== 'object' && obj != null) {
+  if (typeof obj !== 'object' && obj !== null) {
     return obj
   }
   // Proxy相当于在对象外层加拦截
@@ -62,6 +176,7 @@ function reactive(obj) {
     get(target, key, receiver) {
       const res = Reflect.get(target, key, receiver)
       console.log(`获取${key}:${res}`)
+      // 如果是深层嵌套则需要在这里继续
       return isObject(res) ? reactive(res) : res
     },
     set(target, key, value, receiver) {
