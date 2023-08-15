@@ -43,7 +43,70 @@ Object.defineProperty(state, 'a', {
     state._a = newVal
   },
 })
+
+// 对于对象
+Object.defineProperty(state, 'fromStation', {
+  get() {
+    return state._fromStation
+  },
+  set(val) {
+    console.log('djch set ', val)
+    state._fromStation = val
+  }
+})
 ```
+
+当然还可以使用proxy
+
+```js
+import state from 'xxx/index'
+import { createStore } from '@mpxjs/core'
+
+const isObject = data => Object.prototype.toString.call(data).slice(8, -1) === 'Object'
+
+function reactive(obj) {
+  if (!isObject(obj)) {
+    return obj
+  }
+
+  const proxyObj = new Proxy(obj, {
+    get(target, key, receiver) {
+      const res = Reflect.get(target, key, receiver)
+      const tempRes = isObject(res) ? reactive(res) : res
+      // if (key === 'xxxModel') {
+      //   console.log('djch get ', res)
+      // }
+      if (key === 'xxxStation') {
+        console.log('djch get xxxStation', res)
+      }
+      return tempRes
+      // return res
+    },
+    set(target, key, val, receiver) {
+      const res = Reflect.set(target, key, val, receiver)
+      // if (key === 'xxxModel') {
+      //   console.log('djch set xxxModel', val)
+      // }
+      if (key === 'xxxStation') {
+        console.log('djch set xxxStation', val)
+      }
+      return res
+    },
+  })
+
+  return proxyObj
+}
+const tempState = reactive(state)
+
+
+export default createStore({
+  state: tempState,
+})
+```
+
+- 务必注意，要想store里响应式，不能直接赋值，需要使用对应mutations
+- 不要在watch里，再次更新store里的数据，会持续触发
+- 不要在get和set里直接访问某个对象，这样会触发递归调用，导致堆栈溢出
 
 ### 20230814
 
