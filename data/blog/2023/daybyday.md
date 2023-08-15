@@ -14,6 +14,138 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
+### 20230815 拦截器递归栈溢出
+
+```js
+const state = { a: 11 }
+Object.defineProperty(state, 'a', {
+  get() {
+    return state.a
+  },
+  set(newVal) {
+    state.a = newVal
+  },
+})
+```
+
+上面代码会出现一个问题，因为在 get 和 set 中都尝试访问 state.a，这将导致无限循环的调用，最终导致栈溢出错误。这是因为 get 和 set 的内部实现实际上在访问 state.a 时再次触发 get 和 set，从而形成递归调用。
+
+正确的做法是，在 get 和 set 中使用一个新的变量来存储值，而不是直接访问 state.a，以避免递归调用。
+
+```js
+const state = { _a: 11 }
+
+Object.defineProperty(state, 'a', {
+  get() {
+    return state._a
+  },
+  set(newVal) {
+    state._a = newVal
+  },
+})
+```
+
+### 20230814
+
+```js
+const arr = [1, 2, 3, 4]
+const arr1 = arr.reduce((acc, cur) => [...acc, cur + +acc.slice(-1)], [])
+// [1, 3, 6, 10]
+```
+
+```js
+const addDaysToDate = (date, n) => {
+  const d = new Date(date)
+  d.setDate(d.getDate() + n)
+  return d.toISOString().split('T')[0]
+}
+
+addDaysToDate('2020-10-15', 10) // '2020-10-25'
+addDaysToDate('2020-10-15', -10) // '2020-10-05'
+```
+
+### 20230814 请求取消
+
+1. 建 XMLHttpRequest 对象： 在发起网络请求前，首先需要创建一个 XMLHttpRequest 对象。这个对象可以用来设置请求的参数、发送请求以及处理响应。
+2. 发送请求： 调用 xhr.send() 方法开始发送请求。这时，浏览器会建立一个与服务器的连接，并发送请求。
+3. 监测取消状态： 在 XMLHttpRequest 对象中，有一个名为 readyState 的属性，它表示请求的当前状态。当请求被取消时，readyState 会变为 4（已完成）。
+4. 调用 xhr.abort()： 当你调用 xhr.abort() 方法时，浏览器会中断与服务器的连接。此时，readyState 会变为 4，并且 status 会变为 0。
+5. 触发事件： 在取消请求时，会触发 readystatechange 事件。你可以通过监听这个事件来捕获取消操作。
+6. 清理资源： 浏览器会立即关闭连接并释放相关资源，以便其他操作或请求。
+
+需要注意的是，虽然 xhr.abort() 可以中断请求，但这只会中断连接，并不会保证服务器端已经停止处理请求。服务器可能已经处理了部分请求，因此在实际应用中，可能需要在前端和后端都进行相应的处理，以避免因取消请求而导致的异常情况。
+
+```js
+// Step 1：创建一个控制器（controller）：
+let controller = new AbortController()
+// 它具有单个方法 abort()，和单个属性 signal。
+// 当 abort() 被调用时：
+//    abort 事件就会在 controller.signal 上触发
+//    controller.signal.aborted 属性变为 true。
+// 任何对 abort() 调用感兴趣的人，都可以在 controller.signal 上设置监听器来对其进行跟踪。
+let signal = controller.signal
+
+// 当 controller.abort() 被调用时触发
+signal.addEventListener('abort', () => alert('abort!'))
+
+controller.abort() // 中止！
+
+alert(signal.aborted) // true
+```
+
+```js
+// Step 2：将 signal 属性传递给 fetch 选项：
+let controller = new AbortController()
+fetch(url, {
+  signal: controller.signal,
+})
+// fetch 方法知道如何与 AbortController 一起使用，它会监听 signal 上的 abort。
+
+// Step 3：调用 controller.abort() 来中止：
+controller.abort()
+```
+
+完整实例：
+
+```js
+// 1 秒后中止
+let controller = new AbortController()
+setTimeout(() => controller.abort(), 0)
+
+try {
+  let response = await fetch('https://www.baidu.com', {
+    signal: controller.signal,
+  })
+} catch (err) {
+  if (err.name == 'AbortError') {
+    // handle abort()
+    alert('Aborted!')
+  } else {
+    throw err
+  }
+}
+```
+
+- 原理其实就是，通过一个类，暴露出一个 singal，abort，然后请求实例底层都会监听这个事件，监听到后处理与服务器之间的联系，同时清空请求在浏览器侧的内存及带宽等。
+- 在微信小程序测，则需要微信提供的 api 才可以，目前微信开放社区很多反应，ide 没问题，但是真机上不行。
+
+```js
+const requestTask = wx.request({
+  url: 'test.php', //仅为示例，并非真实的接口地址
+  data: {
+    x: '',
+    y: '',
+  },
+  header: {
+    'content-type': 'application/json',
+  },
+  success(res) {
+    console.log(res.data)
+  },
+})
+requestTask.abort() // 取消请求任务
+```
+
 ### 20230811 深浅拷贝
 
 ```js
@@ -381,6 +513,10 @@ function rgbToHex(r, g, b) {
   return `0x` + `000000${rgbStr}`.slice(-6)
 }
 rgbToHex(0, 255, 0)
+```
+
+```js
+const RGBToHex = (r, g, b) => ((r << 16) + (g << 8) + b).toString(16).padStart(6, '0')
 ```
 
 ### 20230724 事件循环的时序
