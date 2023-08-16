@@ -14,6 +14,109 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
+### 20230816 code 编码
+
+- 早期使用 ASCII 码
+- 后来是 Unicode，而 utf-8 是可变长度编码，为 Unicode 的实现方式之一，有利于数据压缩，但需要更多的计算和处理时间
+
+从对应的字符得到对应的 unicode 码
+
+- str.charCodeAt(0)
+- str.codePointAt(0) // 支持大于四字节
+
+将 unicde 码转为字符串
+
+- String.fromCharCode(72) // 'H'
+
+进制转换
+
+- ParseInt 只是根据指定的 radix 进制数，**识别字符串中对应进制的数据**而已，默认 10。如果不是对应进制，则停止识别
+- toString
+  - 对于字符串类型，原样返回
+  - 对于数字类型，可以接受一个进制数，进而做到进制转换
+  - 对于数组，toString()方法将数组中的每个元素转换为字符串，并用逗号分隔
+  - 对于对象类型，toString()方法默认返回"[object Object]"。
+  - 🔥🔥 如果想要自定义 toString()方法的返回值，可以在对象中定义一个 toString()方法
+  - null，undefined 直接报错
+
+decodeURI 与 decodeURIComponent
+
+- 底层原理是一样的，只是转换的字符数量不同而已
+- encodeURI 转换的字符数量是 encodeURIComponent 的子集
+
+```js
+// 多次编码，再解码到最开始的状态
+const formatCode = (str) => {
+  while (decodeURIComponent(str) !== str) {
+    str = decodeURIComponent(str)
+  }
+  return str
+}
+```
+
+Base64 格式可以追溯到早期电子邮件的通信协议上，由于当时只有 ASCII 吗，如何将所有二进制数据转换为 ASCII 码呢
+
+- 将原来 3 个 8 位字节转为 4 个 6 位字节，然后将 6 位字节就可以转为 ASCII 码了
+- 因为编码变长了，所以 base64 数据量也增加原来的 1/3
+
+JSON.stringfy
+
+- 如果一个对象具有 toJSON，那么它会被 JSON.stringify 调用。
+- let json = JSON.stringify(value[, replacer, space])，
+  - replacer 要编码的属性数组或映射函数，如果指定数组，则只编码指定的内容
+  - space 还可以是字符串代替空格
+- 将对象转换为 JSON。
+- JSON 是语言无关的纯数据规范，因此一些特定于 JavaScript 的对象属性会被 JSON.stringify 跳过。如函数、symbol，undefined
+
+```js
+let room = {
+  number: 23,
+}
+
+let meetup = {
+  title: 'Conference',
+  date: new Date(Date.UTC(2017, 0, 1)),
+  room,
+}
+
+alert(JSON.stringify(meetup))
+/*
+  {
+    "title":"Conference",
+    "date":"2017-01-01T00:00:00.000Z",  // (1)
+    "room": {"number":23}               // (2)
+  }
+*/
+```
+
+在这儿我们可以看到 date (1) 变成了一个字符串。这是因为所有日期都有一个内建的 toJSON 方法来返回这种类型的字符串。
+
+现在让我们为对象 room 添加一个自定义的 toJSON：
+
+```js
+let room = {
+  number: 23,
+  toJSON() {
+    return this.number
+  },
+}
+
+let meetup = {
+  title: 'Conference',
+  room,
+}
+
+alert(JSON.stringify(room)) // 23
+
+alert(JSON.stringify(meetup))
+/*
+  {
+    "title":"Conference",
+    "room": 23
+  }
+*/
+```
+
 ### 20230815 拦截器递归栈溢出
 
 ```js
@@ -28,7 +131,7 @@ Object.defineProperty(state, 'a', {
 })
 ```
 
-上面代码会出现一个问题，因为在 get 和 set 中都尝试访问 state.a，这将导致无限循环的调用，最终导致栈溢出错误。这是因为 get 和 set 的内部实现实际上在访问 state.a 时再次触发 get 和 set，从而形成递归调用。
+上面代码会出现一个问题，因为在 get 和 set 中都尝试访问 state.a，这将导致无限循环的调用，最终导致栈溢出错误。这是因为 get 和 set 的内部实现实际上在访问 state.a 时再次触发 get 和 set，从而形成递归调用。**这里的 get 和 set 都会递归触发**
 
 正确的做法是，在 get 和 set 中使用一个新的变量来存储值，而不是直接访问 state.a，以避免递归调用。
 
@@ -52,17 +155,17 @@ Object.defineProperty(state, 'fromStation', {
   set(val) {
     console.log('djch set ', val)
     state._fromStation = val
-  }
+  },
 })
 ```
 
-当然还可以使用proxy
+当然还可以使用 proxy
 
 ```js
 import state from 'xxx/index'
 import { createStore } from '@mpxjs/core'
 
-const isObject = data => Object.prototype.toString.call(data).slice(8, -1) === 'Object'
+const isObject = (data) => Object.prototype.toString.call(data).slice(8, -1) === 'Object'
 
 function reactive(obj) {
   if (!isObject(obj)) {
@@ -98,15 +201,14 @@ function reactive(obj) {
 }
 const tempState = reactive(state)
 
-
 export default createStore({
   state: tempState,
 })
 ```
 
-- 务必注意，要想store里响应式，不能直接赋值，需要使用对应mutations
-- 不要在watch里，再次更新store里的数据，会持续触发
-- 不要在get和set里直接访问某个对象，这样会触发递归调用，导致堆栈溢出
+- 务必注意，要想 store 里响应式，不能直接赋值，需要使用对应 mutations
+- 不要在 watch 里，再次更新 store 里的数据，会持续触发
+- 不要在 get 和 set 里直接访问某个对象，这样会触发递归调用，导致堆栈溢出
 
 ### 20230814
 
