@@ -12,6 +12,48 @@ canonicalUrl: https://dume.vercel.app/blog/2023/vue-skills-v3
 
 ## vue3 新特性
 
+### ref
+
+```js
+import { ref, watch, computed } from 'vue'
+
+let id = 0
+
+const todos = ref([
+  { id: id++, text: 'Learn HTML', done: true },
+  { id: id++, text: 'Learn JavaScript', done: true },
+  { id: id++, text: 'Learn Vue', done: false },
+])
+const newTodoList = ref(todos.value)
+console.log(newTodoList === todos) // false
+
+const newTodoList1 = ref(todos)
+console.log(newTodoList1 === todos) // true
+```
+
+- ref 针对 value 时是拷贝
+
+### 双向数据绑定
+
+```html
+<script setup>
+  import { ref, watch } from 'vue'
+
+  const text = ref('')
+
+  function onInput(e) {
+    text.value = e.target.value
+  }
+</script>
+
+<template>
+  <input :value="text" @input="onInput" placeholder="Type here" />
+  <p>{{ text }}</p>
+</template>
+```
+
+上面的其实就是 v-model 的语法糖
+
 ### 响应式
 
 在 vue2 中，数据劫持是通过 Object.defineProperty，这个 API 有一些缺陷，并不能检测对象属性的添加和删除

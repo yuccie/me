@@ -14,6 +14,164 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
+### 20230817 布局
+
+#### 两栏布局
+
+- 浮动布局
+- flex 布局
+
+```html
+<!-- 1、使用 float 左浮左边栏
+2、右边模块使用 margin-left 撑出内容块做内容展示
+3、为父级元素添加 BFC，防止下方元素飞到上方内容 -->
+<style>
+  .box {
+    /* 添加BFC */
+    overflow: hidden;
+  }
+
+  .left {
+    float: left;
+    width: 200px;
+    background-color: gray;
+    height: 400px;
+  }
+
+  .right {
+    margin-left: 210px;
+    background-color: lightgray;
+    height: 200px;
+  }
+</style>
+<div class="box">
+  <div class="left">左边</div>
+  <div class="right">右边</div>
+</div>
+```
+
+```html
+<!-- 1、flex 容器的一个默认属性值: align-items: stretch;
+2、这个属性导致了列等高的效果。 为了让两个盒子高度自动，需要设置: align-items: flex-start -->
+
+<style>
+  .box {
+    display: flex;
+  }
+
+  .left {
+    width: 100px;
+  }
+
+  .right {
+    flex: 1;
+  }
+</style>
+<div class="box">
+  <div class="left">左边</div>
+  <div class="right">右边</div>
+</div>
+```
+
+#### 三栏布局
+
+实现三栏布局中间自适应的布局方式有：
+
+- 两边使用 float，中间使用 margin
+- 两边使用 absolute，中间使用 margin
+- 两边使用 float 和负 margin
+- flex 实现
+- grid 网格布局
+
+### 20230817 遍历对象
+
+```js
+const obj = {
+  c: 'c',
+  2: '2',
+  1: '1',
+  a: 'a',
+  5: '5',
+  4: '4',
+  '5k': '5k',
+  '4k': '4k',
+}
+const objString = JSON.stringify(obj)
+console.log(JSON.stringify(obj)) // {"1":"1","2":"2","4":"4","5":"5","c":"c","a":"a","5k":"5k","4k":"4k"}
+console.log(JSON.parse(objString)) // {1: '1', 2: '2', 4: '4', 5: '5', c: 'c', a: 'a', 5k: '5k', 4k: '4k'}
+
+console.log(Object.keys(obj)) // ['1', '2', '4', '5', 'c', 'a', '5k', '4k']
+
+for (const item in obj) {
+  console.log(item)
+  // '1', '2', '4', '5', 'c', 'a', '5k', '4k'
+}
+```
+
+- 序列化时，对象 key 的顺序会发生变化，根本原因对象在内存中存储并不是有序的，而无序只是浏览器各厂商实现的一套规则
+  - 比如 数字按大小排序，字符串则按先后顺序
+    - '3', '1' 这种 Number 后为纯数字的，依然按数字处理，处理完后还是 1、3 排序
+    - '3k', '1k'，这种 Number 后不是纯数字的，则按字符串，也就是定义的先后顺序排列
+  - 普通对象里，key 为 2，和 key 为'2' 是一个值，后面的覆盖前面的。
+- JSON.stringify、Object.keys 得到的 key 顺序是一致的。
+- for in 遍历对象顺序也是同上
+- 而 forEach 是数组的方法，数组遍历肯定是有序的，只是 在 forEach 前执行了 Object.keys 把顺序变化了。
+
+for of 可以保证顺序怎么解释？
+
+- for of 无法遍历普通对象，只能遍历可迭代对象
+- 那如果将普通对象转为可迭代对象呢？
+
+```js
+const obj = {
+  c: 'c',
+  2: '2',
+  1: '1',
+  a: 'a',
+  5: '5',
+  4: '4',
+  '5k': '5k',
+  '4k': '4k',
+  [Symbol.iterator]: function* () {
+    const keys = Object.keys(this)
+    for (const key of keys) {
+      yield { key, value: this[key] }
+    }
+  },
+}
+
+for (const entry of obj) {
+  console.log(entry.key)
+  // '1', '2', '4', '5', 'c', 'a', '5k', '4k'
+}
+```
+
+原来保证顺序的前提，依然是通过 Objec.keys 实现了排序。。。
+
+而对于可迭代对象，天然的具有顺序
+
+- 在底层，Map 对象内部使用红黑树（Red-Black Tree）数据结构来存储键值对。红黑树是一种自平衡二叉搜索树，它具有良好的插入、删除和查找性能，并且可以保持键的有序性。
+- 当你使用 Map 的 set() 方法添加键值对时，它会根据键的大小顺序自动进行插入，并保持红黑树的平衡性。这就是为什么在遍历 Map 对象时，键值对会按照键的顺序进行输出。
+- 而普通对象（Object）是无序的
+
+```js
+var myMap = new Map()
+myMap.set('2', '2')
+myMap.set('1', '1')
+
+for (const t of myMap) {
+  console.log(t)
+  // ['2', '2']
+  // ['1', '1']
+}
+
+for (const [key, value] of myMap) {
+  console.log(`Key: ${key}, Value: ${value}`)
+  // Key: 2, Value: 2
+  // Key: 1, Value: 1
+}
+```
+
 ### 20230816 code 编码
 
 - 早期使用 ASCII 码
