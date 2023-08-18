@@ -146,32 +146,6 @@ const throttle = (fn, interval = 300, immediate = true) => {
 上面的还有 bug，只有第一次是立即执行，之后就不是了。。。使用标志位不太好兜底，需要用计时器
 
 ```js
-const throttle = (fn, duration = 1000) => {
-  let lastTime = 0
-  let timer = null
-
-  return function (...args) {
-    let currentTime = Date.now()
-    // currentTime - lastTime 这是执行间隔，然后 duration - 执行间隔 就是剩余的时间
-    let restTime = duration - (currentTime - lastTime)
-
-    if (restTime <= 0) {
-      // 需要立即执行，同时清除定时器
-      clearTimeout(timer)
-      timer = null
-      lastTime = currentTime
-      fn.apply(this, args)
-    } else if (!timer) {
-      // 这里需要判断如果没有定时器，才需要新建
-      timer = setTimeout(() => {
-        fn.apply(this, args)
-        timer = null
-        lastTime = Date.now()
-      }, restTime)
-    }
-  }
-}
-
 const throttle = (fn, duration = 300) => {
   let timer = null
   let lastTime = 0
