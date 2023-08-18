@@ -14,6 +14,189 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
+### 20230818 防抖节流
+
+#### 防抖
+
+- 持续触发，最后一次生效
+- 入参是函数
+- **返回也必须是函数，因为返回值需要在页面调用**，因此下方不对
+
+```js
+const debounce = (fn, interval) => {
+  let timer = null
+  if (timer) {
+    clearTimeout(timer)
+  }
+  timer = setTimeout(fn, interval)
+}
+```
+
+正确答案：
+
+```js
+const debounce = (fn, interval = 300) => {
+  let timer = null
+  return function () {
+    timer && clearTimeout(timer)
+    timer = setTimeout(fn, interval)
+  }
+}
+```
+
+如何立即执行一次呢？
+
+- 立即执行就和定时器没有关系了
+- 然后需要在定时器里，将 immediate 重置
+
+```js
+const debounce = (fn, interval = 300, immediate = true) => {
+  let timer = null
+  return function (...args) {
+    if (immediate) {
+      fn.apply(this, args)
+      immediate = false
+    } else {
+      timer && clearTimeout(timer)
+      timer = setTimeout(() => {
+        fn.apply(this, args)
+        immediate = true
+      }, interval)
+    }
+  }
+}
+```
+
+#### 节流
+
+- 指定间隔定时执行
+- 返回函数
+- 如果正在运行，则停止
+
+```js
+const throttle = (fn, interval = 300, immediate = true) => {
+  let isRun = false
+  return function (...args) {
+    if (!isRun) {
+      isRun = true
+      setTimeout(() => {
+        fn.apply(this, args)
+        isRun = false
+      }, interval)
+    }
+  }
+}
+```
+
+如果需要立即执行呢？
+
+```js
+const throttle = (fn, interval = 300, immediate = true) => {
+  let isRun = false
+
+  return function (...args) {
+    if (!isRun) {
+      if (immediate) {
+        isRun = true
+        immediate = false
+        fn.apply(this, args)
+        isRun = false
+        // immediate = true // 这个置为false后，就不能再重置回来
+      } else {
+        isRun = true
+        setTimout(() => {
+          fn.apply(this, args)
+          isRun = false
+          immediate = true
+        }, interval)
+      }
+    }
+  }
+}
+```
+
+但是上面的有点问题，就是立即执行后，需要清空定时器，不然会立即执行完，再次执行定时器
+
+```js
+const throttle = (fn, interval = 300, immediate = true) => {
+  let isRun = false
+  let timer = null
+  return function (...args) {
+    if (!isRun) {
+      if (immediate) {
+        immediate = false
+        isRun = true
+        clearTimeout(timer) // 都立即执行了，需要清除定时器
+        fn.apply(this, args)
+        isRun = false
+      } else {
+        isRun = true
+        timer = setTimeout(() => {
+          fn.apply(this, args)
+          isRun = false
+          // 理论上这里添加 immediate = true 可以保证后续继续立即执行
+          // 但是添加完后，可能立即出发immediate的逻辑，导致快速执行两次
+        }, interval)
+      }
+    }
+  }
+}
+```
+
+上面的还有 bug，只有第一次是立即执行，之后就不是了。。。使用标志位不太好兜底，需要用计时器
+
+```js
+const throttle = (fn, duration = 1000) => {
+  let lastTime = 0
+  let timer = null
+
+  return function (...args) {
+    let currentTime = Date.now()
+    // currentTime - lastTime 这是执行间隔，然后 duration - 执行间隔 就是剩余的时间
+    let restTime = duration - (currentTime - lastTime)
+
+    if (restTime <= 0) {
+      // 需要立即执行，同时清除定时器
+      clearTimeout(timer)
+      timer = null
+      lastTime = currentTime
+      fn.apply(this, args)
+    } else if (!timer) {
+      // 这里需要判断如果没有定时器，才需要新建
+      timer = setTimeout(() => {
+        fn.apply(this, args)
+        timer = null
+        lastTime = Date.now()
+      }, restTime)
+    }
+  }
+}
+
+const throttle = (fn, duration = 300) => {
+  let timer = null
+  let lastTime = 0
+
+  return function (...args) {
+    let currentTime = Date.now()
+    let restTime = duration - (currentTime - lastTime)
+
+    // 如果没有剩余时间，则立即执行，同时清除定时器
+    if (restTime <= 0) {
+      clearTimeout(timer)
+      timer = null
+      fn.apply(this, args)
+      lastTime = currentTime // lastTime是上次执行的时间，因此这里这样赋值
+    } else if (!timer) {
+      timer = setTimeout(() => {
+        fn.apply(this, args)
+        timer = null
+        lastTime = Date.now()
+      }, restTime)
+    }
+  }
+}
+```
+
 ### 20230817 布局
 
 #### 两栏布局
