@@ -14,6 +14,26 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
+### 20230819 手写 new
+
+实例化的动作，主要包含以下几个步骤：
+
+1. 创建一个新对象
+2. 将新对象的原型设置为目标
+3. 执行实例化操作
+4. 判断实例化后的结果是对象还是
+
+```js
+const instance = new Fn(..args)
+
+// 等价于
+const new = (fn, ...args) => {
+  const obj = Object.create(fn.prototype)
+  const ins = fn.apply(obj, args)
+  return ins instanceof Object ? ins : obj
+}
+```
+
 ### 20230818 防抖节流
 
 #### 防抖
@@ -338,10 +358,13 @@ for (const [key, value] of myMap) {
 
 - str.charCodeAt(0)
 - str.codePointAt(0) // 支持大于四字节
+  - 如何记忆：在指定位置上的 code 是多少
 
 将 unicde 码转为字符串
 
 - String.fromCharCode(72) // 'H'
+- String.fromCodePoint(97) // 'a'
+  - 如何记忆：code 码是 97 的位置，
 
 进制转换
 
