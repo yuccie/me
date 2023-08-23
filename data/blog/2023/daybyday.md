@@ -14,6 +14,82 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
+### 20230823 逻辑像素
+
+浏览器里的一切长度都是 css 像素为单位，css 像素的单位是 px(pixel 像素的缩写)，他是图像显示的基本单元，**既不是一个确定的物理量，也不是一个点或者小方块，而是一个抽象概念**。。。
+
+- 物理像素其实就等价于设备像素
+  - 物理像素是硬件上的概念，不能被进一步分割。例如，一个分辨率为 1920x1080 的屏幕具有 1920 个物理像素宽和 1080 个物理像素高。
+- 逻辑像素是在网页设计和样式中使用的单位
+  - 在普通显示屏上，一个逻辑像素通常对应于一个物理像素，但在高密度（高 DPI）屏幕上，一个逻辑像素可能会对应多个物理像素。
+- pixelRatio = 设备物理像素 / 设备逻辑像素
+  - 当缩放浏览器时，该值会发生变化，逻辑像素 100px，放大两倍后依然是 100px，但是看起来宽了，那是因为物理像素多了一倍。
+- mac 等显示器都可以修改分辨率
+
+  - 其实物理像素无法再修改，之所以可以修改分辨率，那是因为图形驱动程序首先会根据新的分辨率计算出新的像素排列和像素总数。如果新分辨率比之前的分辨率更高，那么新的像素排列可能会使用更多的物理像素。如果新分辨率较低，那么可能会使用更少的物理像素。
+  - 总的来说，重新分配像素的过程涉及到像素的重新排列、缩放和插值等操作，以适应新的分辨率。
+
+- iphone12
+  - 屏幕分辨率：1170*2532 ，屏幕尺寸：390*844 ，dpr：@3x
+
+在微信小程序中：
+
+- px = rpx \* (屏幕宽度 / 750)
+  - 750 是微信小程序设计稿的宽度（在开发者工具中设计时默认的宽度），屏幕宽度是设备的实际屏幕宽度，可以通过 wx.getSystemInfo 获取，而实际屏幕宽度肯定是不会变化的
+  - 如果你有一个 rpx 值为 100，在一个 375px 宽度的设备上计算 px 的值：px = 100 \* (375 / 750) = 50px
+
+### 20230822 content-type vs response-type
+
+Content-Type 其实是请求头和响应头里的字段，目的是指定消息主体的媒体类型，以便发送方和接收方可以正确地处理和解析数据。
+
+- 比如向服务器发送数据，声明它后，服务器会按这种格式去处理数据
+- 如果是浏览器接收数据，则是浏览器按照对应的格式处理数据。
+
+#### Content-Type：
+
+Content-Type 是一个请求头（Request Header）或响应头（Response Header），用于指定 HTTP 请求或响应中的消息主体（Body）的媒体类型。它告诉接收方如何解析消息主体的内容。
+
+- 对于请求，Content-Type 通常用于告诉服务器请求中的数据的格式，例如 application/json 表示请求主体是 JSON 数据。
+- 对于响应，Content-Type 用于告诉客户端响应主体的数据类型，例如 text/html 表示响应是 HTML 数据。
+
+#### Response-Type：
+
+Response-Type 是在发送 HTTP 请求时，通过设置 XMLHttpRequest 对象的 responseType 属性，指定客户端期望接收的响应类型。它是客户端控制的设置，用于告诉浏览器如何处理响应数据。
+
+- Response-Type 可以设置为以下值之一：text、arraybuffer、blob、document、json 等。每个值对应不同的数据类型处理方式。
+  例如，设置 responseType 为 json 将告诉浏览器将响应数据解析为 JSON 格式的对象。
+
+总结：Content-Type 是 HTTP 头部中用于指定请求或响应主体的媒体类型，而 Response-Type 是 XMLHttpRequest 的属性，用于控制浏览器解析和处理响应数据的方式。两者在不同的环境中使用，分别关注请求和响应中的数据类型。
+
+```js
+let xhr = new XMLHttpRequest()
+
+xhr.open('GET', '/article/xmlhttprequest/example/json')
+
+xhr.responseType = 'json'
+
+xhr.send()
+
+// 响应为 {"message": "Hello, world!"}
+xhr.onload = function () {
+  let responseObj = xhr.response
+  alert(responseObj.message) // Hello, world!
+}
+```
+
+> 在旧的脚本中，你可能会看到 xhr.responseText，甚至会看到 xhr.responseXML 属性。
+> 它们是由于历史原因而存在的，以获取字符串或 XML 文档。如今，我们应该在 xhr.responseType 中设置格式，然后就能获取如上所示的 xhr.response 了。
+
+XMLHttpRequest 允许发送自定义 header，并且可以从响应中读取 header。
+
+```js
+// 一经设置无法取消
+xhr.setRequestHeader('Content-Type', 'application/json')
+
+// 获取具有给定 name 的 header（Set-Cookie 和 Set-Cookie2 除外）
+xhr.getResponseHeader('Content-Type')
+```
+
 ### 20230819 手写 new
 
 实例化的动作，主要包含以下几个步骤：
