@@ -90,12 +90,19 @@ export default function Home({ posts, initialDisplayPosts }) {
         </div>
 
         <div className="flex">
-          <ul className="mr-12 divide-gray-200 overflow-auto py-12 dark:divide-gray-700">
+          <ul className="mr-12 divide-gray-200 overflow-auto py-8 dark:divide-gray-700">
             {posts.map((item) => {
-              const { title } = item
+              const { title, slug } = item
               return (
-                <li className="max-w-xs cursor-pointer truncate leading-8" key={title}>
-                  {title}
+                <li key={title} className="max-w-xs truncate leading-8">
+                  <Link
+                    key={title}
+                    href={`/blog/${slug}`}
+                    className="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400"
+                    aria-label={`Read "${title}"`}
+                  >
+                    {title}
+                  </Link>
                 </li>
               )
             })}
@@ -106,7 +113,7 @@ export default function Home({ posts, initialDisplayPosts }) {
             {displayPosts.slice(0, MAX_DISPLAY).map((frontMatter) => {
               const { slug, date, title, summary, tags } = frontMatter
               return (
-                <li key={slug} className="py-12">
+                <li key={slug} className="py-8">
                   <article>
                     <div className="space-y-2 xl:grid xl:grid-cols-4 xl:items-baseline xl:space-y-0">
                       <div className="space-y-5 xl:col-span-3">
