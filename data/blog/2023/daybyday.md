@@ -14,7 +14,7 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 ## 202308
 
-### 20230823 对头阻塞
+### 20230823 http http2
 
 #### HTTP/1.1 的主要问题
 
