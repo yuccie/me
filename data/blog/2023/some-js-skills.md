@@ -639,6 +639,9 @@ Child.prototype = new Parent()
 
 var child = new Child()
 child.sayName() // parent
+
+function Parent() {}
+Parent.prototype.sayName = function () {}
 ```
 
 - 将父类的实例作为子类的原型
