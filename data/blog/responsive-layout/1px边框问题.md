@@ -33,9 +33,13 @@ canonicalUrl: https://dume.vercel.app/blog/responsive-layout/1px边框问题.md
 
 ### 1px
 
-iphone6 的屏幕宽度为 375px，设计师做的视觉稿一般是 750px，也就是 2x，这个时候设计师在视觉稿上画了 1px 的边框，于是你就写`border-width:1px`，然后...1px 边框问题就产生了。
+iphone6 的屏幕宽度为 375px，设计师做的视觉稿一般是 750px，也就是 2x，这个时候设计师在视觉稿上画了 1px 的边框，于是你就写`border-width:1px`，然后...1px 边框问题就产生了，也就是写大了。
 
 对设计师来说它的 1px 是相对于 750px 的，对你来说你的 1px 是相对于 375px 的，实际上你应该是`border-width:0.5px`。
+
+#### 1px 兼容问题
+
+- 部分浏览器，在 PC 端浏览器的最小识别像素为 1px，因此写 0.5px，浏览器会自动变为 1px，导致变粗
 
 #### 方式一：媒体查询
 
