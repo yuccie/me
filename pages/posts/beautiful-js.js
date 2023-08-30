@@ -5,10 +5,6 @@ import {
   VideoCameraOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons'
-
-import cModel from 'component-npm'
-console.log('djch cModel', cModel.aFn())
-
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { Button, Layout, Menu, theme } from 'antd'
 import { useState, useEffect } from 'react'
