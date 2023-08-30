@@ -16,7 +16,7 @@ npm 代表 Node Package Manager（Node 包管理器），是 Node.js 环境中�
 
 它是一个命令行工具，允许开发者在自己的项目中安装、更新、删除和共享 JavaScript 代码包。
 
-<br>
+<br/>
 
 npm 的主要功能包括：
 
@@ -32,7 +32,7 @@ npm 的主要功能包括：
 
 - 构建生态系统：npm 作为 Node.js 生态系统的重要组成部分，提供了大量的开源模块供开发者使用。开发者可以通过 npm 快速找到和安装适用于自己项目的模块，加速开发过程。
 
-<br>
+<br/>
 npm附带安装在Node.js环境中，并与Node.js紧密集成。在安装Node.js后，您可以直接使用npm来管理JavaScript模块和项目依赖。
 
 ## 命令行解析
