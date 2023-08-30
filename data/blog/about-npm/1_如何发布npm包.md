@@ -7,7 +7,7 @@ draft: false
 summary: '如何发布自己的npm包'
 layout: PostSimple
 bibliography: references-data.bib
-canonicalUrl: https://dume.vercel.app/blog/about-npm/如何发布npm包
+canonicalUrl: https://dume.vercel.app/blog/about-npm/1_如何发布npm包
 ---
 
 ## npm 包
