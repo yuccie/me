@@ -7,7 +7,7 @@ draft: false
 summary: '多包管理工具'
 layout: PostSimple
 bibliography: references-data.bib
-canonicalUrl: https://dume.vercel.app/blog/lerna/lerna初体验
+canonicalUrl: https://dume.vercel.app/blog/about-tools/2_lerna管理器.md
 ---
 
 ## lerna

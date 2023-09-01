@@ -2397,6 +2397,8 @@ var isValid = function (s) {
   return !s.length
 }
 
+/\(\)/g
+
 // 测试
 console.log(isValid('[](){}')) // true
 console.log(isValid('[({})]')) // true
