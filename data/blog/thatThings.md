@@ -24,6 +24,7 @@ canonicalUrl: https://dume.vercel.app/data/blog/那些胡思乱想.md
   - [web 前端面试官系列](https://vue3js.cn/interview/)
   - [现代 js 教程](https://zh.javascript.info/)
   - [2021 年前端面试必读文章](https://juejin.cn/post/6844904116339261447)
+  - [大厂算法及 react 源码解析](https://xiaochen1024.com/)
 
 ### 0913 周三
 
@@ -53,6 +54,7 @@ canonicalUrl: https://dume.vercel.app/data/blog/那些胡思乱想.md
 - [ ] 星河原理
 - [x] 王阳明
 - [x] 算法，上来就使用暴力解法、递归，刻意练习
+  - [ ] 如果通俗的理解递归、回溯，还有有点不清晰
 
 ### 0831 周四
 
