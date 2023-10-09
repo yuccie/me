@@ -18,8 +18,6 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 - 可以监听网络类型，网络弱网如何统计？
 
-  -
-
 - toast 太低级
 - 微信官方推荐
   - 异步 launch 小程序，遇到弱网先不拉取远程资源或更新，采用本地缓存
