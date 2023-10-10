@@ -12,6 +12,18 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 - 每日一题：https://github.com/yuccie/30-seconds-of-code
 
+## 202310
+
+### 20231010 大列表、上拉加载、下拉刷新
+
+### 20231009 如何处理并发
+
+并发太多请求，干掉其中一部分
+
+- 节流
+  - 需立即执行
+-
+
 ## 202308
 
 ### 20230823 弱网优化
