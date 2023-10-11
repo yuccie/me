@@ -50,3 +50,16 @@ git revert <commit>：创建一个新的提交，撤销指定的 commit 的更�
 当你操作了很多 git 命令后，不知道哪个环节出错了，可以使用 `git reflog` 查看历史的 git 修改记录，比如使用 revert，还是 reset 操作等等
 
 这将显示 Git 引用日志的列表，包括引用的哈希值、引用类型（如 HEAD、分支名）、引用变动的操作（如提交、重置）以及变动发生的时间。
+
+```
+155d297 (HEAD -> main) HEAD@{0}: reset: moving to HEAD@{1}
+155d297 (HEAD -> main) HEAD@{1}: reset: moving to HEAD@{0}
+155d297 (HEAD -> main) HEAD@{2}: commit: fix
+cd7e2ff HEAD@{3}: reset: moving to HEAD
+cd7e2ff HEAD@{4}: reset: moving to HEAD
+cd7e2ff HEAD@{5}: reset: moving to HEAD
+```
+
+显示一系列引用变动的历史记录，每个记录都有一个类似 HEAD@{n} 的标识，其中 n 是一个数字。HEAD@{0} 表示最新的引用位置，而 HEAD@{1} 表示相对于最新位置的上一个引用位置，以此类推。
+
+你可以使用 `git show HEAD@{4}` 命令来查看特定引用位置的详细信息，或者使用其他 Git 命令与该引用位置进行交互。
