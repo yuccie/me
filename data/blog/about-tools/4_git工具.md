@@ -36,3 +36,5 @@ git revert <commit>：创建一个新的提交，撤销指定的 commit 的更�
 - git revert xxx 指定的提交
 
 因此每次只会撤销一个历史提交
+
+执行 git revert 命令后，Git 会打开一个文本编辑器，让你输入撤销提交的相关说明。保存说明并关闭编辑器后，Git 将创建一个新的撤销提交。
