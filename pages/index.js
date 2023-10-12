@@ -90,7 +90,7 @@ export default function Home({ posts, initialDisplayPosts }) {
         </div>
 
         <div className="flex">
-          <ul className="mr-12 divide-gray-200 overflow-auto py-8 dark:divide-gray-700">
+          <ul className="mr-12 max-h-[70vh] min-w-fit divide-gray-200 overflow-auto py-8 dark:divide-gray-700">
             {posts.map((item) => {
               const { title, slug } = item
               return (
@@ -108,7 +108,7 @@ export default function Home({ posts, initialDisplayPosts }) {
             })}
           </ul>
 
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+          <ul className="max-h-[70vh] min-w-[65%] divide-y  divide-gray-200 overflow-auto dark:divide-gray-700">
             {!filteredBlogPosts.length && 'No posts found.'}
             {displayPosts.slice(0, MAX_DISPLAY).map((frontMatter) => {
               const { slug, date, title, summary, tags } = frontMatter
