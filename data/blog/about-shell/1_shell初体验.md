@@ -179,3 +179,12 @@ VARIABLE_NAME=value
 ## command not found
 
 知道了 shell 会读取指定的配置文件，因此当安装一个应用程序后，如果提示这个 command not found ，那很大可能是这个应用的环境变量并没有正确的配置。
+
+```bash
+export PATH=~/.npm-global/bin:$PATH
+export PATH=$PATH:~/my-bin
+```
+
+`PATH=~/.npm-global/bin:$PATH：` 将 `~/.npm-global/bin` 目录添加到 PATH 变量的开头。
+
+而如果只是在已有环境变量的后面追加，只需要 `export PATH=$PATH:~/my-bin` 即可
