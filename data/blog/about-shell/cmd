@@ -4,7 +4,7 @@ const { program } = require('commander');
 // 定义命令和选项
 program
   .command('init')
-  .version('1.0.0')
+  .version('1.0.0', '-v, --vers')
   .description('初始化commander小工具')
   .option('-u, --username <username>', '你的名字')
   .option('-c, --color <color>', '你喜欢的颜色')

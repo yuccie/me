@@ -43,6 +43,10 @@ console.log('你的年龄是：', program.age)
 - 在上面定义 commander 时，options 里的定义方式是：`-n, --name <name>`，这就意味着后续命令行的格式是 `--name <name>`
   - 比如 `-n dog` 解析出来就是 `dog`
   - 比如 `-n=dog` 解析出来就是 `=dog`
+- `program.version('0.0.1', '-v, --vers', 'output the current version');`
+  - 参数二，是简写和全拼，默认是 -V 大写
+  - 参数二，必须是两个，仅仅写一个 -v 无效
+  - 参数三，是描述
 
 ### commander 之 command 模块
 
@@ -57,7 +61,7 @@ const { program } = require('commander')
 // 定义命令和选项
 program
   .command('init')
-  .version('1.0.0')
+  .version('1.0.0', '-v, --version')
   .description('初始化commander小工具')
   .option('-n, --name <name>', '你的名字')
   .option('-c, --color <color>', '你喜欢的颜色')
@@ -77,134 +81,188 @@ const { program } = require('commander')
 // 定义命令和选项
 program
   .command('init')
-  .version('1.0.0')
+  .version('1.0.0', '-v, --vers')
   .description('初始化commander小工具')
+  .option('-u, --username <username>', '你的名字')
   .option('-c, --color <color>', '你喜欢的颜色')
   .option('-a, --age <age>', '你的年龄')
-  .action(async (res) => {
+  .action(function (res) {
     console.log('res', res)
   })
   .parse(process.argv)
 
-// res <ref *1> Command {
-//   _events: [Object: null prototype] {
-//     'option:version': [Function (anonymous)],
-//     'option:color': [Function (anonymous)],
-//     'option:age': [Function (anonymous)]
-//   },
-//   _eventsCount: 3,
-//   _maxListeners: undefined,
-//   commands: [],
-//   options: [
-//     Option {
-//       flags: '-V, --version',
-//       required: false,
-//       optional: false,
-//       mandatory: false,
-//       negate: false,
-//       short: '-V',
-//       long: '--version',
-//       description: 'output the version number',
-//       defaultValue: undefined
-//     },
-//     Option {
-//       flags: '-c, --color <color>',
-//       required: true,
-//       optional: false,
-//       mandatory: false,
-//       negate: false,
-//       short: '-c',
-//       long: '--color',
-//       description: '你喜欢的颜色',
-//       defaultValue: undefined
-//     },
-//     Option {
-//       flags: '-a, --age <age>',
-//       required: true,
-//       optional: false,
-//       mandatory: false,
-//       negate: false,
-//       short: '-a',
-//       long: '--age',
-//       description: '你的年龄',
-//       defaultValue: undefined
-//     }
-//   ],
-//   parent: <ref *2> Command {
-//     _events: [Object: null prototype] {},
-//     _eventsCount: 0,
-//     _maxListeners: undefined,
-//     commands: [ [Circular *1] ],
-//     options: [],
-//     parent: null,
-//     _allowUnknownOption: false,
-//     _args: [],
-//     rawArgs: null,
-//     _scriptPath: null,
-//     _name: '',
-//     _optionValues: {},
-//     _storeOptionsAsProperties: true,
-//     _passCommandToAction: true,
-//     _actionResults: [],
-//     _actionHandler: null,
-//     _executableHandler: false,
-//     _executableFile: null,
-//     _defaultCommandName: null,
-//     _exitCallback: null,
-//     _aliases: [],
-//     _hidden: false,
-//     _helpFlags: '-h, --help',
-//     _helpDescription: 'display help for command',
-//     _helpShortFlag: '-h',
-//     _helpLongFlag: '--help',
-//     _hasImplicitHelpCommand: undefined,
-//     _helpCommandName: 'help',
-//     _helpCommandnameAndArgs: 'help [command]',
-//     _helpCommandDescription: 'display help for command',
-//     program: [Circular *2],
-//     Command: [class Command extends EventEmitter],
-//     Option: [class Option],
-//     CommanderError: [class CommanderError extends Error],
-//     [Symbol(kCapture)]: false
-//   },
-//   _allowUnknownOption: false,
-//   _args: [],
-//   rawArgs: [
-//     '/Users/didi/.nvm/versions/node/v16.18.1/bin/node',
-//     '/Users/didi/space/me/data/blog/about-shell/cmd',
-//     'init',
-//     '-c',
-//     'red',
-//     '-',
-//     'a',
-//     '19'
-//   ],
-//   _scriptPath: '/Users/didi/space/me/data/blog/about-shell/cmd',
-//   _name: 'init',
-//   _optionValues: {},
-//   _storeOptionsAsProperties: true,
-//   _passCommandToAction: true,
-//   _actionResults: [],
-//   _actionHandler: [Function: listener],
-//   _executableHandler: false,
-//   _executableFile: null,
-//   _defaultCommandName: null,
-//   _exitCallback: null,
-//   _aliases: [],
-//   _hidden: false,
-//   _helpFlags: '-h, --help',
-//   _helpDescription: 'display help for command',
-//   _helpShortFlag: '-h',
-//   _helpLongFlag: '--help',
-//   _hasImplicitHelpCommand: 0,
-//   _helpCommandName: 'help',
-//   _helpCommandnameAndArgs: 'help [command]',
-//   _helpCommandDescription: 'display help for command',
-//   _version: '1.0.0',
-//   _versionOptionName: 'version',
-//   _description: '初始化commander小工具',
-//   _argsDescription: undefined,
-//   color: 'red',
-//   args: [ 'init', '-', 'a', '19' ],
-//   [Symbol(kCapture)]: false
+// 使用时，在命令行输入下面的，就会打印下方一坨内容 🔥
+// ./cmd -u dog -c red -a 19
+
+/* <ref *1> Command {
+  _events: [Object: null prototype] {
+    'option:vers': [Function (anonymous)],
+    'option:username': [Function (anonymous)],
+    'option:color': [Function (anonymous)],
+    'option:age': [Function (anonymous)]
+  },
+  _eventsCount: 4,
+  _maxListeners: undefined,
+  commands: [],
+  options: [
+    Option {
+      flags: '-v, --vers',
+      required: false,
+      optional: false,
+      mandatory: false,
+      negate: false,
+      short: '-v',
+      long: '--vers',
+      description: 'output the version number',
+      defaultValue: undefined
+    },
+    Option {
+      flags: '-u, --username <username>',
+      required: true,
+      optional: false,
+      mandatory: false,
+      negate: false,
+      short: '-u',
+      long: '--username',
+      description: '你的名字',
+      defaultValue: undefined
+    },
+    Option {
+      flags: '-c, --color <color>',
+      required: true,
+      optional: false,
+      mandatory: false,
+      negate: false,
+      short: '-c',
+      long: '--color',
+      description: '你喜欢的颜色',
+      defaultValue: undefined
+    },
+    Option {
+      flags: '-a, --age <age>',
+      required: true,
+      optional: false,
+      mandatory: false,
+      negate: false,
+      short: '-a',
+      long: '--age',
+      description: '你的年龄',
+      defaultValue: undefined
+    }
+  ],
+  parent: <ref *2> Command {
+    _events: [Object: null prototype] {},
+    _eventsCount: 0,
+    _maxListeners: undefined,
+    commands: [ [Circular *1] ],
+    options: [],
+    parent: null,
+    _allowUnknownOption: false,
+    _args: [],
+    rawArgs: null,
+    _scriptPath: null,
+    _name: '',
+    _optionValues: {},
+    _storeOptionsAsProperties: true,
+    _passCommandToAction: true,
+    _actionResults: [],
+    _actionHandler: null,
+    _executableHandler: false,
+    _executableFile: null,
+    _defaultCommandName: null,
+    _exitCallback: null,
+    _aliases: [],
+    _hidden: false,
+    _helpFlags: '-h, --help',
+    _helpDescription: 'display help for command',
+    _helpShortFlag: '-h',
+    _helpLongFlag: '--help',
+    _hasImplicitHelpCommand: undefined,
+    _helpCommandName: 'help',
+    _helpCommandnameAndArgs: 'help [command]',
+    _helpCommandDescription: 'display help for command',
+    program: [Circular *2],
+    Command: [class Command extends EventEmitter],
+    Option: [class Option],
+    CommanderError: [class CommanderError extends Error],
+    [Symbol(kCapture)]: false
+  },
+  _allowUnknownOption: false,
+  _args: [],
+  rawArgs: [
+    '/Users/didi/.nvm/versions/node/v16.18.1/bin/node',
+    '/Users/didi/space/me/data/blog/about-shell/cmd',
+    '-u',
+    'dog',
+    '-c',
+    'red',
+    '-a',
+    '19'
+  ],
+  _scriptPath: '/Users/didi/space/me/data/blog/about-shell/cmd',
+  _name: 'init',
+  _optionValues: {},
+  _storeOptionsAsProperties: true,
+  _passCommandToAction: true,
+  _actionResults: [],
+  _actionHandler: [Function: listener],
+  _executableHandler: false,
+  _executableFile: null,
+  _defaultCommandName: null,
+  _exitCallback: null,
+  _aliases: [],
+  _hidden: false,
+  _helpFlags: '-h, --help',
+  _helpDescription: 'display help for command',
+  _helpShortFlag: '-h',
+  _helpLongFlag: '--help',
+  _hasImplicitHelpCommand: 0,
+  _helpCommandName: 'help',
+  _helpCommandnameAndArgs: 'help [command]',
+  _helpCommandDescription: 'display help for command',
+  _version: '1.0.0',
+  _versionOptionName: 'vers',
+  _description: '初始化commander小工具',
+  _argsDescription: undefined,
+  username: 'dog',   // 注意这里 🔥，变量是全拼
+  color: 'red',      // 注意这里 🔥，变量是全拼
+  age: '19',         // 注意这里 🔥，变量是全拼
+  args: [],
+  [Symbol(kCapture)]: false
+} */
+```
+
+- 综上在 action 里得到的变量是全拼，比如 `username`
+- 要想从 action 里获取有效信息，需要解构对应的值
+
+### 总结
+
+- commander 模块是一个命令行，它主要用于解析命令行参数和选项
+- `program.version(version, [optionName], [optionDescription])`
+  - `program.version('1.0.0', '-v, --custom-version', '显示自定义版本号');`
+- `program.option(flags, description, [defaultValue])`
+- `program.command('<commandName> [arguments]')`
+- `program.description(description)`
+
+```js
+program.version(version, [optionName], [optionDescription])
+
+program.option(flags, description, [defaultValue])
+
+program.arguments('<args>')
+
+program.command('<commandName> [arguments]')
+
+program.parse(process.argv)
+
+program
+  .command('init <name>')
+  .description('初始化项目')
+  .option('-p, --path <path>', '项目路径')
+  .action(function (name, options, command) {
+    console.log('初始化项目:', name)
+    console.log('项目路径:', options.path)
+  })
+
+program.parse(process.argv)
 ```
