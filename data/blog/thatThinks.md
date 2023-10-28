@@ -7,12 +7,39 @@ draft: false
 summary: '那些稍纵即逝的想法'
 layout: PostSimple
 bibliography: references-data.bib
-canonicalUrl: https://dume.vercel.app/data/blog/那些胡思乱想.md
+canonicalUrl: https://dume.vercel.app/data/blog/thatThinks.md
 ---
 
 - done ✅
 - processing
 - hold ❌
+
+## 2023 年
+
+- 正反馈循环
+
+  - 做起来，才有动力
+  - 先从简单的来，降低目标，胜利者效应
+    - 两分钟浓缩版，先把两分钟事情做完
+    - 把不想学习的话，写下来，骂
+    - 短视频，因为下一个永远有惊喜，所以一直刷
+    - 人造心流，挑战高些，
+  - 奖励
+    - 内在动力，
+    - 物质奖励是保质期较短的动力
+    - 改变负面的自我对话
+    - 夸过程，夸努力
+
+- 学习不等于时间，用次数
+
+  - 比如我学了 1 个小时，可以说，我一小时学了三遍
+
+- 能刺激多巴胺分泌，就可以促进自己拥有学习的动力
+  - 不想学习时
+    - 逼自己努力 -》大脑越排斥 -》抑制多巴胺 -》你会更加痛苦 -》继续逼自己努力 -》更加痛苦（恶性循环）
+- 降低目标，每次的实际奖励大于等于预期奖励，不要设定太高
+
+  - 从而持续感受到学习的快乐
 
 ## 2023 年
 
@@ -25,6 +52,8 @@ canonicalUrl: https://dume.vercel.app/data/blog/那些胡思乱想.md
   - [现代 js 教程](https://zh.javascript.info/)
   - [2021 年前端面试必读文章](https://juejin.cn/post/6844904116339261447)
   - [大厂算法及 react 源码解析](https://xiaochen1024.com/)
+  - [令人极度舒适的 Node.js 包和资源列表【防造轮子神器】](https://zhuanlan.zhihu.com/p/385852664)
+  - [代码随想录](https://programmercarl.com/)
 
 ### 0913 周三
 
