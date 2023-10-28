@@ -1,5 +1,5 @@
 ---
-title: '那些胡思乱想'
+title: '那些thinks'
 date: Wed Aug 30 2023 22:25:23 GMT+0800 (中国标准时间)
 lastmod: '2023-08-30'
 tags: ['想法']
@@ -7,7 +7,7 @@ draft: false
 summary: '那些稍纵即逝的想法'
 layout: PostSimple
 bibliography: references-data.bib
-canonicalUrl: https://dume.vercel.app/data/blog/那些胡思乱想.md
+canonicalUrl: https://dume.vercel.app/data/blog/thatThinks.md
 ---
 
 - done ✅
@@ -41,6 +41,8 @@ canonicalUrl: https://dume.vercel.app/data/blog/那些胡思乱想.md
 
   - 从而持续感受到学习的快乐
 
+## 2023 年
+
 - 根据常见考题编写？
   - 多找几份，对比着看
   - [fe-weekly-questions](https://github.com/LuckyWinty/fe-weekly-questions/issues)
@@ -50,14 +52,17 @@ canonicalUrl: https://dume.vercel.app/data/blog/那些胡思乱想.md
   - [现代 js 教程](https://zh.javascript.info/)
   - [2021 年前端面试必读文章](https://juejin.cn/post/6844904116339261447)
   - [大厂算法及 react 源码解析](https://xiaochen1024.com/)
+  - [令人极度舒适的 Node.js 包和资源列表【防造轮子神器】](https://zhuanlan.zhihu.com/p/385852664)
+  - [代码随想录](https://programmercarl.com/)
 
-### 1019 周四
+### 0913 周三
 
-- 小程序如何玩的深一些？
-  - 底层实现？
-  - skyline 引擎
-  - 与客户端、h5 交互原理等
-- 性能把控？
+- css 语法风格
+  - BEM（Block Element Modifier style） 风格的特点是使用双下划线（\_\_）表示元素，单个连字符（-）表示修饰符。
+  - 驼峰
+- 微信隐私协议，如何实现单个隐私弹窗实例？
+  - 同时并发会调用多个 api
+- 多个分包同时使用 lodash，主端会将 lodash 打到主包里，从而占用主包体积，目前各个分包都自行拷贝一份
 
 ### 0907 周四
 
