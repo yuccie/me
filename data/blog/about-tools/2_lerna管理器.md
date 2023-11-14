@@ -106,6 +106,8 @@ lerna -h
 # When a command fails, all logs are written to lerna-debug.log in the current working directory.
 
 # For more information, find our manual at https://github.com/lerna/lerna
+
+lerna exec -- npm install --only=dev # 安装
 ```
 
 ### .npmrc 文件
