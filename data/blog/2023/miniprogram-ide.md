@@ -192,8 +192,48 @@ Sec-WebSocket-Version: 13
 
 **注意：**：我们不能使用 XMLHttpRequest 或 fetch 来进行这种 HTTP 请求，因为不允许 JavaScript 设置这些 header。
 
+如果服务器同意切换为 WebSocket 协议，服务器应该返回响应码 101：
+
+- 101 Switching Protocols
+- Upgrade: websocket
+- Connection: Upgrade
+- Sec-WebSocket-Accept: hsBlbuDTkk24srzEOTBUlZAlC2g=
+
+这里 Sec-WebSocket-Accept 是 Sec-WebSocket-Key 使用特殊的算法重新编码的。浏览器使用它来确保响应与请求相对应。
+
+然后，使用 WebSocket 协议传输数据，我们很快就会看到它的结构（“frames”）。它根本不是 HTTP。
+
+### 数据传输
+
+WebSocket 通信由 “frames”（即数据片段）组成，可以从任何一方发送，并且有以下几种类型：
+
+- “text frames” —— 包含各方发送给彼此的文本数据。
+- “binary data frames” —— 包含各方发送给彼此的二进制数据。
+- “ping/pong frames” 被用于检查从服务器发送的连接，浏览器会自动响应它们。
+- 还有 “connection close frame” 以及其他服务 frames。
+
+在浏览器里，我们仅直接使用文本或二进制 frames。
+
+- WebSocket .send() 方法可以发送文本或二进制数据。
+- socket.send(body) 调用允许 body 是字符串或二进制格式，包括 Blob，ArrayBuffer 等。不需要额外的设置：直接发送它们就可以了。
+
+当我们收到数据时，文本总是以字符串形式呈现。而对于二进制数据，我们可以在 Blob 和 ArrayBuffer 格式之间进行选择。
+
+它是由 socket.binaryType 属性设置的，默认为 "blob"，因此二进制数据通常以 Blob 对象呈现。
+
+Blob 是高级的二进制对象，它直接与 `<a>，<img>` 及其他标签集成在一起，因此，默认以 Blob 格式是一个明智的选择。但是对于二进制处理，要访问单个数据字节，我们可以将其改为 "arraybuffer"：
+
+```js
+socket.binaryType = 'arraybuffer'
+socket.onmessage = (event) => {
+  // event.data 可以是文本（如果是文本），也可以是 arraybuffer（如果是二进制数据）
+}
+```
+
 总结：
 
 - websocket 底层依然基于 tcp，
 - 建立连接时，依然是通过 http，只不过需要升级
 - 有个专门的 socket.io 的库，可以在服务端，也可以在客户端使用
+- connection 字段表示接口想要的操作，比如 upgrade 表示想要升级
+- Upgrade 字段表示要升级的内容，比如 websocket，表示要升级为 websocket 协议

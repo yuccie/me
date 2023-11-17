@@ -106,7 +106,19 @@ lerna -h
 # When a command fails, all logs are written to lerna-debug.log in the current working directory.
 
 # For more information, find our manual at https://github.com/lerna/lerna
+
+lerna exec -- npm install --only=dev # 安装
 ```
+
+### .npmrc 文件
+
+Lerna 是一个用于管理具有多个包的 JavaScript 项目的工具。.npmrc 文件是 npm 的配置文件，用于指定 npm 的行为和设置。
+
+在 Lerna 项目中，根目录下的 .npmrc 文件通常用于设置全局的 npm 配置，以影响整个项目的包管理和依赖安装过程。然而，Lerna 并不会自动将根目录下的 .npmrc 文件应用于子包。
+
+这是因为 Lerna 的工作原理是将每个子包视为独立的 npm 包，它们具有自己的独立配置和依赖。因此，**子包的配置不会继承根目录下的 .npmrc 文件**。
+
+如果你希望在子包中应用特定的 npm 配置，可以在每个子包的目录中创建一个独立的 .npmrc 文件，并在其中设置相应的配置。这样，每个子包都可以具有自己的独立配置，并根据需要进行自定义。
 
 ### 问题列表
 

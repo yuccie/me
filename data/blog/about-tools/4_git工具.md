@@ -82,3 +82,11 @@ cd7e2ff HEAD@{5}: reset: moving to HEAD
 使用 `git checkout xxx` 后，如果想回到正常模式，只需要 `git checkout 当前分支名` 即可
 
 [更多参考](https://www.ruanyifeng.com/blog/2018/12/git-bisect.html)
+
+## 常见问题集合
+
+### "error: path 'xxx' is unmerged"
+
+错误通常出现在使用版本控制系统（如 Git）进行合并操作时，表示某个文件在合并过程中存在冲突未解决。
+
+此时可以修复冲突，然后 `git add .`，然后再执行 其他操作即可，比如 `git merge --abort` 取消合并

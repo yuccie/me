@@ -94,6 +94,11 @@ const menus = [
         icon: <VideoCameraOutlined />,
         label: '快速排序',
       },
+      {
+        key: 'removeDuplicates',
+        icon: <VideoCameraOutlined />,
+        label: '删除字符串中相邻重复项',
+      },
     ],
   },
   {
@@ -140,6 +145,16 @@ const menus = [
         icon: <VideoCameraOutlined />,
         label: '打印等腰三角形',
       },
+      {
+        key: 'debounce',
+        icon: <VideoCameraOutlined />,
+        label: '防抖',
+      },
+      {
+        key: 'throttle',
+        icon: <VideoCameraOutlined />,
+        label: '节流',
+      },
     ],
   },
 ]
@@ -170,8 +185,7 @@ const BeautifulJs = () => {
   //   // `
   // }
 
-  // promise相关
-  // promiseLimit
+  // promise相关：promiseLimit
   bodyMap.promiseLimitStr = () => {
     return `
     // 💥❌❗️❓
@@ -226,7 +240,7 @@ const BeautifulJs = () => {
     `
   }
 
-  // promiseAll
+  // promise相关：promiseAll
   bodyMap.promiseAllStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -382,10 +396,22 @@ const BeautifulJs = () => {
     `
   }
 
-  // Map相关
+  // Map相关：两数之和
   bodyMap.twoSumStr = () => {
     // 下面一行勿动 🚫
     return `
+    // 双重for循环
+    const twoSum1 = (arr, target) => {    
+      for (let i = 0; i < arr.length; i++) {
+          for(let j = i + 1; j < arr.length; j++) {
+              if (arr[i] + arr[j] === target) {
+                  return [i, j]
+              }
+          }
+      }
+      return []
+    }
+
     const twoSum = (nums, target) => {
       const map = new Map()
       const len = nums.length
@@ -414,7 +440,7 @@ const BeautifulJs = () => {
     // 下面一行勿动 🚫
     `
   }
-
+  // Map相关：LRU缓存
   bodyMap.LRUStr = () => {
     return `
     const lruCache = (maxSize) => {
@@ -467,8 +493,7 @@ const BeautifulJs = () => {
     `
   }
 
-  // 链表相关
-  // 链表 -- 链表里是否有环，也叫循环链表、环形链表都可以
+  // 链表相关：链表里是否有环，也叫循环链表、环形链表都可以
   bodyMap.cycleLinkStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -507,7 +532,7 @@ const BeautifulJs = () => {
     `
     // 上面👆🏻一行勿动 🚫
   }
-  // 链表 -- 相交链表
+  // 链表相关：相交链表
   bodyMap.intersectLinkStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -630,8 +655,7 @@ const BeautifulJs = () => {
     // 上面👆🏻一行勿动 🚫
   }
 
-  // 二叉树相关
-  // 二叉树 -- 三种遍历
+  // 二叉树相关： 三种遍历
   bodyMap.binaryTreeTraversalStr = () => {
     // 💥 🔥❌❗️❓
     return `
@@ -857,7 +881,7 @@ const BeautifulJs = () => {
     `
   }
 
-  // 数组相关
+  // 数组相关：数组去重
   bodyMap.arrayDedupliationStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -881,7 +905,7 @@ const BeautifulJs = () => {
     `
   }
 
-  // 给定一个正整数数组，找出数组中第二大的数，要求时间复杂度小于 nlogn
+  // 数组相关：给定一个正整数数组，找出数组中第二大的数，要求时间复杂度小于 nlogn
   bodyMap.findSecondLargestStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -919,7 +943,7 @@ const BeautifulJs = () => {
     `
   }
 
-  // 快速排序
+  // 数组相关：快速排序
   bodyMap.quickSortStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -947,6 +971,31 @@ const BeautifulJs = () => {
     const unsortedArr = [3, 1, 6, 2, 4, 5];
     const sortedArr = quickSort(unsortedArr);
     console.log(sortedArr); // [1, 2, 3, 4, 5, 6]
+
+    // 下面一行勿动 🚫
+    `
+  }
+  // 数组相关：删除字符串中相邻重复项
+  bodyMap.removeDuplicatesStr = () => {
+    // 下面一行勿动 🚫
+    return `
+
+    const removeDuplicates = (str) => {
+      const stack = []
+
+      for (const char of str) {
+        // 如果栈顶部元素与当前char相同，则停止push，并弹出栈顶元素
+        if (stack.length && stack[stack.length - 1] === char) {
+          stack.pop()
+        } else {
+          stack.push(char)
+        }
+      }
+
+      return stack.join('')
+    }
+
+    console.log(removeDuplicates('abbcddde')) // [1, 2, 3, 4, 5, 6]
 
     // 下面一行勿动 🚫
     `
@@ -990,7 +1039,7 @@ const BeautifulJs = () => {
     `
   }
 
-  // 题：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
+  // 动态规划：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
   bodyMap.dynamicProgramRainWaterStr = () => {
     return `
     // 题：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。
@@ -1059,35 +1108,7 @@ const BeautifulJs = () => {
     `
   }
 
-  // 输出一个由 * 组成的正三角形图案
-  bodyMap.drawTriangleStr = () => {
-    return `
-    // 第一行，一个 * 在中间
-    // 第二行，两个 * 居中，依次类推 ❌，错误，从第二行开始，每行比上面的都多两个 * 号
-    // 几行，其实就是 * 的个数，也可以理解为长方形的竖轴的长度
-    // 思路，目标的 * 个数是已知的，然后每一行 * 的个数和两侧空格的个数和，组成图形
-    // 但是，如果只有两行，第一行的*号两侧，咋放空格？ ❌，可以理解为一个空格的宽度，就是一个*的宽度
-
-    // 思路2：利用padStart，左侧补齐，先产出一个正方形，然后从第二行开始，每行向右移动 1/2 个*的总宽，咋移动呢？这又不是css
-    // 虽然不是，但是可以 直接用js 计算单个 */2啊， ❌
-    //     *
-    //    ***
-    //   *****
-    // 思路三：既然每次下面的都比上面的一行多两个，而从上到下，左侧的空格数，依次就是n-1、n-2... 0 
-    // 而最后一行星星的数量则是 1 + 2(n - 1) => 2n -1
-    const drawTrianglg = n => {
-      for (let i = 0; i < n; i++) {
-        // 第一行，一个星星，然后 n-1 个空格
-        const space = ' '.repeat(n - i - 1)
-        const triangle = '*'.repeat(2 * (i + 1) - 1)
-        console.log(space + triangle + space)
-      }
-    }
-    drawTrianglg(5)
-    `
-  }
-
-  // 给定一个数组 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合，candidates 中的每个数字在每个组合中可以出现多次
+  // 动态规划：给定一个数组 candidates 和一个目标数 target ，找出 candidates 中所有可以使数字和为 target 的组合，candidates 中的每个数字在每个组合中可以出现多次
   bodyMap.combinationSumStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -1154,7 +1175,7 @@ const BeautifulJs = () => {
     `
   }
 
-  // 斐波那契额数列的和
+  // 递归相关：斐波那契额数列的和
   bodyMap.fibsSumStr = () => {
     // 下面一行勿动 🚫
     return `
@@ -1180,6 +1201,132 @@ const BeautifulJs = () => {
     // [0, 1, 1, 2, 3]
     console.log('djch fibsSum', fibsSum(4)) // 7
     // 下面一行勿动 🚫
+    `
+  }
+
+  // 其他：输出一个由 * 组成的正三角形图案
+  bodyMap.drawTriangleStr = () => {
+    return `
+    // 第一行，一个 * 在中间
+    // 第二行，两个 * 居中，依次类推 ❌，错误，从第二行开始，每行比上面的都多两个 * 号
+    // 几行，其实就是 * 的个数，也可以理解为长方形的竖轴的长度
+    // 思路，目标的 * 个数是已知的，然后每一行 * 的个数和两侧空格的个数和，组成图形
+    // 但是，如果只有两行，第一行的*号两侧，咋放空格？ ❌，可以理解为一个空格的宽度，就是一个*的宽度
+
+    // 思路2：利用padStart，左侧补齐，先产出一个正方形，然后从第二行开始，每行向右移动 1/2 个*的总宽，咋移动呢？这又不是css
+    // 虽然不是，但是可以 直接用js 计算单个 */2啊， ❌
+    //     *
+    //    ***
+    //   *****
+    // 思路三：既然每次下面的都比上面的一行多两个，而从上到下，左侧的空格数，依次就是n-1、n-2... 0 
+    // 而最后一行星星的数量则是 1 + 2(n - 1) => 2n -1
+    const drawTrianglg = n => {
+      for (let i = 0; i < n; i++) {
+        // 第一行，一个星星，然后 n-1 个空格
+        const space = ' '.repeat(n - i - 1)
+        const triangle = '*'.repeat(2 * (i + 1) - 1)
+        console.log(space + triangle + space)
+      }
+    }
+    drawTrianglg(5)
+    `
+  }
+
+  // 其他：防抖
+  bodyMap.debounceStr = () => {
+    return `
+    // 防抖：一段时间内只会执行一次，传入函数和时间，返回函数
+    // 为何会打印两次？？？ 🔥 是react的渲染问题
+    const debounce1 = (fn, interval = 3000) => {
+      let timer = null
+      return () => {
+        // 有定时器，则清除，否则新建
+        timer && clearTimeout(timer)
+        timer = setTimeout(fn, interval)
+      }
+    }
+
+    // 触发后立即执行，然后拖动后会再次执行
+    const debounce2 = (fn, interval = 3000, immediate = true) => {
+      let timer = null
+      return () => {
+        if (immediate) {
+          fn.apply()
+          immediate = false
+        } else {
+          // 有定时器，则清除，否则新建
+          timer && clearTimeout(timer)
+          timer = setTimeout(() => {
+            fn.apply()
+            immediate = true
+          }, interval)
+        }
+      }
+    }
+
+    const fn1 = debounce1(() => console.log('不应该打印多次'))
+    const fn2 = debounce2(() => console.log('立即执行，不应该打印多次'))
+
+    window.addEventListener('resize', fn2)
+    // window.addEventListener('resize', () => console.log(111))
+    // window.addEventListener('resize',  debounce1(() => console.log('不应该打印多次'))) // 效果一样
+    `
+  }
+  // 其他：节流
+  bodyMap.throttleStr = () => {
+    return `
+    // 节流：每隔一段时间都会执行，而且当前执行期间不能执行，因此需要一个flag
+    // const throttle = (fn, interval = 300) => {
+    //   return () => {
+    //     fn.timer = setInterval(fn, interval) // ❌ 这写了个shit啊
+    //   }
+    // }
+
+    const throttle1 = (fn, interval = 1500) => {
+      let canRun = true
+      return () => {
+        if (!canRun) {
+          return
+        }
+        canRun = false
+        setTimeout(() => {
+          fn.apply()
+          canRun = true
+        }, interval)
+      }
+    }
+
+    // 立即执行
+    const throttle2 = (fn, duration = 1500) => {
+      let timer = null
+      let lastTime = 0
+
+      return function (...args) {
+        let currentTime = Date.now()
+        // 两次间隔的时间：currentTime - lastTime
+        let restTime = duration - (currentTime - lastTime)
+
+        if (restTime <= 0) {
+          // 如果小于0，则需要立即执行
+          // 这里要立即执行了，因此还需要清除定时器
+          clearTimeout(timer)
+          fn.apply(this, args)
+          lastTime = currentTime // 立马执行，则当前时间戳是 currentTime
+          timer = null
+        } else if (!timer) {
+          timer = setTimeout(() => {
+            fn.apply(this, args)
+            timer = null
+            lastTime = Date.now() // 在定时器里执行，则当前时间就是Date.now()
+          }, restTime)
+        }
+      }
+    }
+
+    const fn1 = throttle1(() => console.log('1.5s执行一次'))
+    const fn2 = throttle2(() => console.log('立即执行，然后1.5s执行一次'))
+
+    window.addEventListener('resize', fn2)
     `
   }
 
