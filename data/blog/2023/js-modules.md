@@ -268,3 +268,56 @@ customEvent.dispatchEvent(new Event('click')) // No output
 4. OpenComponents：一个基于 React 的微前端框架，它提供了一种将多个组件集成到一个页面中的简单方法。
 
 这些微前端框架都有自己的特点和优势，可以根据具体需求选择合适的框架。
+
+- iframe
+- 联邦模块
+- [腾讯的 hel](https://github.com/Tencent/hel)
+- [字节的 grafish](https://www.garfishjs.org/)
+
+#### iframe 缺点
+
+- 内存占用大：使用 Iframe 会大幅增加内存和计算资源，因为 iframe 内所承载的页面需要一个全新并且完整的文档环境
+- 上下文不同：Iframe 与上层应用并非同一个文档上下文导致
+  - 事件冒泡不穿透到主文档树上，焦点在子应用时，事件无法传递上一个文档流
+    - 主应用劫持快捷键操作
+    - 事件无法冒泡顶层，针对整个应用统一处理失效
+  - 跳转路径无法与上层文档同步，刷新丢失路由状态
+  - Iframe 内元素会被限制在文档树中，视窗宽高限制问题
+  - Iframe 登录态无法共享，子应用需要重新登录
+  - Iframe 在禁用三方 cookie 时，iframe 平台服务不可用
+  - Iframe 应用加载失败，内容发生错误主应用无法感知
+  - 难以计算出 iframe 作为页面一部分时的性能情况
+- 无法预加载缓存 iframe 内容
+- 无法共享基础库进一步减少包体积
+- 事件通信繁琐且限制多
+
+尽管难以将 Iframe 作为微前端应用的加载器，但是却可以参考其设计思想，一个传统的 Iframe 加载文档的能力可以分为四层：文档的加载能力、HTML 的渲染、执行 JavaScript、隔离样式和 JavaScript 运行环境。
+
+### 联邦模块
+
+模块联邦可以在多个 webpack 编译产物之间共享模块、依赖、页面甚至应用，通过全局变量的组合，还可以在不同模块之前进行数据的获取，让跨应用间做到模块共享真正的插拔式的便捷使用。
+
+比如 a 应用如果想使用 b 应用中 table 的组件，通过模块联邦可以直接在 a 中进行 import('b/table')非常的方便。
+
+- 每个应用块都是一个独立的构建，这些构建都将编译成容器。
+- 容器可以被其他应用或者其他容器应用。
+- 一个被引用得容器或称为 remote，引用者被称为 host，remote 暴露模块给 host，host 则可以使用这些暴露的模块，这些模块被称为 remote 模块。
+
+chunk 就是打包后的代码块。
+chunk 是 webpack 打包过程中，一堆 module 的集合，我们知道 webpack 的打包是从一个入口文件开始，也可以说是入口模块，入口模块引用这其他模块，模块再引用模，webpack 通过引用关系逐个打包模块，这些 module 就形成了一个 chunk。
+
+chunk 的加载操作通常是通过调用 import() 实现的，但也支持像 require.ensure 或 require([...]) 之类的旧语法。
+
+webpack 在构建过程中，会以 entry 配置项对应的入口文件为起点，收集整个应用中需要的所有模块，建立模块之间的依赖关系，生成一个模块依赖图。然后再将这个模块依赖图，切分为多个 chunk，输出到 output 配置项指定的位置。
+
+Module Federation 最后构建内容，main-chunk 和 async chunk。其中， main-chunk 为入口文件(通常为 index.js) 所在的 chunk，内部包含 runtime 模块、index 入口模块、第三方依赖模块(如 react、react-dom、antd 等)和内部组件模块(如 com-1、com-2 等)；async-chunk 为异步 chunk，内部包含需要异步加载(懒加载)的模块。
+
+打包代码中，webpack_require.l 是一个方法，用于加载 async-chunk。webpack_require.l 会根据 async-chunk 对应的 url，通过动态添加 script 的方式，获取 async-chunk 对应的 js 文件，然后执行。
+
+执行入口模块 - index 对应的代码时，1. 如果遇到懒加载模块，通过 webpack_modules.l 方法获取对应的 async-chunk 并执行，然后获取相应的输出。
+
+联邦模块的底层原理是基于 Webpack 的功能和特性实现的，涉及到 Webpack 的模块系统、代码分割、动态导入等机制。
+
+总结：
+
+- 联邦模块，更像是是 npm 包，或者组件共享

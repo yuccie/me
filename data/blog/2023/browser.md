@@ -232,6 +232,15 @@ window.addEventListener('error', function (msg, url, lineno, colno, error) {
 
 jsonp 是一种跨域解决方法，它利用了浏览器允许跨域请求资源的特性。
 
+1. 客服端定义一个 jsonp 方法，主要实现：
+   1. 客户端动态创建一个 script，然后 url 里拼接 callbackName，
+   2. 同时客户端需要定义一个该 callbackName 的函数
+   3. 将创建的 script 标签插入页面
+2. 服务端
+   1. 从 ulr 里解析 callbackName
+   2. 设置响应头：application/javascript
+   3. 设置响应内容：res.end(callbackName + '(' + JSON.stringify(data) + ')')
+
 客户端代码实现：
 
 ```javascript
@@ -242,9 +251,10 @@ function jsonp(url, callback) {
 
   // 定义回调函数
   window[callbackName] = function (data) {
-    delete window[callbackName]
-    document.body.removeChild(script)
     callback(data)
+
+    document.body.removeChild(script)
+    delete window[callbackName]
   }
 
   // 脚本添加到页面后就会自动下载服务端代码，下载完，作为js执行，这时就会找到window[callbackName]定义的函数。
