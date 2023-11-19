@@ -31,7 +31,7 @@ canonicalUrl: https://dume.vercel.app/blog/2023/miniprogram-ide
 
 ## 底层原理
 
-Electron 是一个跨平台的框架，它允许开发者使用 Web 技术（如 HTML、CSS 和 JavaScript）来构建桌面应用程序。它的底层原理主要包括以下几个方面：
+Electron 是一个跨平台的框架，它结合了 Chromium 和 Node.js，它允许开发者使用 Web 技术（如 HTML、CSS 和 JavaScript）来构建桌面应用程序。它的底层原理主要包括以下几个方面：
 
 1. Chromium：Electron 底层采用了 Chromium 浏览器作为其渲染引擎，这意味着它可以支持最新的 Web 技术和标准，包括 HTML5、CSS3、ES6 等。
 2. Node.js：Electron 同时也集成了 Node.js，这使得开发者可以在应用程序中使用 Node.js 的模块和 API，例如文件系统、网络、进程管理等。这也使得开发者可以使用 JavaScript 来编写服务器端代码和客户端代码。
