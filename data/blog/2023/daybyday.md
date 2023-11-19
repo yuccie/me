@@ -792,6 +792,9 @@ const originalObj1 = {
     city: 'New York',
     country: 'USA',
   },
+  nu: null,
+  undf: undefined,
+  reg: /\d/g
   arr: [1, 2],
   fn: () => console.log('fn'),
   date: new Date(),
