@@ -1140,10 +1140,15 @@ async function testSleep() {
 testSleep()
 console.log('开始')
 // 1 -》开始 -》两秒后打印2，然后-》runtime: 2004.83984375 ms
+
+// 如果更换为如下，则因为不是promise，会直接包装成Promise.resolve(console.log('11')) 执行
+await console.log('11')
+// 1 -》 11 -》 2 -》开始
 ```
 
-- 睡眠函数并没有阻断 '开始' 的打印，因为其添加的是事件循环的下一个 nextTick
+- 注意：睡眠函数并**没有阻断 '开始' 的打印**，因为其添加的是事件循环的下一个 nextTick
 - 然后 await 会产生一个微任务，从而阻断函数体内的逻辑，但该任务是放在当前宏任务队列的末尾
+- 总结：也就是说，await 只会阻止当前宏任务的执行
 
 ```js
 function testQueue() {
@@ -1176,6 +1181,8 @@ function testQueue() {
       console.log('p2')
     })
   }, 0)
+
+  console.log('end')
 }
 
 testQueue()
@@ -1212,7 +1219,18 @@ new Promise((resolve) => {
 Promise.resolve().then(() => console.log('promise 4')) // 微002
 
 console.log('script end') // 主003
+// start script
+// promise 1
+// script end
+// promise 2  // promise 2如果没有执行完，是不会先注册promise 3的
+// promise 4
+// promise 3
+// setTimeout
 ```
+
+因为在注册 promise 2 的时候，promise 3 还没有被注册进微任务队列。只有当第一个 then 的回调函数执行完毕后，才会注册第二个 then 的回调函数，因此 promise 4 会在 promise 3 之前被添加到微任务队列中，并先被执行。
+
+需要注意的是，微任务队列中的任务会在当前宏任务执行完毕后立即执行，而不会等待下一个宏任务。这就是为什么 promise 4 会在 promise 3 之前打印的原因。
 
 ```js
 async function async1() {
