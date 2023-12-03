@@ -203,6 +203,10 @@ Sec-WebSocket-Version: 13
 
 然后，使用 WebSocket 协议传输数据，我们很快就会看到它的结构（“frames”）。它根本不是 HTTP。
 
+#### socket
+
+WebSocket 是一种高级的应用层协议，建立在 TCP 连接之上，提供了实时、双向的通信能力，适用于实时性要求较高的场景。而 Socket 是一种底层的网络通信协议，可以在不同的网络层和传输层协议上运行，提供了双向通信的能力，适用于各种通信场景。WebSocket 可以看作是一种特殊的 Socket 实现，它在传输层上使用了 HTTP 协议进行握手，并提供了更高级的接口和功能，使得实时通信更便捷。
+
 ### 数据传输
 
 WebSocket 通信由 “frames”（即数据片段）组成，可以从任何一方发送，并且有以下几种类型：
@@ -237,3 +241,119 @@ socket.onmessage = (event) => {
 - 有个专门的 socket.io 的库，可以在服务端，也可以在客户端使用
 - connection 字段表示接口想要的操作，比如 upgrade 表示想要升级
 - Upgrade 字段表示要升级的内容，比如 websocket，表示要升级为 websocket 协议
+
+### server sent event
+
+相比 websocket 是双向的， `server sent events` 是单向的，仅能传输文本、且只能服务器向客户端推送、而且是常规的 http 协议。
+
+优势还有：
+
+- 自动重连。
+- 支持跨域
+
+我们需要从服务器接收一个数据流：可能是聊天消息或者市场价格等。这正是 EventSource 所擅长的。它还支持自动重新连接，而在 WebSocket 中这个功能需要我们手动实现。此外，它是一个普通的旧的 HTTP，不是一个新协议。
+
+比如展示一个股票系统
+
+```html
+<!DOCTYPE html>
+<script>
+  let eventSource
+
+  function start() {
+    // when "Start" button pressed
+    if (!window.EventSource) {
+      // IE or an old browser
+      alert("The browser doesn't support EventSource.")
+      return
+    }
+
+    eventSource = new EventSource('digits')
+
+    eventSource.onopen = function (e) {
+      log('Event: open')
+    }
+
+    eventSource.onerror = function (e) {
+      log('Event: error')
+      if (this.readyState == EventSource.CONNECTING) {
+        log(`Reconnecting (readyState=${this.readyState})...`)
+      } else {
+        log('Error has occured.')
+      }
+    }
+
+    eventSource.addEventListener('bye', function (e) {
+      log('Event: bye, data: ' + e.data)
+    })
+
+    eventSource.onmessage = function (e) {
+      log('Event: message, data: ' + e.data)
+    }
+  }
+
+  function stop() {
+    // when "Stop" button pressed
+    eventSource.close()
+    log('eventSource.close()')
+  }
+
+  function log(msg) {
+    logElem.innerHTML += msg + '<br>'
+    document.documentElement.scrollTop = 99999999
+  }
+</script>
+
+<button onclick="start()">Start</button> Press the "Start" to begin.
+<div id="logElem" style="margin: 6px 0"></div>
+
+<button onclick="stop()">Stop</button> "Stop" to finish.
+```
+
+```js
+let http = require('http')
+let url = require('url')
+let querystring = require('querystring')
+let static = require('node-static')
+let fileServer = new static.Server('.')
+
+function onDigits(req, res) {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache',
+  })
+
+  let i = 0
+
+  let timer = setInterval(write, 1000)
+  write()
+
+  function write() {
+    i++
+
+    if (i == 4) {
+      res.write('event: bye\ndata: bye-bye\n\n')
+      clearInterval(timer)
+      res.end()
+      return
+    }
+
+    res.write('data: ' + i + '\n\n')
+  }
+}
+
+function accept(req, res) {
+  if (req.url == '/digits') {
+    onDigits(req, res)
+    return
+  }
+
+  fileServer.serve(req, res)
+}
+
+if (!module.parent) {
+  http.createServer(accept).listen(8080)
+} else {
+  exports.accept = accept
+}
+```
