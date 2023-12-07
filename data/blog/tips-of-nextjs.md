@@ -115,3 +115,51 @@ newsletter 和普通的邮箱服务（如谷歌邮箱）有很大的区别。下
 [官网](https://tailwindcss.com/docs/min-width)
 
 使用时，只需要在输入框里，输入你想要的 css 样式名，tailwind css 就会给出很多提示，根据提示选择自己需要的即可
+
+### 渲染数据的接口
+
+在 Next.js 中，用于动态渲染数据的接口是 getServerSideProps 和 getStaticProps。
+
+getServerSideProps：
+
+- getServerSideProps 是一个异步函数，用于在每个请求时获取数据并将其作为 props 传递给页面组件。
+- 每当客户端请求页面时，Next.js 会调用 getServerSideProps 函数，并将数据作为 props 传递给页面组件。
+- 在 getServerSideProps 函数内部，可以执行异步操作，如从数据库获取数据、调用 API 等。
+- getServerSideProps 函数在服务器端执行，因此可以在每个请求时动态获取数据，并在服务器上进行渲染。
+
+getStaticProps：
+
+- getStaticProps 是一个异步函数，用于在构建时获取数据并将其作为静态 props 传递给页面组件。
+- 在构建过程中，Next.js 会调用 getStaticProps 函数，并将数据作为静态 props 传递给页面组件。
+- 在 getStaticProps 函数内部，可以执行异步操作，如从数据库获取数据、调用 API 等。
+- getStaticProps 函数在构建时执行，因此它可以在构建过程中预先获取数据，并将数据作为静态 HTML 页面的一部分进行生成。
+
+这两个接口可以根据页面的需求选择使用。如果页面需要在每个请求时动态获取数据，可以使用 getServerSideProps。如果页面的数据可以在构建时预先获取，然后被所有客户端共享，可以使用 getStaticProps。
+
+需要注意的是，getServerSideProps 和 getStaticProps 都必须导出为默认导出的函数，并且只能在页面组件中使用。这些函数可以在页面组件中直接定义，或者通过导入自外部模块。
+
+### 除了 next.js，还有几个类似的产品
+
+Next.js：
+
+- Next.js 是一个基于 React 的框架，提供了服务器渲染、静态站点生成（SSG）、增量静态生成（ISG）等功能。
+- 它具有强大的构建工具、路由和导航系统，并且与 React 生态系统紧密集成。
+- Next.js 支持多种数据获取方法，如 getServerSideProps、getStaticProps 等，以及自动代码分割和优化的静态资源加载。
+
+Nuxt.js：
+
+- Nuxt.js 是一个基于 Vue.js 的框架，提供了服务器渲染、静态站点生成等功能。
+- 它具有类似于 Next.js 的路由、数据获取方法和构建工具，同时支持自动代码分割和异步组件加载。
+- Nuxt.js 提供了一套开箱即用的配置，使得构建和部署 Vue.js 应用程序变得更加简单。
+
+Gatsby：
+
+- Gatsby 是一个静态站点生成器，用于构建快速、安全和可扩展的静态网站和应用程序。
+- 它使用 React 和 GraphQL 来管理数据和页面内容，支持服务器渲染和静态生成。
+- Gatsby 提供了丰富的插件生态系统和自动优化的构建过程，使得构建和部署静态网站变得更加便捷。
+
+SvelteKit：
+
+- SvelteKit 是一个基于 Svelte 的框架，用于构建现代化的 Web 应用程序。
+- 它提供了服务器渲染、静态站点生成等功能，并且具有简洁的 API 和快速的渲染性能。
+- SvelteKit 使用路由和页面模块的概念来组织应用程序，并支持数据获取和自动代码分割。

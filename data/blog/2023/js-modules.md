@@ -189,6 +189,10 @@ export default App
 6. beforeUpdate：在应用更新之前触发，可以在此处进行一些预处理操作。
 7. afterUpdate：在应用更新之后触发，可以在此处进行一些 DOM 操作。
 
+#### 样式隔离
+
+- 可以通过 loader 直接在全局注入，在原来的样式上统一添加前缀
+
 #### 通信过程
 
 在 Qiankun 微应用之前，微前端应用之间的通信通常采用以下几种方式：
@@ -275,6 +279,8 @@ customEvent.dispatchEvent(new Event('click')) // No output
 - [字节的 grafish](https://www.garfishjs.org/)
 
 #### iframe 缺点
+
+[微前端架构设计](https://www.garfishjs.org/blog)
 
 - 内存占用大：使用 Iframe 会大幅增加内存和计算资源，因为 iframe 内所承载的页面需要一个全新并且完整的文档环境
 - 上下文不同：Iframe 与上层应用并非同一个文档上下文导致
