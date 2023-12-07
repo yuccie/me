@@ -3681,6 +3681,15 @@ promiseLimit(tasks, 2)
   .catch((error) => {
     console.error(error)
   })
+
+const tasks = [
+  () => new Promise((resolve) => setTimeout(() => resolve(1), 1000)),
+  () => new Promise((resolve, reject) => reject(2)),
+]
+promise
+  .all(tasks)
+  .then((res) => console.log('res', res))
+  .catch((err) => console.log(err))
 ```
 
 ### promiseAll
