@@ -297,7 +297,7 @@ customEvent.dispatchEvent(new Event('click')) // No output
 - 无法共享基础库进一步减少包体积
 - 事件通信繁琐且限制多
 
-尽管难以将 Iframe 作为微前端应用的加载器，但是却可以参考其设计思想，一个传统的 Iframe 加载文档的能力可以分为四层：文档的加载能力、HTML 的渲染、执行 JavaScript、隔离样式和 JavaScript 运行环境。
+**尽管难以将 Iframe 作为微前端应用的加载器，但是却可以参考其设计思想，**一个传统的 Iframe 加载文档的能力可以分为四层：文档的加载能力、HTML 的渲染、执行 JavaScript、隔离样式和 JavaScript 运行环境。
 
 ### 联邦模块
 

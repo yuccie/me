@@ -373,6 +373,45 @@ App 实例：onLaunch、onShow、onHide、onError、onPageNotFound、onUnhandleR
 
 ### 原理
 
+### jsBridge
+
+Hybrid 方案是基于 WebView 的，JavaScript 执行在 WebView 的 Webkit 引擎中。因此，Hybrid 方案中 JSBridge 的通信原理会具有一些 Web 特性。
+
+#### JavaScript 调用 Native 的方式，主要有两种：**注入 API 和 拦截 URL SCHEME。**
+
+##### 注入 api 方式
+
+注入 API 方式的主要原理是，通过 WebView 提供的接口，向 JavaScript 的 Context（window）中注入对象或者方法，让 JavaScript 调用时，直接执行相应的 Native 代码逻辑，达到 JavaScript 调用 Native 的目的
+
+- ios
+  - 对于 iOS 的 UIWebView：window.postBridgeMessage(message);
+  - 对于 iOS 的 WKWebView ：window.webkit.messageHandlers.nativeBridge.postMessage(message);
+  - iOS 的 UIWebview 提供了 JavaScriptScore 方法，支持 iOS 7.0 及以上系统。WKWebview 提供了 window.webkit.messageHandlers 方法，支持 iOS 8.0 及以上系统。UIWebview 在几年前常用，目前已不常见
+- android：
+  - 4.2 之前很多方案都采用拦截 prompt 的方式来实现，Android 注入 JavaScript 对象的接口是 addJavascriptInterface，
+  - 因此在 4.2 中引入新的接口 @JavascriptInterface
+
+##### 拦截 url schema 方式
+
+- Web 端通过某种方式（例如 iframe.src）发送 URL Scheme 请求，之后 Native 拦截到请求并根据 URL SCHEME（包括所带的参数）进行相关操作。
+- 为什么选择 iframe.src 不选择 locaiton.href ？因为如果通过 location.href 连续调用 Native，很容易丢失一些调用。
+
+##### 重写 prompt 等原生 JS 方法
+
+WebView 有一个方法，叫 setWebChromeClient，可以设置 WebChromeClient 对象，而这个对象中有三个方法，分别是 onJsAlert,onJsConfirm,onJsPrompt，当 js 调用 window 对象的对应的方法，即 window.alert，window.confirm，window.prompt
+
+#### Native 调用 JavaScript
+
+相比于 JavaScript 调用 Native， Native 调用 JavaScript 较为简单，毕竟不管是 iOS 的 UIWebView 还是 WKWebView，还是 Android 的 WebView 组件，都以子组件的形式存在于 View/Activity 中，直接调用相应的 API 即可。
+
+Native 调用 JS 比较简单，只要 H5 将 JS 方法暴露在 Window 上给 Native 调用即可。
+
+Native 调用 JavaScript，其实就是执行拼接 JavaScript 字符串，从外部调用 JavaScript 中的方法，因此 JavaScript 的方法必须在全局的 window 上。
+
+Android 中主要有两种方式实现。在 4.4 以前，通过 loadUrl 方法，执行一段 JS 代码来实现。在 4.4 以后，可以使用 evaluateJavascript 方法实现。loadUrl 方法使用起来方便简洁，但是效率低无法获得返回结果且调用的时候会刷新 WebView。evaluateJavascript 方法效率高获取返回值方便，调用时候不刷新 WebView，但是只支持 Android 4.4+。
+
+iOS 在 WKWebview 中可以通过 evaluateJavaScript:javaScriptString 来实现，支持 iOS 8.0 及以上系统。
+
 ### 浏览器调试框架
 
 1. 如何将浏览器模拟成端
@@ -385,16 +424,23 @@ App 实例：onLaunch、onShow、onHide、onError、onPageNotFound、onUnhandleR
 - 平时我们与 iframe 页面通信，就需要使用 postmessage，而 native 侧正好监听 message 事件，然后进行分发或处理这些事件
   - 如果是仅仅端处理的，则 native 直接处理并返回，比如返回系统信息 getSystemInfo、文件路径信息等
 
-### 逻辑层与视图层通信
+#### 逻辑层的 bridge
 
-- ios
-  - 视图层 -> 逻辑层：通过 webkit.messageHandler 或者 schema url 拦截，进而与 Native 交互，然后 Native 再与逻辑层交互
-  - 逻辑层 -> 视图层：先通过 js 事件发布订阅直接沟通，然后再 postmessage 给视图层
-- 安卓：
-  - 视图层 -> 逻辑层：安卓使用 window.DiminaWebViewBridge.invoke，该方法是端上注入的，webview 其实也有 js 运行环境，只是做的很薄。当然端上注入的方式不是简单的代码注入，而是通过内核暴露的 hook，更加高级一些
-  - 逻辑层 -> 视图层：js 发布订阅，然后再传给视图层。
+- invoke 调用端上的能力，此时利用的是注入 Api 的方式，同时不需要序列化
+  - ios：window.webkit.messageHandlers.xxxWebViewBridge.postMessage(payload)
+  - android：window.xxxWebViewBridge.invoke(method, data, invokeId, module)
+- publish：逻辑层将数据发送到视图层，需要经过 native 转发，也是注入 api 方式，但需要序列化
+  - ios: window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))
+  - android：window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))
 
-逻辑层和视图层，通信方式不同，因此视图层和逻辑层分别有个通信 bridge
+#### 视图层的 bridge
+
+- invoke 调用端上的能力，此时利用的是注入 Api 的方式，同时不需要序列化
+  - android：window.xxxWebViewBridge.invoke(method, data, invokeId, module)
+  - ios：window.webkit.messageHandlers.xxxWebViewBridge.postMessage(payload)
+- publish 将数据发送到逻辑层，依然需要经过 native 中转，需要序列化
+  - ios：window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))
+  - android： window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))
 
 ### 浏览器调试与 ide 或者真机上的区别
 
@@ -413,6 +459,43 @@ App 实例：onLaunch、onShow、onHide、onError、onPageNotFound、onUnhandleR
 - 大小：数据压缩和序列化，压缩降低数据量，序列化可以转化为更加紧凑的格式。
 - 多线程：多线程 worker：可以将一些大耗时的工作放在其他线程，避免占用主线程。
 - 缓存：使用缓存和本地缓存：减少通信
+
+# dd 小程序
+
+## 容器框架设计
+
+小程序 与 H5 的最大区别就在于双引擎设计。设计双引擎，有以下优势
+
+- 管控性和安全性：小程序业务代码的执行环境为 JSEngine，无法调用到小程序基础能力以外的更多宿主能力。
+- 类 App 的运行环境：在页面运行时，小程序业务代码的执行环境始终处于一个 JSEngine 实例，JS 对象不会随页面而销毁。
+  - 多个视图层对应一个逻辑层
+
+## 通信设计
+
+### 逻辑层 bridge
+
+#### 逻辑层与视图层？
+
+- 安卓：window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))
+- ios：window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))
+- 结论就是：不同的端，会在 js 运行时，将通信方式挂载在不同的全局变量上，然后逻辑层直接调用
+
+* invoke：逻辑层调用端上的事件，过程中会使用 onBridgeCb 向 bridgeMsgMap 上注册回调
+* on：向 nativeEventMsgMap 上以 event 为 key 注册回调（项目中没有用到）
+* onBridgeCb：向 bridgeMsgMap 上注册回调
+* off：从 nativeEventMsgMap 上移除指定 event 的事件
+* publish：底层通过 xxxServiceBridge.publish 以 webViewId 维度发布给 Native，Native 再转发给视图层
+* subscribe：向 eventMsgMap 以 event 维度注册回调函数
+* clearAll：会将 eventMsgMap、bridgeMsgMap、nativeEventMsgMap 全置为空对象
+* invokeCallbackHandler：触发之前 invoke 注册的回调，根据 invokeId 从 bridgeMsgMap 取对应回调执行，根据 event 从 nativeEventMsgMap 上取回调执行
+* subscribeHandler：触发 subscribe 在 eventMsgMap 注册的回调函数
+
+仔细品，可以发现上面的方法有以下规律：
+
+- invoke 用来调用，onBridgeCb 和 on 用来注册回调，off 用来解除回调，invokeCallbackHandler 用来执行注册的回调
+- publish 只是单纯的将数据发给视图层，但是还是需要先发给 Native 上
+- subscribe 是注册回调，subscribeHandler 是执行其注册的回调
+- clearAll 是将三个对象都清空。
 
 # 背景
 
