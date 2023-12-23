@@ -874,6 +874,7 @@ const originalObj1 = {
   fn: () => console.log('fn'),
   date: new Date(),
   symbol: Symbol(), // 不是构造函数，不能用 new
+  reg: /\d/g,
 }
 
 const res1 = deepClone(originalObj1) // 在浏览器里其实可以看到并使用对应的date，fn，symbol等，但复制出来后就没有了

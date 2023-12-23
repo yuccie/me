@@ -124,3 +124,18 @@ Lerna 是一个用于管理具有多个包的 JavaScript 项目的工具。.npmr
 
 Q：lerna WARN No packages found where @rollup/plugin-replace can be added.
 A：在使用 lerna add A --scope=xxx --dev 时，如果之前安装过，也就是 devDependencies 已经有了 A 的配置，再次安装就会失败；除非更改版本号再次安装
+
+## monorepo
+
+Monorepo 和 Lerna 都是用于管理多个相关项目的工具，但它们有一些区别：
+
+Monorepo（单一代码仓库）是一种将多个相关项目组织在一个仓库中的开发模式。
+
+在 Monorepo 中，不同的项目（如前端应用、后端服务、公共库等）被组织在同一个版本控制仓库中，共享相同的开发工具、构建配置和依赖管理。这样可以促进代码共享、跨项目重用和更简洁的协作。
+
+Lerna 是一个用于管理 Monorepo 的工具，它提供了一些工具和命令行接口，帮助简化 Monorepo 的管理和发布过程。Lerna 主要解决 Monorepo 中的包管理问题，它可以自动化地管理项目的依赖关系、版本控制和发布流程。Lerna 提供了一些命令，如添加依赖、版本控制、构建、发布等，以便更方便地管理 Monorepo 中的项目。
+
+- Monorepo 是一种开发模式，一种代码组织思想，用于组织多个相关项目在同一个版本控制仓库中。而 Lerna 是一个工具，用于管理 Monorepo。
+- 可以说 Lerna 是 Monorepo 的一种实现方式。
+
+其实 monorepo 只是一种思想，如果使用 `git submodule add xxx.git(测试仓库git地址) test(本地目录)` 这种添加另外一个仓库到本地仓库，后续随着项目的增大，git 的操作是否会变的更慢（当然添加子模块，主仓库只会跟踪版本，并不不会跟踪具体的代码改动，因为是相互隔离的）
