@@ -117,7 +117,7 @@ lazyCodeLoading 的原理如下：
 
 1. 点击端提供的 reload 按钮，重新触发页面加载
 2. 重新加载 page-frame 视图层模版，加载完暴露 webviewReady 事件，同时会向逻辑层发送 initReadyForPrerender 事件， 此时会触发 webview 拦截，相当于端拦截的
-3. 端拦截后，告知逻辑层现在执行 reload 事件，逻辑层的拦截堆栈是：视图层发送 initReadyForPrerender 事件后，会将视图层的 webviewId 带过来，此时为 1，同时触发\_\_appRouteTriggerFn、onAppRouteTrigger、addView、TreeManager.create(viewId)、OperationFlow 等一系列逻辑，然后里面涉及到的 setDataListener 都会绑定到这个 webviewId 上
+3. 端拦截后，告知逻辑层现在执行 reload 事件，逻辑层的拦截堆栈是：视图层发送 initReadyForPrerender 事件后，会将视图层的 webviewId 带过来，此时为 1，同时触发`\_\_appRouteTriggerFn、onAppRouteTrigger、addView、TreeManager.create(viewId)、OperationFlow` 等一系列逻辑，然后里面涉及到的 setDataListener 都会绑定到这个 webviewId 上
 4. 然后 reload 事件具体逻辑，会找到当前页面堆栈里 webviewId 与 reload 传过来一致的页面，并执行其 unload、destroy 事件，同时删除之前的内存节点信息：`delete pageInfoMap[node.webViewId];`
 5.
 
@@ -427,20 +427,20 @@ iOS 在 WKWebview 中可以通过 evaluateJavaScript:javaScriptString 来实现�
 #### 逻辑层的 bridge
 
 - invoke 调用端上的能力，此时利用的是注入 Api 的方式，同时不需要序列化
-  - ios：window.webkit.messageHandlers.xxxWebViewBridge.postMessage(payload)
-  - android：window.xxxWebViewBridge.invoke(method, data, invokeId, module)
+  - ios：`window.webkit.messageHandlers.xxxWebViewBridge.postMessage(payload)`
+  - android：`window.xxxWebViewBridge.invoke(method, data, invokeId, module)`
 - publish：逻辑层将数据发送到视图层，需要经过 native 转发，也是注入 api 方式，但需要序列化
-  - ios: window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))
-  - android：window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))
+  - ios: `window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))`
+  - android：`window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))`
 
 #### 视图层的 bridge
 
 - invoke 调用端上的能力，此时利用的是注入 Api 的方式，同时不需要序列化
-  - android：window.xxxWebViewBridge.invoke(method, data, invokeId, module)
-  - ios：window.webkit.messageHandlers.xxxWebViewBridge.postMessage(payload)
+  - android：`window.xxxWebViewBridge.invoke(method, data, invokeId, module)`
+  - ios：`window.webkit.messageHandlers.xxxWebViewBridge.postMessage(payload)`
 - publish 将数据发送到逻辑层，依然需要经过 native 中转，需要序列化
-  - ios：window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))
-  - android： window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))
+  - ios：`window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))`
+  - android： `window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))`
 
 ### 浏览器调试与 ide 或者真机上的区别
 
@@ -476,8 +476,8 @@ iOS 在 WKWebview 中可以通过 evaluateJavaScript:javaScriptString 来实现�
 
 #### 逻辑层与视图层？
 
-- 安卓：window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))
-- ios：window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))
+- 安卓：`window.xxxWebViewBridge.publish(JSON.stringify({ event, payload }))`
+- ios：`window.webkit.messageHandlers.xxxWebViewBridge.postMessage(JSON.stringify(payload))`
 - 结论就是：不同的端，会在 js 运行时，将通信方式挂载在不同的全局变量上，然后逻辑层直接调用
 
 * invoke：逻辑层调用端上的事件，过程中会使用 onBridgeCb 向 bridgeMsgMap 上注册回调
