@@ -1,5 +1,5 @@
 ---
-title: '2_react技术揭秘'
+title: 'react技术揭秘'
 date: Sun Dec 17 2023 18:26:41 GMT+0800 (中国标准时间)
 lastmod: '2023-12-17'
 tags: ['react']
