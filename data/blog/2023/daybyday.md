@@ -32,6 +32,7 @@ function parseUrl(url) {
     const decodeKey = decodeURIComponent(key)
     const decodeVal = decodeURIComponent(val)
 
+    // 如果对象上有，则说明重复了，需要用数组去承载后续的值
     if (params.hasOwnProperty(decodeKey)) {
       // 如果有了，则需要改为数组
       if (Array.isArray(params[decodeKey])) {
@@ -319,6 +320,12 @@ const throttle = (fn, duration = 300) => {
   }
 }
 ```
+
+三种情况，
+
+- 当 restTime <= 0 需要立即执行；
+- 当 restTime > 0 且 没有定时器，则需要新建定时器，且时间间隔为 restTime；
+- 当 restTime > 0 且 有定时器，则不执行
 
 #### 节流
 
