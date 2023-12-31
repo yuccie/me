@@ -357,3 +357,21 @@ if (!module.parent) {
   exports.accept = accept
 }
 ```
+
+### webRTC
+
+WebRTC（Web Real-Time Communication）是一种用于在 Web 浏览器之间进行实时通信的开放源代码项目。它的原理涉及多种技术和协议，包括网络传输、媒体流处理和安全性。
+
+WebRTC 的原理包括以下几个关键方面：
+
+- 媒体捕获和流处理：WebRTC 允许浏览器捕获音频和视频流，并对其进行处理。这包括使用 Web APIs（如 getUserMedia）从摄像头和麦克风中捕获媒体流，并对媒体流进行编解码、媒体格式转换等处理。
+
+- 实时传输协议：WebRTC 使用实时传输协议（Real-Time Protocol，简称 RTP）来传输音频和视频数据。RTP 是一种标准的实时传输协议，用于在网络上传输实时数据流。
+
+- 网络传输：WebRTC 使用用户数据报协议（User Datagram Protocol，简称 UDP）或传输控制协议（Transmission Control Protocol，简称 TCP）来在网络上传输媒体数据。UDP 通常用于实时通信，因为它提供了更低的延迟，而 TCP 则提供了更可靠的数据传输。
+
+- NAT 穿透：WebRTC 使用 ICE（Interactive Connectivity Establishment）框架来解决网络地址转换（Network Address Translation，简称 NAT）和防火墙等网络障碍对实时通信的影响。ICE 允许浏览器找到最佳的网络路径，以确保通信的顺利进行。
+
+- 安全性：WebRTC 通过使用加密技术（如传输层安全性协议，TLS）来保护通信内容的安全性和隐私。
+
+总的来说，WebRTC 的原理是通过浏览器提供的 API 和协议，实现了在 Web 应用程序中进行实时音视频通信的功能。这使得开发者可以轻松地构建具有实时通信能力的 Web 应用，如视频会议、语音通话和实时数据传输等。

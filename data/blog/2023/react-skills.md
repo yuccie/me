@@ -10,6 +10,15 @@ bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/2023/react-skills
 ---
 
+## flex 布局
+
+###
+
+- flex-grow、flex-shrink 和 flex-basis 是用于控制 Flex 项目伸缩性的三个属性。
+- flex-grow：该属性定义了 Flex 项目在可用空间增加时的伸展比例。默认值为 0，表示不伸展。如果所有的 Flex 项目的 flex-grow 值都为 1，则它们将平均分配可用空间。如果某个 Flex 项目的 flex-grow 值为 2，而其他 Flex 项目的 flex-grow 值为 1，则前者将获得的空间是后者的两倍。
+- flex-shrink：该属性定义了 Flex 项目在可用空间减少时的收缩比例。默认值为 1，表示可以收缩。如果所有的 Flex 项目的 flex-shrink 值都为 1，则它们将按比例收缩以适应可用空间的减少。如果某个 Flex 项目的 flex-shrink 值为 0，则该项目不会收缩。
+- flex-basis：该属性定义了 Flex 项目在没有伸缩发生时的初始大小。它可以设置为一个具体的长度值（如像素或百分比），也可以设置为 auto。默认值为 auto，表示 Flex 项目将根据其内容的大小自动确定初始大小。
+
 ## JSX
 
 ### JSX 是如何转换为 页面的
@@ -122,6 +131,22 @@ export default {
 ```
 
 ## hooks
+
+### 使用 hooks 的限制
+
+- React Hooks 是 React 16.8 引入的一种特性，它使函数组件能够拥有状态和其他 React 特性，而无需编写类组件。虽然 Hooks 提供了很多便利，但也有一些限制需要注意。以下是一些常见的 React Hooks 的限制：
+
+- 只能在函数组件顶层使用：Hooks 只能在函数组件的顶层使用，不能在循环、条件语句或嵌套函数中使用。这是因为 React 需要使用 Hooks 的顺序来跟踪状态和效果的依赖关系。
+
+- 只能在 React 函数组件中使用：Hooks 只能在 React 函数组件中使用，不能在普通的 JavaScript 函数中使用。这是因为 Hooks 依赖于 React 的底层机制来管理状态和生命周期。
+
+- 钩子名称必须以 "use" 开头：自定义的 Hooks 名称必须以 "use" 开头，这是为了遵循 React 的约定。这样做有助于开发者识别出哪些函数是 Hooks。
+
+- Hooks 的调用顺序必须保持稳定：在同一个函数组件中，Hooks 的调用顺序必须保持稳定。这意味着不能在条件语句或循环中使用 Hooks，因为它们可能会导致 Hooks 的调用顺序发生变化。
+
+- 自定义 Hooks 必须遵循规则：自定义的 Hooks 必须遵循特定的规则。例如，自定义 Hooks 必须以 "use" 开头，且内部可以使用其他 Hooks。
+
+- Hooks 不支持在类组件中使用：Hooks 是为函数组件设计的，不能在类组件中直接使用。如果需要在类组件中使用 Hooks，可以使用 useEffect 和 useState 等 Hooks 的替代方案。
 
 ### 为什么产生 hooks
 

@@ -226,7 +226,7 @@ rgbToHex(0, 255, 0)
   - 保留的哪些字符？很简单：url 里可以有什么字段不就是了。。。
 - decodeURIComponent 只解码 URI 中的特定部分，例如查询参数中的值。
   - 将所有的 %xx 编码解码成它们所代表的字符，包括保留字符，因为查询字符串里，只有 key=value&
-- 为了防止意外，还是改用什么转换就用什么转换吧。
+- 为了防止意外，还是该用什么转换就用什么转换吧。
 
 ```js
 console.log(encodeURI('http://example.com/path?a=hello world&b=/test/'))

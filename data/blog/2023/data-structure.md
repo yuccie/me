@@ -202,6 +202,11 @@ const sum = numbers.reduce((accumulator, currentValue) => {
 }, 0)
 console.log(sum) // 15
 
+'a.b.1.d'.split('.').reduce((acc, cur) => {
+  // const temp = acc[cur] ? acc[cur] : undefined  不行，需要处理acc
+  return acc?.[cur] // 这样就好了
+}, val)
+
 // 给定一个字符串，取出嵌套对象里的值
 const val = 'a.b.1.d'.split('.').reduce(
   (acc, cur) => {
@@ -321,6 +326,8 @@ function mergeSortedArrays(arr1, arr2) {
 1. 它使用两个指针 i 和 j 来比较两个数组中的元素，并将较小的元素添加到合并数组中。
 2. 一旦一个数组的指针到达其末尾，该函数将继续将另一个数组中的所有元素添加到合并数组中。
 3. 最后，它返回合并后的有序数组。
+
+[stackblitz 数组相关](https://stackblitz.com/edit/js-rxwzmh?file=index.js)
 
 ### 实现一个数组的全排列
 
@@ -3628,6 +3635,91 @@ var kthToLast = function (head, k) {
 ### promiseLimit
 
 ```js
+// 给定一个请求列表，和最大并发数limit，写一个最大并发数为 limit 的逻辑，等到所有都结束了再返回
+const promiseLimit = (ps, limit) => {
+  // 异步操作，肯定涉及Promise
+  return new Promise((resolve, reject) => {
+    const res = []
+    let idx = 0
+    let pengdingCount = 0 // 正在请求的数量
+
+    // 需要定义几个函数，从而实现嵌套调用
+    const runTask = (task, idx) => {
+      pengdingCount++ // 执行了几个
+      task()
+        .then((val) => {
+          // 请求成功，则消除请求池
+          pengdingCount-- // 请求成功，立马修改计数
+          // 根据请求的序号，填充响应
+          res[idx] = val
+          // 其实walk就会第一次一下子，执行limit个，后续如果还想再激活，则需要再次调用
+          walk()
+        })
+        .catch((err) => {
+          // 如果失败，数量也会
+          res[idx] = err
+        })
+        .finally(() => {
+          // 不能放在这里，因为时序问题，会导致 !pengdingCount 先执行
+          // pengdingCount--
+        })
+    }
+    const walk = () => {
+      // 开始执行，条件满足就执行：请求池有余量 且 有待请求的
+      while (pengdingCount < limit && idx < ps.length) {
+        runTask(ps[idx], idx) // 执行
+        console.log('正在运行中', pengdingCount, '__111__', idx)
+        idx++
+      }
+      // 如果正在请求的数量清空了，则resolve
+      console.log('djch pengdingCount', pengdingCount)
+      if (!pengdingCount) {
+        resolve(res)
+      }
+    }
+
+    walk() // 执行
+  })
+}
+
+const promiseLimit = (ps, limit) => {
+  return new Promise((resolve, reject) => {
+    const res = [] // 存放结果
+    let pendingCount = 0 // 正在请求的数量
+    let idx = 0 // 当前请求索引
+
+    const runTask = (task, idx) => {
+      task()
+        .then((val) => {
+          pendingCount--
+          res[idx] = val
+          // 再次执行walk
+          walk()
+        })
+        .catch((err) => {
+          res[idx] = err
+          // 或者 reject(err)
+        })
+    }
+    const walk = () => {
+      // 正在请求数 < limit && idx < ps.length
+      while (pendingCount < limit && idx < ps.length) {
+        runTask(ps[idx], idx)
+        pendingCount++
+        idx++
+      }
+
+      // 如果没有正在请求的，直接返回
+      if (!pendingCount) {
+        resolve(res)
+      }
+    }
+    walk()
+  })
+}
+```
+
+```js
 const promiseLimit = (ps, limit) => {
   // 异步编程，肯定需要promise
   return new Promise((resolve, reject) => {
@@ -3693,6 +3785,28 @@ promise
 ```
 
 ### promiseAll
+
+```js
+const myPromiseAll = (ps) => {
+  return new Promise((resolve, reject) => {
+    const res = []
+    let count = 0
+
+    for (let i = 0; i < ps.length; i++) {
+      ps[i]()
+        .then((val) => {
+          count++
+          res[i] = val
+
+          if (count === ps.length) {
+            resolve(res)
+          }
+        })
+        .catch((err) => reject(err))
+    }
+  })
+}
+```
 
 ```js
 const promiseAllV1 = (ps) => {

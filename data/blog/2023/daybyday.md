@@ -12,7 +12,43 @@ canonicalUrl: https://dume.vercel.app/blog/2023/daybyday
 
 - 每日一题：https://github.com/yuccie/30-seconds-of-code
 
-## 202310
+## 20231114
+
+```js
+// 解析url参数，并能识别多个重复的参数
+function parseUrl(url) {
+  // 思路：
+  // 1、定义空对象，如果?后没有值，直接返回
+  // 2、有值，则需要split('&') 切割
+  // 3、遍历切割的数组，然后再次使用 split('=') 切割，同时decodeURIComponent解码key和val
+  // 4、如果对象上没有key，则直接复制
+  // 5、如果对象上有key，说明重复了，则改为数组存储，取出之前，然后和当前的组成一个数组。如果本身就是数组，则直接push
+  let params = {}
+  let queryStr = url.split('?')[1]
+  if (!queryStr) return params
+
+  queryStr.split('&').forEach((keyStr) => {
+    const [key, val] = keyStr.split('=')
+    const decodeKey = decodeURIComponent(key)
+    const decodeVal = decodeURIComponent(val)
+
+    // 如果对象上有，则说明重复了，需要用数组去承载后续的值
+    if (params.hasOwnProperty(decodeKey)) {
+      // 如果有了，则需要改为数组
+      if (Array.isArray(params[decodeKey])) {
+        params[decodeKey].push(decodeVal)
+      } else {
+        // 注意这里，第一次时，需要从params取出：params[decodeKey]，然后再拼接 decodeVal
+        params[decodeKey] = [params[decodeKey], decodeVal]
+      }
+    } else {
+      params[decodeKey] = decodeVal
+    }
+  })
+
+  return params
+}
+```
 
 ### 20231010 大列表、上拉加载、下拉刷新
 
@@ -281,6 +317,52 @@ const throttle = (fn, duration = 300) => {
         lastTime = Date.now()
       }, restTime)
     }
+  }
+}
+```
+
+三种情况，
+
+- 当 restTime <= 0 需要立即执行；
+- 当 restTime > 0 且 没有定时器，则需要新建定时器，且时间间隔为 restTime；
+- 当 restTime > 0 且 有定时器，则不执行
+
+#### 节流
+
+【2676. 节流】现给定一个函数 fn 和一个以毫秒为单位的时间 t ，请你返回该函数的 节流 版本。
+
+节流 函数首先立即被调用，然后在 t 毫秒的时间间隔内不能再次执行，但应该存储最新的函数参数，以便在延迟结束后使用这些参数调用 fn 。
+
+例如，t = 50ms ，并且函数在 30ms 、 40ms 和 60ms 时被调用。第一次函数调用会在接下来的 t 毫秒内阻止调用函数。第二次函数调用会保存参数，而第三次调用的参数应该覆盖当前保存的第二次调用的参数，因为第二次和第三次调用发生在 80ms 之前。一旦延迟时间过去，节流函数应该使用延迟期间提供的最新参数进行调用，并且还应创建另一个延迟期间，时长为 80ms + t 。
+
+```js
+var throttle = (fn, duration = 300) => {
+  let timer = null
+  let lastTime = 0
+  let modifiedargs = null
+
+  return function (...args) {
+    let currentTime = Date.now()
+    let restTime = duration - (currentTime - lastTime)
+    modifiedargs = args
+
+    // 如果没有剩余时间，则立即执行，同时清除定时器
+    // 剩余时间小于等于0，说明冷却时间已到
+    if (restTime <= 0) {
+      clearTimeout(timer)
+      timer = null
+      fn.apply(this, modifiedargs)
+      lastTime = currentTime // lastTime是上次执行的时间，因此这里这样赋值
+    } else if (!timer) {
+      // 剩余时间大于0，且定时器不存在说明冷却时间未到，且当前为队列第一个        // 需要设置定时器，定时器时间为剩余时间，并在定时器执行后将定时器置空，更新上次执行时间
+      timer = setTimeout(() => {
+        lastTime = Date.now()
+        timer = null
+        fn.apply(this, modifiedargs)
+      }, restTime)
+    }
+    // 剩下一种情况是剩余时间大于0，且定时器存在，说明冷却时间未到，且当前不是队列第一个
+    // 不需要设置定时器，只需要更新参数，已经在前面更新过了
   }
 }
 ```
@@ -799,6 +881,7 @@ const originalObj1 = {
   fn: () => console.log('fn'),
   date: new Date(),
   symbol: Symbol(), // 不是构造函数，不能用 new
+  reg: /\d/g,
 }
 
 const res1 = deepClone(originalObj1) // 在浏览器里其实可以看到并使用对应的date，fn，symbol等，但复制出来后就没有了
@@ -843,7 +926,7 @@ function cloneDeep(target) {
     // 判断是数组还是对象
     const res = isType(data) === 'Array' ? [] : Object.create(null)
 
-    // 将目标对象存起来
+    // 将目标对象存起来，防止循环引用
     wMap.set(data, res)
 
     Object.keys(data).forEach(key => {
@@ -853,6 +936,47 @@ function cloneDeep(target) {
     return res
   }
 
+  return _deep(target)
+}
+
+深拷贝过程
+1. 需要一个判断数据类型的辅助函数
+2. 需要一个记录是否循环引用的map对象，
+3. 需要使用递归，因此内部需要定义一个函数
+4. 逻辑开始，首先判断数据类型，如果是日期，则返回一个新的实例，如果是非对象或者数组，直接返回待复制的对象
+5. 剩下的就是对象或数组了，判断map里是否有这些，有就直接返回
+6. 如果map里没有，则根据数据类型，新建拷贝副本res，并设置 map[originData] = res，以待拷贝源数据为key，拷贝副本为value，如果res[key]有值则跳过执行下一个
+7. 然后开始遍历源数据originData，然后递归赋值给res
+
+function myDeepClone(target) {
+  const whichType = v => Object.prototype.toString.call(v).slice(8, -1)
+  const weakMap = new WeakMap()
+
+  function _deep(origin){
+    // 判断数据类型，处理非对象
+    if (whichType(origin) === 'Date') {
+      return new Date(origin)
+    }
+    if (!['Array', 'Object'].includes(whichType(origin))) {
+      return origin
+    }
+    // 如果是对象，判断map里是否有，有就直接返回
+    if (weakMap.has(origin)) return weakMap.get(origin)
+
+    // 创建拷贝副本
+    const res = whichType(origin) === 'Array' ? [] : Object.create(null);
+    // map记录
+    weakMap.set(origin, res)
+
+    // 遍历复制
+    Object.keys(origin).forEach(key => {
+      if (res[key]) return // 有就直接返回，执行下一个
+      res[key] = _deep(origin[key]) // 递归拷贝源数据
+    })
+
+    // 最终返回结果
+    return res
+  }
   return _deep(target)
 }
 ```
