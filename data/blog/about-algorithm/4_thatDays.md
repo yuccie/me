@@ -10,6 +10,93 @@ bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/about-algorithm/4_那些日子.md
 ---
 
+## 20231206 周四
+
+### HTML 模板
+
+内建的 `<template>` 元素用来存储 HTML 模板,浏览器将忽略它的内容，仅检查语法的有效性，但是我们可以在 JavaScript 中访问和使用它来创建其他元素。
+
+### shadow dom
+
+Shadow DOM 为封装而生。**它可以让一个组件拥有自己的「影子」DOM 树**，这个 DOM 树不能在主文档中被任意访问，可能拥有局部样式规则，还有其他特性。
+
+对于一些复杂的组件，比如 拖动组件：`<input type="range" />`
+
+浏览器在内部使用 DOM/CSS 来绘制它们。这个 DOM 结构一般来说对我们是隐藏的，但我们可以在开发者工具里面看见它。比如，在 Chrome 里，我们需要打开「**Show user agent shadow DOM」**选项。
+
+你在 #shadow-root 下看到的就是被称为「shadow DOM」的东西。
+
+我们不能使用一般的 JavaScript 调用或者选择器来获取内建 shadow DOM 元素。它们不是常规的子元素，而是一个强大的封装手段。
+
+一个 DOM 元素可以有以下两类 DOM 子树：
+
+- Light tree（光明树） —— 一个常规 DOM 子树，由 HTML 子元素组成。我们在 elements 面板里看到的几乎所有的都是
+- Shadow tree（影子树） —— 一个隐藏的 DOM 子树，不在 HTML 中反映，无法被察觉。
+- 如果一个元素同时有以上两种子树，那么浏览器只渲染 shadow tree。
+
+```html
+<script>
+  customElements.define(
+    'show-hello',
+    class extends HTMLElement {
+      connectedCallback() {
+        const shadow = this.attachShadow({ mode: 'open' })
+        shadow.innerHTML = `<p>
+      Hello, ${this.getAttribute('name')}
+    </p>`
+      }
+    }
+  )
+</script>
+
+<show-hello name="John"></show-hello>
+```
+
+- 首先，调用 elem.attachShadow({mode: …}) 可以创建一个 shadow tree。
+
+- 在每个元素中，我们只能创建一个 shadow root。
+- elem 必须是自定义元素，或者是以下元素的其中一个`：「article」、「aside」、「blockquote」、「body」、「div」、「footer」、「h1…h6」、「header」、「main」、「nav」、「p」、「section」或者「span」。其他元素，比如 <img>，不能容纳 shadow tree。`
+
+mode 选项可以设定封装层级。他必须是以下两个值之一：
+
+- 「open」 —— shadow root 可以通过 elem.shadowRoot 访问。任何代码都可以访问 elem 的 shadow tree。
+- 「closed」 —— elem.shadowRoot 永远是 null。
+- 我们只能通过 attachShadow 返回的指针来访问 shadow DOM（并且可能隐藏在一个 class 中）。浏览器原生的 shadow tree，比如 `<input type="range">`，是封闭的。没有任何方法可以访问它们。
+- attachShadow 返回的 shadow root，其实就是 shadow dom 的根节点而已
+- shadowRoot = elem.attachShadow({mode: open|closed}) —— 为 elem 创建 shadow DOM。如果 mode="open"，那么它通过 elem.shadowRoot 属性被访问。
+
+在小程序中，virtualHost 的组件节点无法被 selectComponent 和 getRelationNodes 选中
+
+### 版本比较
+
+- 位数填充成一致，前面补 0
+- 然后从高位开始往下比较
+
+### canvas 画布
+
+在 Web 开发中，**Canvas 是 HTML5 提供的一个元素**，通过使用 JavaScript 和 Canvas API，你可以在网页上创建一个画布，并使用 API 提供的方法来绘制和操作图形。
+
+总的来说，画布是一个可编程的矩形区域，允许你使用 Canvas API 在其中绘制图形。它提供了一种强大的方式来创建动态的图形和交互式的应用程序。
+
+底层依然是调用系统的能力去测量，绘制等操作，在应用侧，我们做的更多是封装。
+
+在基础库侧，则完全是透传。
+
+Canvas 底层技术是基于 HTML5 的 2D 上下文规范，通过 JavaScript 编程语言提供了一种在网页上进行图形绘制的能力。
+
+Canvas 本身并不是一个完整的图形引擎，而是一个提供绘图功能的底层技术。
+
+图形引擎是一种更高级的软件框架，用于简化图形应用程序的开发过程，提供更多的功能和工具。图形引擎通常包含了对图形渲染、物理模拟、动画、碰撞检测等方面的支持，并提供了更高层次的抽象和接口，使开发者能够更方便地创建复杂的图形应用。
+
+### cli 命令行
+
+- 可以使用 inquerer，提示获取用户输入的命令
+- 也可以通过命令行参数，自动接解析对应的参数
+- 解析参数有，执行对应的脚本即可，同时如果有对应的发布通知钩子，直接使用即可。
+- 预览
+  - 通过 ci.preview 将数据传到后台，同时会生成一个二维码，保存到本地
+  - 然后本地读取到这个二维码，然后传到自己的 cdn 服务器，然后得到一个图片连接，然后再展示在
+
 ## 20231206 周三
 
 ### 404 并不会触发 XMLHttpRequest 的 onerror 事件
@@ -40,7 +127,7 @@ xhr.send()
 
 ### promise 失败回调
 
-````js
+```js
 const tasks = [
   () => new Promise((resolve, reject) => reject(new Error('ddd'))),
   () => new Promise((resolve, reject) => reject(2)),
@@ -57,6 +144,8 @@ const tasks = [
 Promise.all(tasks)
   .then((res) => console.log('res', res))
   .catch((err) => console.log('err', err))
+```
+
 ## 20231203 周三
 
 ### React、Vue3、Vue2 的 Diff 算法对比
@@ -161,7 +250,7 @@ function sameVnode(a, b) {
         isUndef(b.asyncFactory.error)))
   )
 }
-````
+```
 
 简单 diff
 
@@ -226,36 +315,34 @@ for (let i = 0; i < newChildren.length; i++) {
 // E A B C D
 
 while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
-  if (oldStartVNode.key === newStartVNode.key) { // 头头
+  if (oldStartVNode.key === newStartVNode.key) {
+    // 头头
     patch(oldStartVNode, newStartVNode, container)
     oldStartVNode = oldChildren[++oldStartIdx]
     newStartVNode = newChildren[++newStartIdx]
-  } else if (oldEndVNode.key === newEndVNode.key) {//尾尾
+  } else if (oldEndVNode.key === newEndVNode.key) {
+    //尾尾
     patch(oldEndVNode, newEndVNode, container)
     oldEndVNode = oldChildren[--oldEndIdx]
     newEndVNode = newChildren[--newEndIdx]
-  } else if (oldStartVNode.key === newEndVNode.key) {//头尾，需要移动
+  } else if (oldStartVNode.key === newEndVNode.key) {
+    //头尾，需要移动
     patch(oldStartVNode, newEndVNode, container)
     insert(oldStartVNode.el, container, oldEndVNode.el.nextSibling)
 
     oldStartVNode = oldChildren[++oldStartIdx]
     newEndVNode = newChildren[--newEndIdx]
-  } else if (oldEndVNode.key === newStartVNode.key) {//尾头，需要移动
+  } else if (oldEndVNode.key === newStartVNode.key) {
+    //尾头，需要移动
     patch(oldEndVNode, newStartVNode, container)
     insert(oldEndVNode.el, container, oldStartVNode.el)
 
     oldEndVNode = oldChildren[--oldEndIdx]
     newStartVNode = newChildren[++newStartIdx]
   } else {
-
     // 头尾没有找到可复用的节点
   }
 }
-
-作者：zxg_神说要有光
-链接：https://juejin.cn/post/7114177684434845727
-来源：稀土掘金
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
 ```
 
 ### 并发请求，如何使用最后一个
