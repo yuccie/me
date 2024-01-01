@@ -12,6 +12,8 @@ canonicalUrl: https://dume.vercel.app/blog/about-algorithm/4_那些日子.md
 
 ## 20231231 周六
 
+### 然后你觉得除了说在技术上的一些帮助以外，你们对业务的主要的贡献是什么？你们是怎么和你们业务价值观点起来的？
+
 ### 常见的框架性能对比网站、
 
 - [benchmark 专注于渲染/更新非常简单的组件树的真实性能](https://stefankrause.net/js-frameworks-benchmark8/table.html)
