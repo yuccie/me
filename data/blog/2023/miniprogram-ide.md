@@ -42,6 +42,20 @@ Electron 是一个跨平台的框架，它结合了 Chromium 和 Node.js，它�
 
 NW.js：也是一款开源框架，由 Intel 开发，支持使用 Web 技术构建桌面应用程序，包括 HTML、CSS 和 JavaScript。
 
+Node 的事件循环与浏览器的事件循环有明显不同，Chromium 既然是 Chrome 的实验版，自然与浏览器实现相同。
+Node 的事件循环基于 libuv 实现，而 Chromium 基于 message bump 实现。主线程只能同时运行一个事件循环，因此需要将两个完全不同的事件循环整合起来。
+
+有两种解决方案:
+
+- 使用 libuv 实现 message bump 将 Chromium 集成到 Node.js
+- 将 Node.js 集成到 Chromium
+
+Electron 最初的方案是第一种，使用 libuv 实现 message bump，但不同的 OS 系统 GUI 事件循环差异很大，例如 mac 为 NSRunLoop，Linux 为 glib，实现过程特别复杂，资源消耗和延迟问题也无法得到有效解决，最终放弃了第一种方案。
+
+Electron 第二次尝试使用小间隔的定时器来轮询 GUI 事件循环，但此方案 CPU 占用高，并且 GUI 响应速度慢。
+
+后来 libuv 引入了 backend_fd 概念，backend_fd 轮询事件循环的文件描述符，因此 Electron 通过轮询 backend_fd 来得到 libuv 的新事件实现 Node.js 与 Chromium 事件循环的融合(第二种方案)。
+
 ## 通信
 
 ### IPC（Inter process Communication）

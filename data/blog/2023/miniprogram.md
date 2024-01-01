@@ -249,6 +249,14 @@ define('app.js', function (require, module, exports, window, document, 其他全
 
 ### hive 表与常规数据库表
 
+[大数据学习必须掌握的五大核心技术有哪些？](https://www.51cto.com/article/634573.html)
+
+Sqoop，用来将关系型数据库和 Hadoop 中的数据进行相互转移的工具，可以将一个关系型数据库(例如 Mysql、Oracle)中的数据导入到 Hadoop(例如 HDFS、Hive、Hbase)中，也可以将 Hadoop(例如 HDFS、Hive、Hbase)中的数据导入到关系型数据库(例如 Mysql、Oracle)中。
+
+Hive 的核心工作就是把 SQL 语句翻译成 MR 程序，可以将结构化的数据映射为一张数据库表，并提供 HQL(Hive SQL)查询功能。Hive 本身不存储和计算数据，它完全依赖于 HDFS 和 MapReduce。可以将 Hive 理解为一个客户端工具，将 SQL 操作转换为相应的 MapReduce jobs，然后在 hadoop 上面运行。
+
+Hive 是为大数据批量处理而生的，Hive 的出现解决了传统的关系型数据库(MySql、Oracle)在大数据处理上的瓶颈 。Hive 将执行计划分成 map->shuffle->reduce->map->shuffle->reduce…的模型。
+
 1.  **存储方式：Hive 表通常存储在**分布式文件系统（如 Hadoop HDFS）上，而常规数据库表存储在**关系型数据库管理系统**（如 MySQL、Oracle）中。Hive 使用 HDFS 或其他支持的文件系统来存储数据，而常规数据库使用表格和行的方式来存储数据。
 2.  查询语言：Hive 使用类似于 SQL 的查询语言，称为 HiveQL（Hive Query Language），它是为大规模数据处理和分析设计的。常规数据库使用 SQL 查询语言。
 3.  数据模型：Hive 是建立在 Hadoop 生态系统之上的数据仓库解决方案，它支持结构化和半结构化数据的处理。Hive 表可以包含复杂的数据类型（如数组、结构体），并且可以处理非规范化的数据。常规数据库表通常遵循关系模型，具有严格的表结构和数据类型。
@@ -256,7 +264,7 @@ define('app.js', function (require, module, exports, window, document, 其他全
 5.  实时性能：由于 Hive 的设计目标是处理大规模数据，它通常适用于批处理和离线分析。相比之下，常规数据库通常更适合实时交互查询和事务处理，因为它们针对较小规模的数据进行了优化。
 6.  索引和优化：常规数据库通常提供了各种索引和优化技术，以提高查询性能和数据访问效率。Hive 在早期版本中的索引和优化功能相对有限，但在较新的版本中增加了一些索引和优化技术，如分区、分桶和向量化查询。
 
-Kafka 是一个开源的分布式流处理平台，Kafka 的设计目标是为了能够处理高容量、低延迟的数据流。
+Kafka 是一个开源的分布式流处理平台，Kafka 的设计目标是为了能够处理高容量、低延迟的数据流。当使用上游模块的数据进行计算、统计、分析时，就可以使用消息系统，尤其是分布式消息系统。Kafka 使用 Scala 进行编写，是一种分布式的、基于发布/订阅的消息系统。
 
 Kafka 采用了发布-订阅模型，通过将数据发布到不同的主题（topics），并允许多个消费者订阅这些主题来处理数据。
 
