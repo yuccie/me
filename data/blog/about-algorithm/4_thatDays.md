@@ -12,6 +12,135 @@ canonicalUrl: https://dume.vercel.app/blog/about-algorithm/4_那些日子.md
 
 ## 20231231 周六
 
+### `实现 ab2[cd]1[e] 格式化为 abcdcde 格式`
+
+```js
+function decodeString(s) {
+  let result = ''
+  let num = 0
+  let stack = []
+
+  for (let char of s) {
+    if (!isNaN(char)) {
+      num = num * 10 + parseInt(char)
+    } else if (char === '[') {
+      // 首先将之前的放入到对战中
+      stack.push(result)
+      stack.push(num)
+      result = ''
+      num = 0
+    } else if (char === ']') {
+      let repeatTimes = stack.pop()
+      let prevStr = stack.pop() // 弹出之前的字符串
+      result = prevStr + result.repeat(repeatTimes) // 拼接后来的字符串
+    } else {
+      result += char
+    }
+  }
+
+  return result
+}
+
+// 测试
+let input = 'ab2[cd]1[e]'
+let output = decodeString(input)
+console.log(output) // 输出 abcdcde
+
+// 使用有限状态机
+function decodeStringWithFSM(s) {
+  let state = 'start'
+  let num = 0
+  let result = ''
+
+  for (let char of s) {
+    if (state === 'start') {
+      if (!isNaN(char)) {
+        num = num * 10 + parseInt(char)
+        state = 'inNumber'
+      } else if (char === '[') {
+        state = 'inBrackets'
+      } else {
+        result += char
+      }
+    } else if (state === 'inNumber') {
+      if (!isNaN(char)) {
+        num = num * 10 + parseInt(char)
+      } else {
+        state = 'start'
+        result += char.repeat(num)
+        num = 0
+      }
+    } else if (state === 'inBrackets') {
+      if (char === ']') {
+        state = 'start'
+        result += result.repeat(num)
+        num = 0
+      } else {
+        result += char
+      }
+    }
+  }
+
+  return result
+}
+
+// 测试
+let input = 'ab2[cd]1[e]'
+let output = decodeStringWithFSM(input)
+console.log(output) // 输出 abcdcde
+
+// 使用正则
+function decodeStringWithRegex(s) {
+  let regex = /(\d+)\[([a-zA-Z]+)\]/g
+  //
+  let result = s.replace(regex, (match, count, str) => str.repeat(count))
+  return result
+}
+
+// 测试
+let input = 'ab2[cd]1[e]'
+let output = decodeStringWithRegex(input)
+console.log(output) // 输出 abcdcde
+```
+
+### 深度相等
+
+```js
+// 1、deepEqual
+// 写一个 deepEqual 函数用来判断两个参数是否相等，使用效果如下：
+// a和b可能是原始类型，也可能是复杂对象。不用考虑原型链。
+
+function deepEqual(a, b) {
+  const isType = (v) => Object.prototype.toString.call(v).slice(8, -1)
+
+  const _equal = (a, b) => {
+    // 类型
+    if (isType(a) !== isType(b)) return false
+
+    // 简单数据
+    if (!['Object', 'Array'].includes(isType(a))) {
+      return a === b
+    }
+
+    // 复杂数据
+    const aKeys = Object.keys(a)
+    const bKeys = Object.keys(b)
+    if (aKeys.length !== bKeys.length) return false
+
+    for (const key of aKeys) {
+      return _equal(a[key], b[key])
+    }
+  }
+  return _equal(a, b)
+}
+
+deepEqual({ a: 1, b: 2 }, { a: 1, b: 2 }) // true
+deepEqual([1, 2], [1, 2]) // true
+deepEqual(Number(1), Number(1)) // true, 注意
+deepEqual([1, 2], [1, 2, 3]) // false
+deepEqual([1, 2], { 0: 1, 1: 2 }) // false
+```
+
 ### 然后你觉得除了说在技术上的一些帮助以外，你们对业务的主要的贡献是什么？你们是怎么和你们业务价值观点起来的？
 
 ### 常见的框架性能对比网站、
