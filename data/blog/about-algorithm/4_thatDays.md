@@ -280,6 +280,156 @@ Canvas 本身并不是一个完整的图形引擎，而是一个提供绘图功�
 
 ## 动态化
 
+## 20231227 周三
+
+### 盒模型
+
+盒模型由内容框（content box）、内边距框（padding box）、边框框（border box）和外边距框（margin box）组成。
+
+行内元素的盒模型不包括外边距（margin），只包括内容框、内边距框和边框框。
+
+Margin 塌陷的原因主要是由于 CSS 规范中对 margin 的处理方式所导致的。具体来说，当相邻的块级元素的 margin 发生重叠时，它们的 margin 不会简单地相加，而是取它们之间的最大值作为最终的 margin 值。这种处理方式可能会导致意外的布局效果。
+
+为了解决 margin 塌陷的问题，可以采取以下几种办法：
+
+- 使用 padding：在父元素上添加 padding，可以防止子元素的 margin 与父元素的 margin 发生重叠，从而避免 margin 塌陷的问题。
+- 使用 border：类似地，添加 border 也可以防止 margin 的重叠，从而避免 margin 塌陷。
+- 使用 overflow：在父元素上添加 overflow 属性，例如设置为 hidden 或 auto，也可以防止 margin 的重叠，从而避免 margin 塌陷。
+- 使用 display 属性：将父元素的 display 属性设置为 flex 或 inline-block，这样可以创建一个新的块级格式化上下文，从而防止 margin 塌陷。
+- 使用 clear 属性：在父元素的末尾添加一个空的块级元素，并为其应用 clear 属性，这可以防止 margin 塌陷。
+
+#### 创建 BFC 的方式
+
+- 使用浮动（float）：将元素设置为浮动，可以创建一个新的 BFC，防止外边距重叠。
+- 使用绝对定位（position: absolute 或 position: fixed）：将元素设置为绝对定位，也可以创建一个新的 BFC。
+- 使用内联块级元素（display: inline-block）：内联块级元素也可以创建 BFC，防止外边距重叠。
+- 使用弹性布局（display: flex 或 display: inline-flex）：弹性布局也会创建一个新的 BFC。
+
+### react hooks
+
+React Hooks 中，闭包被用于跟踪 Hook 的调用位置。当函数组件中使用 Hook 时，React 会在内部创建一个闭包，以便将 Hook 与该函数组件实例相关联。这意味着每个 Hook 都“记住”了它们在函数组件中的调用位置，以及它们与特定函数组件实例相关的状态。
+
+举例来说，当在函数组件中调用 useState Hook 时，React 会使用闭包来“记住”这个调用位置，并将该 Hook 与该函数组件实例相关联。这样，每个函数组件实例都有自己的状态，并且状态的更新不会相互影响。
+
+通过使用闭包，React Hooks 能够确保每个 Hook 都与其在函数组件中的调用位置相关联，从而实现了状态的正确管理和组件的重新渲染。
+
+React Hooks 不可以在条件语句中调用，是因为 React 需要依赖于 Hook 被调用的顺序来正确地管理组件的状态。当 Hook 在条件语句中被调用时，它的调用顺序可能会发生变化，导致 React 无法准确地追踪和管理组件的状态。
+
+举例来说，如果在条件语句中调用 useState Hook，那么在条件满足时会创建一个新的状态，而在条件不满足时则不会创建。这样就会导致 Hook 的调用顺序发生变化，从而影响 React 对组件状态的正确管理。
+
+为了避免这种问题，React 规定 Hooks 必须在函数组件的顶层作用域中被调用，以确保它们的调用顺序在每次渲染时保持一致。这样一来，React 就能够正确地追踪和管理组件的状态，确保状态更新和组件重新渲染的正确性。
+
+React 初始化阶段会构建一个 hook 链表，更新阶段会根据 useState 的执行顺序去遍历链表取值，如果前后执行顺序不一致，就会导致取出的值不对应，所以我们再写 hoos 的时候要确保 Hooks 在每次渲染的时候都保持同样的执行顺序
+
+- react 组件都是函数返回，每次都会重新执行函数
+- vue 组件，都有实例存在，后续都需对实例修改，不像 react 重新运行得到新的组件，没有实例就没有自己的状态，就需要用其他方式保存状态，比如 hooks，而钩子的顺序会影响结果，因此顺序一定要保证
+
+### vue 的组合式 api 实现原理
+
+### IntersectionObserver
+
+IntersectionObserver 是一个 JavaScript API，它提供了一种异步观察元素并检测它们何时通过滚动容器的指定点的方法。它的底层原理涉及浏览器的渲染引擎和事件循环机制。
+
+具体来说，IntersectionObserver 通过监听目标元素与其祖先元素（或者页面可见区域，也称为视口）的交叉区域来触发回调函数。这种监听是异步的，不会阻塞主线程，因此对性能的影响较小。
+
+在底层实现上，IntersectionObserver 利用了浏览器的渲染引擎和事件循环机制。当目标元素的交叉区域满足预定义的阈值时，浏览器会触发 IntersectionObserver 的回调函数。这种机制使得开发者能够更有效地响应元素的可见性变化，而无需频繁地监听滚动事件或进行复杂的计算。
+
+总的来说，IntersectionObserver 的底层原理是基于浏览器的渲染引擎和事件循环机制，利用异步监听元素交叉区域的方式来触发回调函数，从而实现对元素可见性变化的监测和处理。
+
+### 设计一个异步事件队列
+
+```js
+class AsyncQueue {
+  constructor() {
+    // 函数实现
+  }
+  // 事件注册
+  tap(name, fn) {
+    // 函数实现
+  }
+  // 事件触发
+  exec(name) {
+    // 函数实现
+  }
+}
+
+function fn1(cb) {
+  console.log('fn1')
+  cb()
+}
+
+function fn2(cb) {
+  console.log('fn2')
+  cb()
+}
+
+function fn3(cb) {
+  setTimeout(() => {
+    console.log('fn3')
+    cb()
+  }, 2000)
+}
+
+function fn4(cb) {
+  setTimeout(() => {
+    console.log('fn4')
+    cb()
+  }, 3000)
+}
+
+// 创建事件队列
+const asyncQueue = new AsyncQueue()
+// 注册事件队列
+asyncQueue.tap('init', fn1)
+asyncQueue.tap('init', fn2)
+asyncQueue.tap('init', fn3)
+asyncQueue.tap('init', fn4)
+// 执行事件队列
+asyncQueue.exec('init', () => {
+  console.log('执行结束')
+})
+
+// 输出
+// fn1
+// fn2
+// fn3 (延迟2秒输出)
+// fn4（延迟3秒输出）
+// 执行结束
+
+class AsyncQueue {
+  constructor() {
+    this.map = {}
+  }
+
+  tap(name, fn) {
+    if (!this.map[name]) {
+      this.map[name] = [fn]
+    } else {
+      this.map[name].push(fn)
+    }
+  }
+  exec(name, cb) {
+    const evtQueue = this.map[name]
+
+    if (evtQueue && evtQueue.length) {
+      // 定义一个下次执行函数，
+      const next = (idx) => {
+        if (idx < evtQueue.length) {
+          // 将下一个函数，作为回调传入到函数内，等到函数执行完，就会执行对应的回调，从而保证串行
+          evtQueue[idx](() => next(idx + 1))
+        } else {
+          cb()
+        }
+      }
+
+      next(0)
+    } else {
+      cb()
+    }
+  }
+}
+```
+
 ## 20231224 周日
 
 ### 实现一个算法 `[1,[2,[3,[4, null]]]] => [4,[3,[2,[1, null]]]]`
@@ -688,7 +838,7 @@ fiber 可以中断，并继续连起来工作，那是因为 fiber 是一个单�
 
 所以前端框架的 diff 约定了两种处理原则：**只做同层的对比，type 变了就不再对比子节点。**
 
-因为 dom 节点做跨层级移动的情况还是比较少的，一般情况下都是同一层级的 dom 的增删改。
+因为 dom 节点做跨层级移动的情况还是比较少的，一般情况下都是同一层级的 dom 的增删改。这样只要遍历一遍，对比一下 type 就行了，是 O(n) 的复杂度
 
 vue2 中现根据 key 是否相等，来判断是否为同一个节点
 
