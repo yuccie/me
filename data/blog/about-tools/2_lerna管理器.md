@@ -139,3 +139,17 @@ Lerna 是一个用于管理 Monorepo 的工具，它提供了一些工具和命�
 - 可以说 Lerna 是 Monorepo 的一种实现方式。
 
 其实 monorepo 只是一种思想，如果使用 `git submodule add xxx.git(测试仓库git地址) test(本地目录)` 这种添加另外一个仓库到本地仓库，后续随着项目的增大，git 的操作是否会变的更慢（当然添加子模块，主仓库只会跟踪版本，并不不会跟踪具体的代码改动，因为是相互隔离的）
+
+## 公共引用
+
+Lerna 处理 packages 之间的公共依赖主要通过 hoisting（提升）机制来实现。当使用 Lerna 管理 JavaScript monorepo 时，它会将所有 packages 的依赖项安装在 monorepo 的根目录下，而不是每个 package 的目录下。这样可以避免重复安装相同的依赖项，从而减少整个 monorepo 的依赖项数量和大小。
+
+通过 hoisting 机制，Lerna 会将所有 packages 共享的依赖项提升至 monorepo 根目录的 node_modules 中。这意味着，如果多个 package 都依赖同一个版本的库，这个库只会被安装一次，而不会重复安装在每个 package 的 node_modules 中。
+
+这种机制有助于减少 monorepo 的整体依赖项大小，提高安装速度，并确保所有 packages 使用的是相同版本的共享依赖项。 Lerna 通过 hoisting 机制来处理 packages 之间的公共依赖，从而优化 monorepo 的依赖管理。
+
+在 Lerna 中，hoisting 机制是默认启用的，不需要单独配置。当你使用 Lerna 管理 Monorepo 时，hoisting 机制会自动生效，将共享的依赖项提升至 monorepo 根目录的 node_modules 中。
+
+底层工作原理是，Lerna 使用 hoist-non-npm-dependencies 包来实现 hoisting 机制。这个包会将所有 packages 共享的依赖项提升至 monorepo 根目录的 node_modules 中，以避免重复安装相同的依赖项，减少整个 monorepo 的依赖项数量和大小。
+
+通过 hoisting 机制，Lerna 能够优化 Monorepo 的依赖管理，提高安装速度，并确保所有 packages 使用的是相同版本的共享依赖项。

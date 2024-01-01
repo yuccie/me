@@ -10,11 +10,190 @@ bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/about-algorithm/4_那些日子.md
 ---
 
-## 20231206 周四
+## 20231231 周六
+
+### 常见的框架性能对比网站、
+
+- [benchmark 专注于渲染/更新非常简单的组件树的真实性能](https://stefankrause.net/js-frameworks-benchmark8/table.html)
+
+### 技术选型关注点
+
+作为前端技术领导者，在进行技术选型时，我会考虑以下几个方面：
+
+- 业务需求：首先要深入了解业务需求，包括项目规模、复杂度、预期的用户量、交互方式等。不同的业务需求可能需要不同的技术栈和工具来支持。
+
+- 团队技术栈：考虹团队成员的技术能力和熟悉程度，选择技术栈时要考虑团队的技术栈覆盖面，以确保团队能够高效地开发和维护项目。
+
+- 技术趋势：关注前端技术的发展趋势，包括新的框架、库、工具和标准。选择具有长期支持和活跃社区的技术，以确保项目能够跟上技术发展的步伐。
+
+- 性能和体验：考虑所选技术对项目性能和用户体验的影响。例如，前端框架的性能、页面加载速度、交互流畅性等方面的考量。
+
+- 安全和可维护性：选择的技术栈应具备良好的安全性和可维护性。考虑技术的安全漏洞、更新维护频率、文档和社区支持等方面。
+
+- 成本和效率：评估所选技术对项目开发成本和效率的影响。考虑技术的学习曲线、开发工具、自动化测试支持等方面。
+
+- 实际验证：在进行技术选型之前，可以进行一些原型验证或者小规模试点项目，以评估所选技术在实际项目中的表现。
+
+#### 资源加载 + 运行时性能，分别需要关注哪些指标？
+
+- 加载阶段
+- 运行时阶段
+-
+- 内存
+
+#### 小程序加载性能，包含容器创建的时间吗？
+
+加载性能是微信小程序开发中非常重要的一个方面。微信小程序的加载性能包括了容器创建的时间。容器创建时间是指微信小程序在用户打开时，需要创建小程序容器的时间。这个过程包括了小程序的初始化、资源加载、以及页面渲染等步骤
+
+要使用微信小程序提供的性能监控工具来收集用户实际加载时间数据，可以按照以下步骤进行：
+
+1. 开启性能监控：在微信小程序的代码中，可以使用 wx.getPerformance()方法来获取性能监控对象。这个方法会返回一个性能监控对象，可以用来记录小程序的性能数据。
+
+2. 记录时间戳：在小程序的合适位置，比如在小程序启动时，可以使用 performance.mark()方法记录一个时间戳，表示开始加载的时间点。例如：performance.mark("startLoading")。
+
+3. 记录加载完成时间：在小程序加载完成时，可以再次使用 performance.mark()方法记录另一个时间戳，表示加载完成的时间点。例如：performance.mark("endLoading")。
+
+4. 计算加载时间：使用 performance.measure()方法来计算两个时间戳之间的时间差，从而得到实际加载时间数据。例如：performance.measure("loadingTime", "startLoading", "endLoading")。
+
+5. 获取性能数据：最后，可以使用 performance.getEntriesByName()方法获取刚刚计算的加载时间数据。例如：let performanceEntries = performance.getEntriesByName("loadingTime")。
+
+### vue3.4
+
+- 解析器速度提高 2 倍并提高 SFC 构建性能
+
+#### 解析器速度提高 2 倍并提高 SFC 构建性能
+
+在 3.4 中，我们完全重写了模板解析器。以前，Vue 使用递归下降解析器，该解析器依赖于许多正则表达式和前瞻搜索。新的解析器使用基于 htmlparser2 中的 tokenizer 的状态机 tokenizer，它仅迭代整个模板字符串一次。结果是解析器对于所有大小的模板来说始终是两倍的速度。
+
+#### AST explorer
+
+AST Explorer 支持多种解析器，包括但不限于以下语言和工具：
+
+- JavaScript：支持的解析器包括 acorn、espree、babel、typescript 等。
+- CSS：支持的解析器包括 cssom、csstree、postcss 等。
+- HTML：支持的解析器包括 htmlparser2、parse5、@angular/compiler 等。
+- GraphQL、Handlebars、Markdown、PHP、Svelte、YAML 等其他语言和工具也都有相应的解析器支持。
+
+### 市面上目前有这种语法转换的工具，大概有哪些
+
+### webpack 插件的钩子有哪些？
+
+webpack 插件机制是 webpack 构建过程中的一个重要组成部分。插件是一个具有 apply 方法的 JavaScript 对象，该方法会被 webpack compiler 调用，从而可以访问整个编译生命周期。插件可以用于执行各种任务，例如资源管理、打包优化、环境变量注入等。
+
+webpack 插件由以下组成：
+
+- 一个 JavaScript 命名函数或 JavaScript 类。
+- 在插件函数的 prototype 上定义一个 apply 方法。
+- 指定一个绑定到 webpack 自身的事件钩子。
+- 处理 webpack 内部实例的特定数据。
+- 功能完成后调用 webpack 提供的回调。
+
+```js
+const {
+  SyncHook,
+  SyncBailHook,
+  SyncWaterfallHook,
+  SyncLoopHook,
+  AsyncParallelHook,
+  AsyncParallelBailHook,
+  AsyncSeriesHook,
+  AsyncSeriesBailHook,
+  AsyncSeriesWaterfallHook,
+} = require('tapable')
+```
+
+webpack 的插件机制是建立在 Tapable 这个库之上的。Tapable 是 webpack 中用于实现插件系统的核心库，它提供了一种基于事件的插件架构，
+
+在编写自定义插件时，可以注册到 Tapable 提供的一些常用钩子上。以下是一些常用的 Tapable 钩子：
+
+- run：在开始读取记录前触发。
+- watchRun：在监听模式下，编译器开始读取记录之前触发。
+- beforeRun：在开始读取记录之前触发。
+- beforeCompile：在编译器开始编译之前触发。
+- compile：在编译器开始编译时触发。
+- thisCompilation：在编译器创建新的编译时触发。
+- compilation：在编译创建新的编译时触发。
+- make：在触发一次编译之前触发。
+- afterCompile：在编译器完成编译之后触发。
+- emit：在生成资源并输出之前触发。
+- afterEmit：在生成资源并输出之后触发。
+- done：在完成编译后触发。
+
+```js
+class MyCustomPlugin {
+  apply(compiler) {
+    // 这里可以看到，compiler.hooks对象上挂载了很多不同阶段的hooks，
+    // 然后执行对应tap就会注册对应的事件，后续等到对应的时机就会触发
+    compiler.hooks.beforeCompile.tap('MyCustomPlugin', () => {
+      // 在编译之前执行一些预处理逻辑
+      console.log('Before compile: Preparing for compilation...')
+    })
+
+    compiler.hooks.compile.tap('MyCustomPlugin', () => {
+      // 在编译阶段执行一些编译相关的操作
+      console.log('During compile: Compiling the source code...')
+    })
+
+    compiler.hooks.emit.tap('MyCustomPlugin', () => {
+      // 在输出资源之前执行一些处理逻辑
+      console.log('Before emit: Preparing to emit assets...')
+    })
+
+    compiler.hooks.done.tap('MyCustomPlugin', () => {
+      // 在完成编译后执行一些清理或报告操作
+      console.log('After compilation: Cleaning up and reporting...')
+    })
+  }
+}
+```
 
 ### HTML 模板
 
 内建的 `<template>` 元素用来存储 HTML 模板,浏览器将忽略它的内容，仅检查语法的有效性，但是我们可以在 JavaScript 中访问和使用它来创建其他元素。
+
+### `if (false) { console.log(111) }` 编译时，底层是如何把 false 条件语句里的代码块置为空的
+
+在 JavaScript 中，当代码被编译时，底层会对条件语句进行静态分析，并根据条件的真假来决定是否执行相应的代码块。对于 if (false) { console.log(111) } 这样的代码，由于条件为 false，因此底层会在编译阶段将该代码块置为空，即不会将其中的 console.log(111) 代码包含在最终的编译结果中。
+
+这种静态分析和优化是由 JavaScript 引擎在编译阶段完成的。
+
+JavaScript 在编译时进行静态分析和优化，这是 JavaScript 引擎的重要工作之一。静态分析和优化的过程包括以下几个关键步骤：
+
+1. 词法分析（Lexical Analysis）：JavaScript 引擎首先对代码进行词法分析，将代码分解成词法单元（tokens），例如关键字、标识符、运算符等。这一步骤有助于构建代码的词法结构，为后续的分析和优化奠定基础。
+
+2. 语法分析（Syntax Analysis）：接下来，JavaScript 引擎进行语法分析，将词法单元组织成抽象语法树（Abstract Syntax Tree，AST）。AST 是代码的抽象表示，它反映了代码的结构和逻辑关系，为后续的优化提供了数据结构基础。
+
+3. 优化：在生成 AST 后，JavaScript 引擎会进行各种优化操作，包括但不限于：
+
+   - 常量折叠（Constant Folding）：对常量表达式进行计算，将其结果直接替换到代码中。
+   - 无效代码消除（Dead Code Elimination）：识别和移除永远不会执行的代码，例如条件永远为假的代码块。
+   - 冗余代码消除（Redundant Code Elimination）：识别和移除冗余的代码，例如多余的变量赋值或无用的计算。
+   - 内联函数（Function Inlining）：将函数调用替换为函数体的内容，减少函数调用的开销。
+   - 作用域分析（Scope Analysis）：确定变量的作用域和生存周期，以便进行更精确的优化。
+
+这些优化操作旨在提高代码的执行效率、减少不必要的计算和内存消耗，以及简化代码结构。优化后的代码将更加高效、精简，从而提升整体的性能和响应速度。
+
+总的来说，JavaScript 在编译时通过词法分析、语法分析和优化等步骤，对代码进行静态分析和优化，以提高代码的执行效率和性能。
+
+在 AST 阶段，识别永远不会执行的代码通常通过**常量折叠（Constant Folding）和条件判断**来实现。
+
+- 常量折叠是指对常量表达式进行计算，将其结果直接替换到代码中。
+
+常量折叠是通过对表达式进行静态求值来实现的。编译器会对表达式中的常量进行计算，以确定其在编译时就能确定的结果。这种静态求值的过程可以识别出可以在编译时确定结果的表达式，从而进行常量折叠优化。
+
+例如，对于简单的数学表达式 2 + 3 \* 4，编译器可以在编译时对其进行求值，得到结果 14，然后将这个结果直接替换到代码中，从而避免在运行时重复计算。这样的优化可以减少不必要的运行时计算，提高代码的执行效率。
+
+无效代码消除（Dead Code Elimination）是编译器优化过程中的一项重要步骤，它的执行过程通常包括以下几个关键步骤：
+
+1. 常量折叠（Constant Folding）和静态条件判断：在编译器的静态分析阶段，通过对条件表达式进行静态求值，编译器可以确定哪些代码块永远不会被执行。例如，对于条件语句中的常量条件，编译器可以在编译时就确定其结果，从而识别出永远不会执行的代码块。
+
+2. 标记无效代码：一旦编译器确定了哪些代码块是永远不会执行的，它会对这部分代码进行标记，通常使用特定的标识或标记来表示这些代码块是无效的。
+
+3. 从抽象语法树（AST）中移除无效代码：在优化阶段，编译器会基于之前的标记，从抽象语法树（AST）中移除被标记为无效的代码块。这个过程确保了在生成最终的目标代码时，无效的代码不会被包含在其中。
+
+4. 生成优化后的目标代码：经过无效代码消除优化后，编译器将生成优化后的目标代码，其中已经移除了被标记为无效的代码块。这样的优化可以减少目标代码的大小，简化程序结构，并提高程序的执行效率。
+
+其实底层移除无用代码的操作，都是直接操作的 AST，而不是通过正则或其他的。
 
 ### shadow dom
 
