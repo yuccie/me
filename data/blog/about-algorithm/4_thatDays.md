@@ -10,7 +10,402 @@ bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/about-algorithm/4_那些日子.md
 ---
 
-## 20231231 周六
+## 20240101 周四
+
+```js
+// 有这么一个数据结构:
+const data = [
+  {
+    id: '1',
+    sub: [
+      {
+        id: '2',
+        sub: [
+          {
+            id: '3',
+            sub: null,
+          },
+          {
+            id: '4',
+            sub: [
+              {
+                id: '6',
+                sub: null,
+              },
+            ],
+          },
+          {
+            id: '5',
+            sub: null,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '7',
+    sub: [
+      {
+        id: '8',
+        sub: [
+          {
+            id: '9',
+            sub: null,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '10',
+    sub: null,
+  },
+]
+
+// 现在给定一个id，要求实现一个函数
+function findPath(data, id) {}
+
+// 返回给定id在 data 里的路径
+// 示例:
+// id = "1" => ["1"]
+// id = "9" => ["7", "8", "9"]
+// id = "100"=> []
+// PS: id 全局唯一，无序
+
+// 现在给定一个id，要求实现一个函数
+function findPath(data, id) {
+  let path = []
+
+  // 深度优先
+  function dfs(node, curPath) {
+    // 如果找到了，就赋值path
+    if (node.id === id) {
+      path = curPath.concat(node.id)
+    } else if (Array.isArray(node.sub)) {
+      // 没找到，则递归遍历子节点
+      for (let j = 0; j < node.sub.length; j++) {
+        dfs(node.sub[j], curPath.concat(node.id))
+      }
+    }
+  }
+
+  // 遍历
+  for (let i = 0; i < data.length; i++) {
+    dfs(data[i], []) // 对每个顶层节点都进行深度优先遍历
+  }
+
+  return path
+}
+
+console.log(findPath(data, '9'))
+```
+
+### 实现一个异步加法
+
+```js
+function asyncAdd(a, b, cb) {
+  setTimeout(() => {
+    cb(null, a + b)
+  }, Math.random() * 1000)
+}
+
+// 实现sum函数
+async function sum(...args) {
+  if (args.length === 1) {
+    return args[0]
+  } else {
+    //
+    const mid = Math.floor(args.length / 2)
+    const leftSumPromise = sum(...args.slice(0, mid))
+    const rightSumPromise = sum(...args.slice(mid))
+    const leftSum = await leftSumPromise
+    const rightSum = await rightSumPromise
+    return new Promise((resolve, reject) => {
+      asyncAdd(leftSum, rightSum, (err, result) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(result)
+        }
+      })
+    })
+  }
+}
+
+// 调用total函数
+async function total() {
+  // 注意这里使用的是 await，因此sum函数必须是promise
+  const res1 = await sum(1, 2, 3, 4, 5, 6, 4)
+  const res2 = await sum(1, 2, 3, 4, 5, 6, 4)
+  return [res1, res2]
+}
+total().then((res) => console.log(res))
+```
+
+### 实现一个批量更新的逻辑
+
+```js
+// 创建 BatchUpdate 类
+class BatchUpdate {
+  constructor() {
+    this.queue = [] // 用于存储需要批量更新的操作
+    this.timer = null // 用于延迟执行更新操作的定时器
+  }
+
+  // 将更新操作加入队列
+  queueUpdate(operation) {
+    this.queue.push(operation)
+    this.scheduleUpdate() // 调度更新操作
+  }
+
+  // 调度更新操作
+  scheduleUpdate() {
+    if (!this.timer) {
+      this.timer = setTimeout(() => {
+        this.flushQueue() // 延迟一段时间后执行更新操作
+      }, 0)
+    }
+  }
+
+  // 执行更新操作
+  flushQueue() {
+    this.queue.forEach((operation) => {
+      operation() // 执行更新操作
+    })
+    this.queue = [] // 清空队列
+    this.timer = null // 重置定时器
+  }
+}
+
+// 使用 BatchUpdate 类
+const batchUpdate = new BatchUpdate()
+
+// 模拟需要批量更新的操作
+function updateOperation1() {
+  console.log('Update operation 1')
+}
+
+function updateOperation2() {
+  console.log('Update operation 2')
+}
+
+// 将更新操作加入队列
+batchUpdate.queueUpdate(updateOperation1)
+batchUpdate.queueUpdate(updateOperation2)
+```
+
+- 其实就是将所有批量的任务都放在任务队列里，然后每个定时器执行一次清空操作
+
+### 实现一个 watch
+
+```js
+// 创建 Watcher 类
+class Watcher {
+  constructor(obj, key, callback) {
+    this.obj = obj // 要观察的对象
+    this.key = key // 要观察的属性名
+    this.callback = callback // 属性变化时的回调函数
+
+    this.value = obj[key] // 保存初始值
+
+    this.observe() // 开始观察属性变化
+  }
+
+  observe() {
+    // 使用 Object.defineProperty 监听属性变化
+    Object.defineProperty(this.obj, this.key, {
+      get: () => {
+        return this.value
+      },
+      set: (newValue) => {
+        if (newValue !== this.value) {
+          this.value = newValue
+          this.callback(newValue) // 执行回调函数
+        }
+      },
+    })
+  }
+}
+
+// 使用 Watcher 类
+const data = {
+  name: 'Alice',
+}
+
+// 创建 Watcher 实例
+const watcher = new Watcher(data, 'name', (newVal) => {
+  console.log('Name has been changed to: ' + newVal)
+})
+
+// 修改属性值
+data.name = 'Bob' // 输出 "Name has been changed to: Bob"
+```
+
+- 其实就是拦截器，然后触发了 set，然后执行对应的回调即可。
+
+### 实现一个 computed
+
+```js
+// 创建一个包含计算逻辑的对象
+const data = {
+  firstName: 'John',
+  lastName: 'Doe',
+}
+
+// 创建一个缓存对象来存储计算结果
+const cache = {}
+
+// 使用 Proxy 对象来实现依赖追踪和缓存
+const handler = {
+  get: function (target, prop, receiver) {
+    // 如果是计算属性
+    if (prop === 'fullName') {
+      // 如果缓存中有值，直接返回缓存的结果
+      if (cache[prop]) {
+        return cache[prop]
+      }
+      // 否则进行计算
+      const fullName = target.firstName + ' ' + target.lastName
+      // 将计算结果存入缓存
+      cache[prop] = fullName
+      return fullName
+    }
+    // 如果是其他属性，直接返回对应的值
+    return Reflect.get(target, prop, receiver)
+  },
+  set: function (target, prop, value, receiver) {
+    // 如果是响应式属性发生变化，清空缓存
+    if (prop === 'firstName' || prop === 'lastName') {
+      cache.fullName = null
+    }
+    return Reflect.set(target, prop, value, receiver)
+  },
+}
+
+// 创建代理对象
+const reactiveData = new Proxy(data, handler)
+
+// 访问计算属性
+console.log(reactiveData.fullName) // 输出 "John Doe"
+
+// 修改响应式属性
+reactiveData.firstName = 'Jane'
+
+// 再次访问计算属性
+console.log(reactiveData.fullName) // 输出 "Jane Doe"
+```
+
+- 其实就是通过一个对象缓存，然后缓存没有，则重新计算
+- receiver 参数代表了属性访问的接收者，也就是属性被访问时所在的对象
+
+### 实现一个 Object.is 方法
+
+```js
+// 1. NaN在===中是不相等的，而在Object.is中是相等的
+// 2. +0和-0在===中是相等的，而在Object.is中是不相等的
+
+Object.is = function (x, y) {
+  if (x === y) {
+    // 当前情况下，只有一种情况是特殊的，即 +0 -0
+    // 如果 x !== 0，则返回true
+    // 如果 x === 0，则需要判断+0和-0，则可以直接使用 1/+0 === Infinity 和 1/-0 === -Infinity来进行判断
+    return x !== 0 || 1 / x === 1 / y;
+  }
+
+  // x !== y 的情况下，只需要判断是否为NaN，如果x!==x，则说明x是NaN，同理y也一样
+  // x和y同时为NaN时，返回true
+  return x !== x && y !== y;
+};
+
+作者：loveX001
+链接：https://juejin.cn/post/7145983225242845221
+来源：稀土掘金
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+```
+
+### 实现一个快速排序
+
+```js
+function quickSort(arr) {
+  if (arr.length < 2) {
+    return arr
+  }
+  const cur = arr[arr.length - 1]
+  // 这里其实，就是排除自身而已
+  const left = arr.filter((v, idx) => v <= cur && idx !== arr.length - 1)
+  const right = arr.filter((v) => v > cur)
+
+  return [...quickSort(left), cur, ...quickSort(right)]
+}
+console.log(quickSort([3, 6, 2, 4, 1]))
+```
+
+### 实现 `add(1)(2)(3)()==6 add(1,2,3)(4)()==10`
+
+```js
+unction add(...args) {
+  let allArgs = [...args] // 闭包保存
+  function fn(...newArgs) {
+    allArgs = [...allArgs, ...newArgs]
+    return fn
+  }
+  fn.toString = function() {
+    // 没有入参，直接返回
+    if (!allArgs.length) {
+      return
+    }
+    // 计算结果
+    return allArgs.reduce((sum, cur) => sum + cur)
+  }
+  return fn
+}
+```
+
+- 其实就是使用的 js 的隐式转换，隐式转换会自动执行其 toString 方法
+
+还可以如下：
+
+```js
+// 柯理化，
+function curry(fn) {
+  // 满足一定条件后，执行fn
+  let arr = []
+
+  const next = (...args) => {
+    arr = arr.concat(args)
+    if (!args.length) {
+      // 使用call的话，fn函数的入参需要是个数组。
+      // 这里注意，call的参数二，本身需要的只是一个元素，但这里，这个元素整体是个数组才可以执行下面的reduce
+      return fn.call(null, arr)
+    } else {
+      return next
+    }
+  }
+  return next
+}
+
+//
+var add = curry((arr = []) => {
+  return arr.reduce((pre, next) => pre + next, 0)
+})
+
+add(1)(2)(3, 4)()
+```
+
+```js
+function fn(...args) {
+  if (args.length > 1) {
+    let tempVal = 0
+    args.forEach((item) => (tempVal += item))
+    return tempVal
+  } else {
+    return (...arg1s) => {
+      return fn.apply(this, [...args, ...arg1s])
+    }
+  }
+}
+console.log(fn(1, 2), fn(1)(2))
+```
 
 ### `实现 ab2[cd]1[e] 格式化为 abcdcde 格式`
 
