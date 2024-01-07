@@ -102,6 +102,8 @@ console.log(findPath(data, '9'))
 
 ### 实现一个异步加法
 
+- 加法可以直接运行，也就是同步运行，当然也可以异步运行，考察对 promise 以及封装的运用
+
 ```js
 function asyncAdd(a, b, cb) {
   setTimeout(() => {
@@ -114,7 +116,6 @@ async function sum(...args) {
   if (args.length === 1) {
     return args[0]
   } else {
-    //
     const mid = Math.floor(args.length / 2)
     const leftSumPromise = sum(...args.slice(0, mid))
     const rightSumPromise = sum(...args.slice(mid))
@@ -144,6 +145,9 @@ total().then((res) => console.log(res))
 
 ### 实现一个批量更新的逻辑
 
+- 其实就是一个宏任务里，不停的向内部添加任务，等到宏任务执行结束，再清空
+- 一个 queue 队列，一个 timer
+
 ```js
 // 创建 BatchUpdate 类
 class BatchUpdate {
@@ -155,6 +159,7 @@ class BatchUpdate {
   // 将更新操作加入队列
   queueUpdate(operation) {
     this.queue.push(operation)
+    // 每次压入一个新任务，都需要去调度，但调度因为有定时器，就不会执行
     this.scheduleUpdate() // 调度更新操作
   }
 
@@ -197,6 +202,9 @@ batchUpdate.queueUpdate(updateOperation2)
 - 其实就是将所有批量的任务都放在任务队列里，然后每个定时器执行一次清空操作
 
 ### 实现一个 watch
+
+- 定义一个 watcher 类，然后每个观察者都会将自己的回调传入，
+- 然后数据发生变化后，就会触发对应的回调函数
 
 ```js
 // 创建 Watcher 类
@@ -244,6 +252,8 @@ data.name = 'Bob' // 输出 "Name has been changed to: Bob"
 - 其实就是拦截器，然后触发了 set，然后执行对应的回调即可。
 
 ### 实现一个 computed
+
+- 计算属性，其实就是有个缓存
 
 ```js
 // 创建一个包含计算逻辑的对象
@@ -309,18 +319,14 @@ Object.is = function (x, y) {
     // 当前情况下，只有一种情况是特殊的，即 +0 -0
     // 如果 x !== 0，则返回true
     // 如果 x === 0，则需要判断+0和-0，则可以直接使用 1/+0 === Infinity 和 1/-0 === -Infinity来进行判断
-    return x !== 0 || 1 / x === 1 / y;
+    // 如果都为0，则使用其倒数
+    return x !== 0 || 1 / x === 1 / y
   }
 
   // x !== y 的情况下，只需要判断是否为NaN，如果x!==x，则说明x是NaN，同理y也一样
-  // x和y同时为NaN时，返回true
-  return x !== x && y !== y;
-};
-
-作者：loveX001
-链接：https://juejin.cn/post/7145983225242845221
-来源：稀土掘金
-著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+  // x和y同时为NaN时，返回true，只有NaN时，才会自身不等于自身
+  return x !== x && y !== y
+}
 ```
 
 ### 实现一个快速排序
@@ -345,10 +351,13 @@ console.log(quickSort([3, 6, 2, 4, 1]))
 ```js
 unction add(...args) {
   let allArgs = [...args] // 闭包保存
+  // 使用 fn() 时，就是记录数据而已
   function fn(...newArgs) {
     allArgs = [...allArgs, ...newArgs]
     return fn
   }
+
+  // 当触发隐式转换时，会执行toString函数
   fn.toString = function() {
     // 没有入参，直接返回
     if (!allArgs.length) {
@@ -357,6 +366,8 @@ unction add(...args) {
     // 计算结果
     return allArgs.reduce((sum, cur) => sum + cur)
   }
+
+  // 链式调用
   return fn
 }
 ```
@@ -366,7 +377,7 @@ unction add(...args) {
 还可以如下：
 
 ```js
-// 柯理化，
+// 柯理化，是一个高阶函数
 function curry(fn) {
   // 满足一定条件后，执行fn
   let arr = []
@@ -564,7 +575,6 @@ deepEqual([1, 2], { 0: 1, 1: 2 }) // false
 
 - 加载阶段
 - 运行时阶段
--
 - 内存
 
 #### 小程序加载性能，包含容器创建的时间吗？
