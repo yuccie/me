@@ -323,9 +323,9 @@ const throttle = (fn, duration = 300) => {
 
 三种情况，
 
-- 当 restTime <= 0 需要立即执行；
-- 当 restTime > 0 且 没有定时器，则需要新建定时器，且时间间隔为 restTime；
-- 当 restTime > 0 且 有定时器，则不执行
+- 当 `restTime <= 0` 需要立即执行；
+- 当 `restTime > 0` 且 没有定时器，则需要新建定时器，且时间间隔为 restTime；
+- 当 `restTime > 0` 且 有定时器，则不执行
 
 #### 节流
 

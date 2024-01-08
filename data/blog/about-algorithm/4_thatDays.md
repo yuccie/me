@@ -767,7 +767,7 @@ Shadow DOM 为封装而生。**它可以让一个组件拥有自己的「影子�
 <show-hello name="John"></show-hello>
 ```
 
-- 首先，调用 elem.attachShadow({mode: …}) 可以创建一个 shadow tree。
+- 首先，调用 `elem.attachShadow({mode: …})` 可以创建一个 shadow tree。
 
 - 在每个元素中，我们只能创建一个 shadow root。
 - elem 必须是自定义元素，或者是以下元素的其中一个`：「article」、「aside」、「blockquote」、「body」、「div」、「footer」、「h1…h6」、「header」、「main」、「nav」、「p」、「section」或者「span」。其他元素，比如 <img>，不能容纳 shadow tree。`
@@ -778,7 +778,7 @@ mode 选项可以设定封装层级。他必须是以下两个值之一：
 - 「closed」 —— elem.shadowRoot 永远是 null。
 - 我们只能通过 attachShadow 返回的指针来访问 shadow DOM（并且可能隐藏在一个 class 中）。浏览器原生的 shadow tree，比如 `<input type="range">`，是封闭的。没有任何方法可以访问它们。
 - attachShadow 返回的 shadow root，其实就是 shadow dom 的根节点而已
-- shadowRoot = elem.attachShadow({mode: open|closed}) —— 为 elem 创建 shadow DOM。如果 mode="open"，那么它通过 elem.shadowRoot 属性被访问。
+- `shadowRoot = elem.attachShadow({mode: open|closed})` —— 为 elem 创建 shadow DOM。如果 mode="open"，那么它通过 elem.shadowRoot 属性被访问。
 
 在小程序中，virtualHost 的组件节点无法被 selectComponent 和 getRelationNodes 选中
 
