@@ -10,6 +10,229 @@ bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/about-algorithm/4_那些日子.md
 ---
 
+## 20240118 周四
+
+### 使用 requestAnimationFrame 实现一个 setinterval
+
+其实也不是很准，因为浏览器 1s 是 60fps，因此 requestAnimationFrame 最快也得 16.6ms 才可以绘制。
+
+```js
+function mySetInterval(cb, interval) {
+  let start = Date.now()
+
+  function loop() {
+    let current = Date.now()
+    if (current - start >= interval) {
+      // 如果大于间隔，则立马执行
+      cb()
+      // 并重置start
+      start = Date.now()
+    }
+    // 否则压入回调，待下一次循环
+    requestAnimationFrame(loop)
+  }
+
+  // 立马压入回调
+  requestAnimationFrame(loop)
+}
+```
+
+但是上面的方法，无法执行小于 16.6ms 的 case，如果需要更加精确，则需要如下：
+
+```js
+function mySetInterval(callback, interval) {
+  let start = Date.now()
+  function run() {
+    const current = Date.now()
+    if (current - start >= interval) {
+      callback()
+      start = Date.now()
+    }
+    // 只是将run加入回调，具体是否执行 callback，还需要 current - start >= interval 说了算
+    setTimeout(run, 0) // 使用setTimeout来实现更精确的时间间隔
+  }
+  setTimeout(run, 0)
+}
+```
+
+### 原型链相关
+
+- 我们创建的每一个函数都有一个 prototype（原型）属性，被称为显示原型，这个属性是一个指针，指向一个对象（原型对象）。
+- 这个对象的好处是，在它上面定义的属性和方法可以由特定类型的所有实例共享。
+- 原型对象默认拥有一个 constructor 属性，指向它的构造函数
+- JavaScript 中所有的对象都是由它的原型对象继承而来。
+- 而原型对象自身也是一个对象，它也有自己的原型对象，这样层层上溯，就形成了一个类似链表的结构，这就是原型链
+
+```js
+// JavaScript 是一门基于原型的语言，在软件设计模式中，有一种模式叫做原型模式
+
+function Person() {}
+
+const personA = new Person()
+
+console.log(personA.__proto__) //{ constructor : ƒ Person() }
+console.log(personA.__proto__ === Person.prototype) // true)
+console.log(Object.getPrototypeOf(personA) === Person.prototype) // true
+console.log(personA.__proto__ === Object.getPrototypeOf(personA)) // true
+
+// [[Prototype]] 是在 JavaScript 中实例的特殊隐藏属性，但因为无法直接被访问到，因此可以透过 __proto__ 的访问方法。
+
+// __proto__ 是实例对象上的属性
+// prototype 是构造函数上的属性，函数上就有
+console.log(personA.__proto__ === Person.prototype) // true)
+```
+
+- 在已经创建了实例的情况下重写原型，会切断现有实例与新原型之间的联系
+- 如果要重写原型，一定要在重写原型后，再创建实例。
+
+```js
+function Person(name) {
+  this.name = name
+}
+
+// 在重写实例之前创建，p1还是指向 Person 旧实例
+let p1 = new Person('小明')
+Person.prototype.eat = function () {
+  console.log(`${this.name}在吃饭`)
+}
+
+// 重写原型
+Person.prototype = {
+  name: '小明',
+  sayHello() {
+    console.log(`大家好，我是${this.name}`)
+  },
+}
+
+p1.eat() // 小明在吃饭，指向的依然旧的
+p1.sayHello() // p1.sayHello is not a function
+```
+
+重写原型对象，会导致原型对象的 constructor 属性指向 Object ，导致原型链关系混乱，所以我们应该在重写原型对象的时候指定 constructor( 指定后 instanceof 仍然会返回正确的值)
+
+```js
+function Person() {}
+Person.prototype = {} //重写原型,{}是一个对象实例，对象实例的原型指向的是Object.prototype,而Object.prototype中的constructor指向的是Object
+console.log(Person.prototype.constructor === Object) //true
+
+// 单独指定constructor
+// 重写原型,在prototype中需要重新指定constructor的值
+Person.prototype = {
+  constructor: Person,
+}
+console.log(Person.prototype.constructor === Person) //true
+```
+
+```js
+// Object.create()方法创建一个新对象，使用现有的对象来提供新创建的对象的__proto__
+Object.create(proto[,propertiesObject])
+// proto 新创建对象的原型对象
+// propertiesObject 可选。需要传入一个对象，将为新创建的对象添加指定的属性值和对应的属性描述符。
+
+// 手动实现一个Object.create
+function create(proto, propertiesObject) {
+  if (typeof proto !== 'object' && typeof proto !== 'function') {
+    throw new TypeError('Object prototype may only be an Object or null');
+  }
+
+  // 1、声明构造函数
+  // 2、指定原型对象
+  // 3、实例化
+  // 4、使用 Object.defineProperties 修饰实例
+  // 5、返回最新的实例对象
+  function F() {}
+  F.prototype = proto;
+  const obj = new F();
+
+  if (propertiesObject !== undefined) {
+    Object.defineProperties(obj, propertiesObject);
+  }
+  return obj;
+}
+```
+
+说说 [] 的原型链 ？
+
+```js
+let arr = [1, 2, 3]
+console.log(arr.__proto__ === Array.prototype) // true  所有数组都是由Array构造出来
+console.log(Array.prototype.__proto__ === Object.prototype) // true  Array构造函数的是由 Object构造出来的。
+console.log(Object.prototype.__proto__) // null Objec.prototype 指向的原型对象同样拥有原型，不过它的原型是 null ，而 null 则没有原型
+```
+
+实现一个 instanceof 方法
+
+```js
+// 我们需要持续检查对象的原型链，看看它是否是 指定构造函数 的实例。
+function myInstanceOf(obj, constructor) {
+  // constructor 是函数，如果非函数，则报错
+  if (typeof constructor !== 'function') {
+    throw new Error('Right-hand side of instanceof is not callable')
+  }
+
+  if (obj === null || (typeof obj !== 'object' && typeof obj !== 'function')) {
+    return false
+  }
+
+  // 获取当前对象的原型
+  let proto = Object.getPrototypeOf(obj)
+  while (proto !== null) {
+    // 如果原型 与 构造函数的原型相等，说明是
+    if (proto === constructor.prototype) {
+      return true
+    }
+    // 否则继续获取原型的原型。
+    proto = Object.getPrototypeOf(proto)
+  }
+  // 如果还没结果，则返回false
+  return false
+}
+```
+
+### 拍平一个树状结构
+
+```js
+// 写一个函数，将树状结构，解析成拍平的对象
+const obj1 = {
+  a: {
+    b: {
+      c: 1,
+    },
+    bb: 2,
+  },
+  d: {
+    dd: 1,
+  },
+}
+
+const convertObj = (obj) => {
+  // 树形结构
+  // 遍历：深度和广度优先遍历
+  // 深度用栈，广度有队列
+  const res = {}
+
+  const dfs = (data, path) => {
+    Object.keys(data).forEach((key) => {
+      // 注意：创建一个新的path数组，而不是直接修改原始的path数组。这样可以确保在不同的递归层级中使用不同的path数组，避免共享状态导致的问题
+      // path = path.concat(key) ❌
+      // path.push(key)  ❌
+      const newPath = path.concat(key)
+      if (typeof data[key] !== 'object') {
+        res[newPath.join('.')] = data[key]
+      } else {
+        // path.push(key); ❌
+        dfs(data[key], newPath)
+      }
+    })
+  }
+
+  dfs(obj, [])
+  return res
+}
+console.log(convertObj(obj1))
+// {a.b.c: 1, a.bb: 2, d.dd: 1}
+```
+
 ## 20240101 周四
 
 ```js
