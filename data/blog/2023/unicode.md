@@ -294,6 +294,7 @@ const decoderUrl = (str) => {
   while (decodeURIComponent(str) !== str) {
     str = decodeURIComponent(str)
   }
+  console.log('str', str)
   return str
 }
 console.log(decoderUrl('%25252F')) // /  🔥🔥 这里将其转换为 最开始的状态了

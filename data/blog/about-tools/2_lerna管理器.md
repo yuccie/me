@@ -43,6 +43,36 @@ lerna create <package-name> # 执行该命令后，会让你输入新packages的
 lerna ls
 ```
 
+### 在 lerna 仓库里添加其他仓库的代码
+
+```js
+git submodule add <子模块的远程仓库URL> <子模块存储的目录>
+```
+
+通过上述模式添加的仓库，其他人 clone 完源项目库后，并不能获取到源码，需要如下操作
+
+您在一个 Git 项目中使用 git submodule add 添加了一个子模块后，其他终端要获取对应的源码，需要执行以下步骤：
+
+在终端中进入您的 Git 项目的根目录。
+
+运行以下命令来初始化子模块：
+
+bash
+
+```bash
+git submodule update --init
+```
+
+这将初始化子模块并获取对应的源码。
+
+如果子模块有更新，您可以运行以下命令来获取最新的子模块源码：
+
+```bash
+git submodule update --remote
+```
+
+这将获取子模块的最新版本。
+
 ### 安装对应包的依赖
 
 - 可以直接进入到对应的 packages 里，然后 npm i xxx
