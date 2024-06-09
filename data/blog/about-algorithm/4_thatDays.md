@@ -10,7 +10,636 @@ bibliography: references-data.bib
 canonicalUrl: https://dume.vercel.app/blog/about-algorithm/4_那些日子.md
 ---
 
-## 20231231 周六
+## 20240118 周四
+
+### 使用 requestAnimationFrame 实现一个 setinterval
+
+其实也不是很准，因为浏览器 1s 是 60fps，因此 requestAnimationFrame 最快也得 16.6ms 才可以绘制。
+
+```js
+function mySetInterval(cb, interval) {
+  let start = Date.now()
+
+  function loop() {
+    let current = Date.now()
+    if (current - start >= interval) {
+      // 如果大于间隔，则立马执行
+      cb()
+      // 并重置start
+      start = Date.now()
+    }
+    // 否则压入回调，待下一次循环
+    requestAnimationFrame(loop)
+  }
+
+  // 立马压入回调
+  requestAnimationFrame(loop)
+}
+```
+
+但是上面的方法，无法执行小于 16.6ms 的 case，如果需要更加精确，则需要如下：
+
+```js
+function mySetInterval(callback, interval) {
+  let start = Date.now()
+  function run() {
+    const current = Date.now()
+    if (current - start >= interval) {
+      callback()
+      start = Date.now()
+    }
+    // 只是将run加入回调，具体是否执行 callback，还需要 current - start >= interval 说了算
+    setTimeout(run, 0) // 使用setTimeout来实现更精确的时间间隔
+  }
+  setTimeout(run, 0)
+}
+```
+
+### 原型链相关
+
+- 我们创建的每一个函数都有一个 prototype（原型）属性，被称为显示原型，这个属性是一个指针，指向一个对象（原型对象）。
+- 这个对象的好处是，在它上面定义的属性和方法可以由特定类型的所有实例共享。
+- 原型对象默认拥有一个 constructor 属性，指向它的构造函数
+- JavaScript 中所有的对象都是由它的原型对象继承而来。
+- 而原型对象自身也是一个对象，它也有自己的原型对象，这样层层上溯，就形成了一个类似链表的结构，这就是原型链
+
+```js
+// JavaScript 是一门基于原型的语言，在软件设计模式中，有一种模式叫做原型模式
+
+function Person() {}
+
+const personA = new Person()
+
+console.log(personA.__proto__) //{ constructor : ƒ Person() }
+console.log(personA.__proto__ === Person.prototype) // true)
+console.log(Object.getPrototypeOf(personA) === Person.prototype) // true
+console.log(personA.__proto__ === Object.getPrototypeOf(personA)) // true
+
+// [[Prototype]] 是在 JavaScript 中实例的特殊隐藏属性，但因为无法直接被访问到，因此可以透过 __proto__ 的访问方法。
+
+// __proto__ 是实例对象上的属性
+// prototype 是构造函数上的属性，函数上就有
+console.log(personA.__proto__ === Person.prototype) // true)
+```
+
+- 在已经创建了实例的情况下重写原型，会切断现有实例与新原型之间的联系
+- 如果要重写原型，一定要在重写原型后，再创建实例。
+
+```js
+function Person(name) {
+  this.name = name
+}
+
+// 在重写实例之前创建，p1还是指向 Person 旧实例
+let p1 = new Person('小明')
+Person.prototype.eat = function () {
+  console.log(`${this.name}在吃饭`)
+}
+
+// 重写原型
+Person.prototype = {
+  name: '小明',
+  sayHello() {
+    console.log(`大家好，我是${this.name}`)
+  },
+}
+
+p1.eat() // 小明在吃饭，指向的依然旧的
+p1.sayHello() // p1.sayHello is not a function
+```
+
+重写原型对象，会导致原型对象的 constructor 属性指向 Object ，导致原型链关系混乱，所以我们应该在重写原型对象的时候指定 constructor( 指定后 instanceof 仍然会返回正确的值)
+
+```js
+function Person() {}
+Person.prototype = {} //重写原型,{}是一个对象实例，对象实例的原型指向的是Object.prototype,而Object.prototype中的constructor指向的是Object
+console.log(Person.prototype.constructor === Object) //true
+
+// 单独指定constructor
+// 重写原型,在prototype中需要重新指定constructor的值
+Person.prototype = {
+  constructor: Person,
+}
+console.log(Person.prototype.constructor === Person) //true
+```
+
+```js
+// Object.create()方法创建一个新对象，使用现有的对象来提供新创建的对象的__proto__
+Object.create(proto[,propertiesObject])
+// proto 新创建对象的原型对象
+// propertiesObject 可选。需要传入一个对象，将为新创建的对象添加指定的属性值和对应的属性描述符。
+
+// 手动实现一个Object.create
+function create(proto, propertiesObject) {
+  if (typeof proto !== 'object' && typeof proto !== 'function') {
+    throw new TypeError('Object prototype may only be an Object or null');
+  }
+
+  // 1、声明构造函数
+  // 2、指定原型对象
+  // 3、实例化
+  // 4、使用 Object.defineProperties 修饰实例
+  // 5、返回最新的实例对象
+  function F() {}
+  F.prototype = proto;
+  const obj = new F();
+
+  if (propertiesObject !== undefined) {
+    Object.defineProperties(obj, propertiesObject);
+  }
+  return obj;
+}
+```
+
+说说 [] 的原型链 ？
+
+```js
+let arr = [1, 2, 3]
+console.log(arr.__proto__ === Array.prototype) // true  所有数组都是由Array构造出来
+console.log(Array.prototype.__proto__ === Object.prototype) // true  Array构造函数的是由 Object构造出来的。
+console.log(Object.prototype.__proto__) // null Objec.prototype 指向的原型对象同样拥有原型，不过它的原型是 null ，而 null 则没有原型
+```
+
+实现一个 instanceof 方法
+
+```js
+// 我们需要持续检查对象的原型链，看看它是否是 指定构造函数 的实例。
+function myInstanceOf(obj, constructor) {
+  // constructor 是函数，如果非函数，则报错
+  if (typeof constructor !== 'function') {
+    throw new Error('Right-hand side of instanceof is not callable')
+  }
+
+  if (obj === null || (typeof obj !== 'object' && typeof obj !== 'function')) {
+    return false
+  }
+
+  // 获取当前对象的原型
+  let proto = Object.getPrototypeOf(obj)
+  while (proto !== null) {
+    // 如果原型 与 构造函数的原型相等，说明是
+    if (proto === constructor.prototype) {
+      return true
+    }
+    // 否则继续获取原型的原型。
+    proto = Object.getPrototypeOf(proto)
+  }
+  // 如果还没结果，则返回false
+  return false
+}
+```
+
+### 拍平一个树状结构
+
+```js
+// 写一个函数，将树状结构，解析成拍平的对象
+const obj1 = {
+  a: {
+    b: {
+      c: 1,
+    },
+    bb: 2,
+  },
+  d: {
+    dd: 1,
+  },
+}
+
+const convertObj = (obj) => {
+  // 树形结构
+  // 遍历：深度和广度优先遍历
+  // 深度用栈，广度有队列
+  const res = {}
+
+  const dfs = (data, path) => {
+    Object.keys(data).forEach((key) => {
+      // 注意：创建一个新的path数组，而不是直接修改原始的path数组。这样可以确保在不同的递归层级中使用不同的path数组，避免共享状态导致的问题
+      // path = path.concat(key) ❌
+      // path.push(key)  ❌
+      const newPath = path.concat(key)
+      if (typeof data[key] !== 'object') {
+        res[newPath.join('.')] = data[key]
+      } else {
+        // path.push(key); ❌
+        dfs(data[key], newPath)
+      }
+    })
+  }
+
+  dfs(obj, [])
+  return res
+}
+console.log(convertObj(obj1))
+// {a.b.c: 1, a.bb: 2, d.dd: 1}
+```
+
+## 20240101 周四
+
+```js
+// 有这么一个数据结构:
+const data = [
+  {
+    id: '1',
+    sub: [
+      {
+        id: '2',
+        sub: [
+          {
+            id: '3',
+            sub: null,
+          },
+          {
+            id: '4',
+            sub: [
+              {
+                id: '6',
+                sub: null,
+              },
+            ],
+          },
+          {
+            id: '5',
+            sub: null,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '7',
+    sub: [
+      {
+        id: '8',
+        sub: [
+          {
+            id: '9',
+            sub: null,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: '10',
+    sub: null,
+  },
+]
+
+// 现在给定一个id，要求实现一个函数
+function findPath(data, id) {}
+
+// 返回给定id在 data 里的路径
+// 示例:
+// id = "1" => ["1"]
+// id = "9" => ["7", "8", "9"]
+// id = "100"=> []
+// PS: id 全局唯一，无序
+
+// 现在给定一个id，要求实现一个函数
+function findPath(data, id) {
+  let path = []
+
+  // 深度优先
+  function dfs(node, curPath) {
+    // 如果找到了，就赋值path
+    if (node.id === id) {
+      path = curPath.concat(node.id)
+    } else if (Array.isArray(node.sub)) {
+      // 没找到，则递归遍历子节点
+      for (let j = 0; j < node.sub.length; j++) {
+        dfs(node.sub[j], curPath.concat(node.id))
+      }
+    }
+  }
+
+  // 遍历
+  for (let i = 0; i < data.length; i++) {
+    dfs(data[i], []) // 对每个顶层节点都进行深度优先遍历
+  }
+
+  return path
+}
+
+console.log(findPath(data, '9'))
+```
+
+### 实现一个异步加法
+
+- 加法可以直接运行，也就是同步运行，当然也可以异步运行，考察对 promise 以及封装的运用
+
+```js
+function asyncAdd(a, b, cb) {
+  setTimeout(() => {
+    cb(null, a + b)
+  }, Math.random() * 1000)
+}
+
+// 实现sum函数
+async function sum(...args) {
+  if (args.length === 1) {
+    return args[0]
+  } else {
+    const mid = Math.floor(args.length / 2)
+    const leftSumPromise = sum(...args.slice(0, mid))
+    const rightSumPromise = sum(...args.slice(mid))
+    const leftSum = await leftSumPromise
+    const rightSum = await rightSumPromise
+    return new Promise((resolve, reject) => {
+      asyncAdd(leftSum, rightSum, (err, result) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(result)
+        }
+      })
+    })
+  }
+}
+
+// 调用total函数
+async function total() {
+  // 注意这里使用的是 await，因此sum函数必须是promise
+  const res1 = await sum(1, 2, 3, 4, 5, 6, 4)
+  const res2 = await sum(1, 2, 3, 4, 5, 6, 4)
+  return [res1, res2]
+}
+total().then((res) => console.log(res))
+```
+
+### 实现一个批量更新的逻辑
+
+- 其实就是一个宏任务里，不停的向内部添加任务，等到宏任务执行结束，再清空
+- 一个 queue 队列，一个 timer
+
+```js
+// 创建 BatchUpdate 类
+class BatchUpdate {
+  constructor() {
+    this.queue = [] // 用于存储需要批量更新的操作
+    this.timer = null // 用于延迟执行更新操作的定时器
+  }
+
+  // 将更新操作加入队列
+  queueUpdate(operation) {
+    this.queue.push(operation)
+    // 每次压入一个新任务，都需要去调度，但调度因为有定时器，就不会执行
+    this.scheduleUpdate() // 调度更新操作
+  }
+
+  // 调度更新操作
+  scheduleUpdate() {
+    if (!this.timer) {
+      this.timer = setTimeout(() => {
+        this.flushQueue() // 延迟一段时间后执行更新操作
+      }, 0)
+    }
+  }
+
+  // 执行更新操作
+  flushQueue() {
+    this.queue.forEach((operation) => {
+      operation() // 执行更新操作
+    })
+    this.queue = [] // 清空队列
+    this.timer = null // 重置定时器
+  }
+}
+
+// 使用 BatchUpdate 类
+const batchUpdate = new BatchUpdate()
+
+// 模拟需要批量更新的操作
+function updateOperation1() {
+  console.log('Update operation 1')
+}
+
+function updateOperation2() {
+  console.log('Update operation 2')
+}
+
+// 将更新操作加入队列
+batchUpdate.queueUpdate(updateOperation1)
+batchUpdate.queueUpdate(updateOperation2)
+```
+
+- 其实就是将所有批量的任务都放在任务队列里，然后每个定时器执行一次清空操作
+
+### 实现一个 watch
+
+- 定义一个 watcher 类，然后每个观察者都会将自己的回调传入，
+- 然后数据发生变化后，就会触发对应的回调函数
+
+```js
+// 创建 Watcher 类
+class Watcher {
+  constructor(obj, key, callback) {
+    this.obj = obj // 要观察的对象
+    this.key = key // 要观察的属性名
+    this.callback = callback // 属性变化时的回调函数
+
+    this.value = obj[key] // 保存初始值
+
+    this.observe() // 开始观察属性变化
+  }
+
+  observe() {
+    // 使用 Object.defineProperty 监听属性变化
+    Object.defineProperty(this.obj, this.key, {
+      get: () => {
+        return this.value
+      },
+      set: (newValue) => {
+        if (newValue !== this.value) {
+          this.value = newValue
+          this.callback(newValue) // 执行回调函数
+        }
+      },
+    })
+  }
+}
+
+// 使用 Watcher 类
+const data = {
+  name: 'Alice',
+}
+
+// 创建 Watcher 实例
+const watcher = new Watcher(data, 'name', (newVal) => {
+  console.log('Name has been changed to: ' + newVal)
+})
+
+// 修改属性值
+data.name = 'Bob' // 输出 "Name has been changed to: Bob"
+```
+
+- 其实就是拦截器，然后触发了 set，然后执行对应的回调即可。
+
+### 实现一个 computed
+
+- 计算属性，其实就是有个缓存
+
+```js
+// 创建一个包含计算逻辑的对象
+const data = {
+  firstName: 'John',
+  lastName: 'Doe',
+}
+
+// 创建一个缓存对象来存储计算结果
+const cache = {}
+
+// 使用 Proxy 对象来实现依赖追踪和缓存
+const handler = {
+  get: function (target, prop, receiver) {
+    // 如果是计算属性
+    if (prop === 'fullName') {
+      // 如果缓存中有值，直接返回缓存的结果
+      if (cache[prop]) {
+        return cache[prop]
+      }
+      // 否则进行计算
+      const fullName = target.firstName + ' ' + target.lastName
+      // 将计算结果存入缓存
+      cache[prop] = fullName
+      return fullName
+    }
+    // 如果是其他属性，直接返回对应的值
+    return Reflect.get(target, prop, receiver)
+  },
+  set: function (target, prop, value, receiver) {
+    // 如果是响应式属性发生变化，清空缓存
+    if (prop === 'firstName' || prop === 'lastName') {
+      cache.fullName = null
+    }
+    return Reflect.set(target, prop, value, receiver)
+  },
+}
+
+// 创建代理对象
+const reactiveData = new Proxy(data, handler)
+
+// 访问计算属性
+console.log(reactiveData.fullName) // 输出 "John Doe"
+
+// 修改响应式属性
+reactiveData.firstName = 'Jane'
+
+// 再次访问计算属性
+console.log(reactiveData.fullName) // 输出 "Jane Doe"
+```
+
+- 其实就是通过一个对象缓存，然后缓存没有，则重新计算
+- receiver 参数代表了属性访问的接收者，也就是属性被访问时所在的对象
+
+### 实现一个 Object.is 方法
+
+```js
+// 1. NaN在===中是不相等的，而在Object.is中是相等的
+// 2. +0和-0在===中是相等的，而在Object.is中是不相等的
+
+Object.is = function (x, y) {
+  if (x === y) {
+    // 当前情况下，只有一种情况是特殊的，即 +0 -0
+    // 如果 x !== 0，则返回true
+    // 如果 x === 0，则需要判断+0和-0，则可以直接使用 1/+0 === Infinity 和 1/-0 === -Infinity来进行判断
+    // 如果都为0，则使用其倒数
+    return x !== 0 || 1 / x === 1 / y
+  }
+
+  // x !== y 的情况下，只需要判断是否为NaN，如果x!==x，则说明x是NaN，同理y也一样
+  // x和y同时为NaN时，返回true，只有NaN时，才会自身不等于自身
+  return x !== x && y !== y
+}
+```
+
+### 实现一个快速排序
+
+```js
+function quickSort(arr) {
+  if (arr.length < 2) {
+    return arr
+  }
+  const cur = arr[arr.length - 1]
+  // 这里其实，就是排除自身而已
+  const left = arr.filter((v, idx) => v <= cur && idx !== arr.length - 1)
+  const right = arr.filter((v) => v > cur)
+
+  return [...quickSort(left), cur, ...quickSort(right)]
+}
+console.log(quickSort([3, 6, 2, 4, 1]))
+```
+
+### 实现 `add(1)(2)(3)()==6 add(1,2,3)(4)()==10`
+
+```js
+unction add(...args) {
+  let allArgs = [...args] // 闭包保存
+  // 使用 fn() 时，就是记录数据而已
+  function fn(...newArgs) {
+    allArgs = [...allArgs, ...newArgs]
+    return fn
+  }
+
+  // 当触发隐式转换时，会执行toString函数
+  fn.toString = function() {
+    // 没有入参，直接返回
+    if (!allArgs.length) {
+      return
+    }
+    // 计算结果
+    return allArgs.reduce((sum, cur) => sum + cur)
+  }
+
+  // 链式调用
+  return fn
+}
+```
+
+- 其实就是使用的 js 的隐式转换，隐式转换会自动执行其 toString 方法
+
+还可以如下：
+
+```js
+// 柯理化，是一个高阶函数
+function curry(fn) {
+  // 满足一定条件后，执行fn
+  let arr = []
+
+  const next = (...args) => {
+    arr = arr.concat(args)
+    if (!args.length) {
+      // 使用call的话，fn函数的入参需要是个数组。
+      // 这里注意，call的参数二，本身需要的只是一个元素，但这里，这个元素整体是个数组才可以执行下面的reduce
+      return fn.call(null, arr)
+    } else {
+      return next
+    }
+  }
+  return next
+}
+
+//
+var add = curry((arr = []) => {
+  return arr.reduce((pre, next) => pre + next, 0)
+})
+
+add(1)(2)(3, 4)()
+```
+
+```js
+function fn(...args) {
+  if (args.length > 1) {
+    let tempVal = 0
+    args.forEach((item) => (tempVal += item))
+    return tempVal
+  } else {
+    return (...arg1s) => {
+      return fn.apply(this, [...args, ...arg1s])
+    }
+  }
+}
+console.log(fn(1, 2), fn(1)(2))
+```
 
 ### `实现 ab2[cd]1[e] 格式化为 abcdcde 格式`
 
@@ -169,7 +798,6 @@ deepEqual([1, 2], { 0: 1, 1: 2 }) // false
 
 - 加载阶段
 - 运行时阶段
--
 - 内存
 
 #### 小程序加载性能，包含容器创建的时间吗？
@@ -362,7 +990,7 @@ Shadow DOM 为封装而生。**它可以让一个组件拥有自己的「影子�
 <show-hello name="John"></show-hello>
 ```
 
-- 首先，调用 elem.attachShadow({mode: …}) 可以创建一个 shadow tree。
+- 首先，调用 `elem.attachShadow({mode: …})` 可以创建一个 shadow tree。
 
 - 在每个元素中，我们只能创建一个 shadow root。
 - elem 必须是自定义元素，或者是以下元素的其中一个`：「article」、「aside」、「blockquote」、「body」、「div」、「footer」、「h1…h6」、「header」、「main」、「nav」、「p」、「section」或者「span」。其他元素，比如 <img>，不能容纳 shadow tree。`
@@ -373,7 +1001,7 @@ mode 选项可以设定封装层级。他必须是以下两个值之一：
 - 「closed」 —— elem.shadowRoot 永远是 null。
 - 我们只能通过 attachShadow 返回的指针来访问 shadow DOM（并且可能隐藏在一个 class 中）。浏览器原生的 shadow tree，比如 `<input type="range">`，是封闭的。没有任何方法可以访问它们。
 - attachShadow 返回的 shadow root，其实就是 shadow dom 的根节点而已
-- shadowRoot = elem.attachShadow({mode: open|closed}) —— 为 elem 创建 shadow DOM。如果 mode="open"，那么它通过 elem.shadowRoot 属性被访问。
+- `shadowRoot = elem.attachShadow({mode: open|closed})` —— 为 elem 创建 shadow DOM。如果 mode="open"，那么它通过 elem.shadowRoot 属性被访问。
 
 在小程序中，virtualHost 的组件节点无法被 selectComponent 和 getRelationNodes 选中
 

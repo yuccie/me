@@ -323,9 +323,9 @@ const throttle = (fn, duration = 300) => {
 
 三种情况，
 
-- 当 restTime <= 0 需要立即执行；
-- 当 restTime > 0 且 没有定时器，则需要新建定时器，且时间间隔为 restTime；
-- 当 restTime > 0 且 有定时器，则不执行
+- 当 `restTime <= 0` 需要立即执行；
+- 当 `restTime > 0` 且 没有定时器，则需要新建定时器，且时间间隔为 restTime；
+- 当 `restTime > 0` 且 有定时器，则不执行
 
 #### 节流
 
@@ -406,6 +406,8 @@ var throttle = (fn, duration = 300) => {
 ```html
 <!-- 1、flex 容器的一个默认属性值: align-items: stretch;
 2、这个属性导致了列等高的效果。 为了让两个盒子高度自动，需要设置: align-items: flex-start -->
+<!-- flex属性是flex-grow, flex-shrink 和 flex-basis的简写，默认值为0 1 auto。后两个属性可选。 -->
+<!-- flex: 1其实就是，自动分配剩余多余空间，0 即使有剩余空间也不放大；而flex-shrink是1，空间不够自动压缩，0的话不压缩。 -->
 
 <style>
   .box {
