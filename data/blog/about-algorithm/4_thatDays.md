@@ -1459,6 +1459,222 @@ docker build -t simple-node-server .
 docker run -p 3000:3000 -d simple-node-server
 ```
 
+#### 使用 docker 起一个 linux 服务，生成 linux 版的编译器
+
+##### 方式一：
+
+1、编写 Dockerfile
+
+```Dockerfile
+# 指定基础镜像
+FROM ubuntu:20.04
+
+# 设置时区为北京时区（Asia/Shanghai）
+ENV TZ=Asia/Shanghai
+
+RUN apt-get update && apt-get install -y tzdata
+
+# 更新软件包列表并安装必要的工具
+RUN apt-get update && apt-get install -y build-essential cmake make
+
+# 删除缓存
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 创建一个挂载点
+VOLUME /src
+
+# 将宿主机的当前目录下的文件复制到容器的 /src 目录
+COPY . /src
+
+# 在容器中切换到 /src 目录
+WORKDIR /src
+
+# 检查是否存在 make clean 目标，如果存在则执行 make clean
+RUN if make -p | grep -q 'clean:'; then make clean; fi
+
+# 使用 cmake 生成跨平台构建文件
+RUN cmake .
+
+# 编译项目，-j10 表示并行编译，使用10个核心
+RUN make -j10
+
+# 打印完成信息
+RUN echo "docker done!"
+```
+
+2、执行下面的脚本
+
+```bash
+# 1、安装docker客户端
+# 2、基于当前目录，构建名字为 create-linux-dmcc 的镜像
+docker build -t create-linux-dmcc .
+
+# 3、交互模式，运行容器，容器未命名
+docker run -it create-linux-dmcc bash
+
+# 4、查看容器id，找到container-id
+docker ps
+
+# 5、将容器内的产物，拷贝到容器外
+docker cp containe-id:/src/dmcc .
+```
+
+这种方式，需要用户操作更多命令，不方便。
+
+##### 方式二
+
+1、编写 dockerfile 文件
+
+```Dockerfile
+# 指定基础镜像
+FROM ubuntu:20.04
+
+# 设置时区为北京时区（Asia/Shanghai）
+ENV TZ=Asia/Shanghai
+
+RUN apt-get update && apt-get install -y tzdata
+
+# 更新软件包列表并安装必要的工具
+RUN apt-get install -y build-essential cmake make
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# 在容器中切换到 /directory 目录
+WORKDIR /directory
+
+# 拷贝当前项目中的buildLinuxDmcc.sh文件到容器/directory下
+COPY buildLinuxDmcc.sh .
+
+RUN chmod +x buildLinuxDmcc.sh
+
+# 设置挂载点，/directory/src 这样
+VOLUME [ "/src" ]
+
+# 定义CMD，在docker build时，并不执行
+CMD ["./buildLinuxDmcc.sh"]
+```
+
+2、编写 buildLinuxDmcc.sh 文件
+
+```sh
+#!/bin/bash
+
+# 将关联到src目录的文件，拷贝到容器中当前目录
+cp -r /src .
+
+# 进入到 src 目录
+cd ./src
+
+if make -p | grep -q 'clean:'; then
+  # 如果存在，则执行 make clean
+  make clean
+fi
+
+cmake .
+
+make -j10
+
+echo $PWD
+
+mkdir -p /src/dist/linux/
+cp -f ./dmcc /src/dist/linux/
+
+echo 'end'
+```
+
+3、执行命令
+
+```bash
+# 1、安装docker 客户端，docker -v 查看版本
+
+# 2、进入项目根目录
+cd xxx/dimina-parser
+
+# 3、构建镜像
+docker build -t create-linux-dmcc .
+
+# 4、运行容器
+docker run --rm  -v .:/src create-linux-dmcc
+
+# 5、执行完，会在 dist/linux 下生成 linux版的dmcc
+
+# 6、验证linux dmcc
+docker run -it --rm -v ./dist/linux:/src ubuntu bash
+
+cd /src
+
+./dmcc -h
+```
+
+#### docker 充电
+
+```bash
+# 安装docker客户端，安装后 docker --version 查看版本
+# 安装linux发行版系统，docker pull ubantu
+# 启动容器
+# 1、安装docker客户端，安装后 docker --version 查看版本
+
+# 2、安装linux发行版系统，docker pull ubantu
+docker pull ubuntu
+
+# 3、启动容器
+docker run -it --name my-linux-container ubuntu /bin/bash
+
+cat /etc/os-release # 查看系统的版本
+lsb_release -a      # 查看系统的版本
+# 4、安装c++运行的编译器
+apt install -y build-essential
+# 或者
+apt install -y g++
+
+g++ --version # 验证版本
+
+# 5、链接容器外的文件
+docker run -it --name myubuntucontainer -v /Users/xxx目录:/home ubuntu /bin/bash
+
+
+# 6、
+# CMake：是一个跨平台的自动化构建系统，它使用配置文件（CMakeLists.txt）来生成标准的构建文件，如Unix的Makefile或Windows的Visual Studio工程文件。CMake负责生成这些构建文件，但不直接参与编译过程。
+# Make：是一个构建自动化工具，它读取Makefile文件，并根据其中的指令来编译和链接程序。Make工具在Unix-like系统中广泛使用，用于自动化编译过程。
+
+# 常用命令
+# 停止一个正在运行的容器
+docker stop my-linux-container
+# 启动一个容器
+docker start my-linux-container
+# 删除一个容器
+docker rm my-linux-container
+# 查看容器的日志
+docker logs my-linux-container
+
+# 查看所有的容器
+
+docker run -it --name your-container-name your-image-name bash
+# -it：这两个参数组合在一起，-i 表示交互式操作，-t 分配一个伪终端。
+# --name your-container-name：这为新容器指定了一个名称，your-container-name 是你自定义的容器名称。
+#  your-image-name：这是你之前构建的 Docker 镜像的名称。
+# bash：这是在容器启动后要执行的命令，这里以启动 Bash shell 为例。
+
+# 镜像：分基础镜像和各种分层镜像，想删除镜像，要先删除上层镜像，然后才能删除基础镜像
+# 容器：基于镜像运行起来的服务，可以有多个，
+
+# docker container ls -as 可以查看所有的容器
+# 如上图，create-linux-dmcc 是 image，而容器id是第一列，然后CMD命令是第三列，如果容器没有添加名字，则会随机生成一个名字，最后一列是size，virtual是包含基础镜像的大小。
+
+# docker build -t create-linux-dmcc .  基于当前目录，创建一个名为 create-linux-dmcc 的镜像，
+# docker build时，并不会执行 CMD 等命令
+# docker run  --rm  -v .:/src create-linux-dmcc
+# 自动执行CMD脚本，执行完，删除容器--rm
+# -v .:/src 表示，将当前目录关联到容器的/src挂载点
+# 不加 -it bash，会自动执行CMD里的脚本
+
+# docker run  -it --rm  -v .:/src create-linux-dmcc bash 会打开一个bash窗口，然后需要自己操作对应shell命令
+# 快速测试：docker run -it --rm -v .:/test  ubuntu bash  可以快速打开一个linux的环境
+
+# 在ubuntu中，需要 ./xxx 执行，才是当前目录的文件
+# 如果直接 xxx ，则是全局的脚本。
+```
+
 ## 20231206 周三
 
 ### 404 并不会触发 XMLHttpRequest 的 onerror 事件
