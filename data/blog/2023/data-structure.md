@@ -1485,7 +1485,7 @@ var change = (amount, coins) => {
 
 题目：给定 n 个非负整数表示每个宽度为 1 的柱子的高度图，计算按此排列的柱子，下雨之后能接多少雨水。【力扣 42 题】
 
-- 可以理解为，一排高低不同的阶梯，下雨后，阶梯里可以存多少水
+- 可以理解为，一排高低不同的实心阶梯，下雨后，阶梯里可以存多少水
 - 只有低的柱子，也就是形成坑，才可能存水。。。木桶效应
 - 双指针，从两侧往里遍历，然后判断双指针指向的柱子，谁高谁低，
 - 需记录每次的最高高度
@@ -1651,7 +1651,7 @@ function maxArea(arr) {
   }
   return max
 }
-maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 48
+maxArea([1, 8, 6, 2, 5, 4, 8, 3, 7]) // 49
 // 其实就是 height[8]  height[1] => (8 - 1) * Math.min(7, 8) => 49
 ```
 
@@ -3487,7 +3487,7 @@ function isPalindrome(head) {
 
   let pre = null
   let cur = slow.next
-  slow.next = null
+  // slow.next = null
 
   // 反转后半部分
   while (cur) {
