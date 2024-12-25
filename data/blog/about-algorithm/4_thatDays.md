@@ -3775,6 +3775,7 @@ var isSymmetric = function (root) {
 ```js
 // 拍平，转数字，去重，排序
 var arr = [1, 3, [3, 4, [3, 4]]]
+
 const res = arr
   .toString()
   .split(',')
