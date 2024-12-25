@@ -208,7 +208,7 @@ const obj1 = {
 const convertObj = (obj) => {
   // 树形结构
   // 遍历：深度和广度优先遍历
-  // 深度用栈，广度有队列
+  // 深度用栈，广度用队列
   const res = {}
 
   const dfs = (data, path) => {
@@ -646,7 +646,7 @@ console.log(fn(1, 2), fn(1)(2))
 ```js
 function decodeString(s) {
   let result = ''
-  let num = 0
+  // let num = 0
   let stack = []
 
   for (let char of s) {
