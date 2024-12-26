@@ -827,6 +827,7 @@ deepEqual([1, 2], { 0: 1, 1: 2 }) // false
 #### AST explorer
 
 AST Explorer 支持多种解析器，包括但不限于以下语言和工具：
+每种语言都有对应的语言解析器
 
 - JavaScript：支持的解析器包括 acorn、espree、babel、typescript 等。
 - CSS：支持的解析器包括 cssom、csstree、postcss 等。
@@ -1005,10 +1006,56 @@ mode 选项可以设定封装层级。他必须是以下两个值之一：
 
 在小程序中，virtualHost 的组件节点无法被 selectComponent 和 getRelationNodes 选中
 
+Shadow DOM 是一种浏览器技术，它允许开发者将一个 Web 组件的内部实现细节隐藏起来，创建一个封装的影子树（shadow tree）。
+
+1. 封装性：Shadow DOM 允许开发者创建一个独立的 DOM 树，这个树与外部的 DOM 树是隔离的，这意味着组件的内部结构不会被外部脚本访问或修改，从而提高了组件的安全性和可维护性。
+
+2. 样式隔离：在 Shadow DOM 中定义的 CSS 样式不会被外部的 CSS 影响，同样，外部的 CSS 也不会渗透到 Shadow DOM 中去。这有助于避免样式冲突，并使得组件的样式更加可控。
+
+3. 组件化：Shadow DOM 支持 Web 组件的创建，使得开发者可以构建可复用的自定义元素（Custom Elements），这些元素可以像 HTML 的标准元素一样使用。
+
+4. 生命周期管理：Shadow DOM 允许开发者控制组件的生命周期，包括创建、连接、断开和销毁。这有助于管理资源和性能优化。
+
+5. 事件处理：Shadow DOM 提供了事件冒泡和捕获的控制，允许开发者定义事件是否应该在组件内部处理，或者冒泡到外部的 DOM 树。
+
+6. 性能优化：由于 Shadow DOM 中的元素不会被外部脚本直接访问，这可以减少不必要的 DOM 操作，从而提高性能。
+
+兼容性和渐进增强：Shadow DOM 允许开发者为不支持某些功能的浏览器提供后备方案，实现渐进增强。
+
 ### 版本比较
 
 - 位数填充成一致，前面补 0
 - 然后从高位开始往下比较
+
+```js
+function compareVersions(version1, version2) {
+  // 将版本号字符串分割成数组
+  const v1 = version1.split('.').map(Number)
+  const v2 = version2.split('.').map(Number)
+
+  // 将两个版本号数组长度统一
+  const maxLength = Math.max(v1.length, v2.length)
+  v1.length = maxLength
+  v2.length = maxLength
+
+  // 逐位比较版本号
+  for (let i = 0; i < maxLength; i++) {
+    // 如果当前位v1大于v2，返回1
+    if (v1[i] > v2[i]) return 1
+    // 如果当前位v1小于v2，返回-1
+    if (v1[i] < v2[i]) return -1
+  }
+
+  // 如果所有位都相等，返回0
+  return 0
+}
+
+// 使用示例
+console.log(compareVersions('1.2.3', '1.2.3')) // 输出 0
+console.log(compareVersions('1.2.4', '1.2.3')) // 输出 1
+console.log(compareVersions('1.2.3', '1.2.4')) // 输出 -1
+console.log(compareVersions('1.2.3-alpha', '1.2.3-beta')) // 输出 -1
+```
 
 ### canvas 画布
 
